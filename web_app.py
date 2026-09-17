@@ -73,20 +73,32 @@ for _b in _candidate_bins:
 DEFAULT_PRESET = {
     "id": "voce_del_successo",
     "name": "La Voce del Successo",
-    "description": "Preset ufficiale con font Raleway, sottotitolo al centro e watermark a +100px",
+    "description": "Preset ufficiale con font Raleway Light, Dimensione 8 (Ridim. 105%), Posizione Y: 0, Watermark Raleway SemiBold Dim. 5 (Ridim. 114%), Posizione Y: -207",
     "is_default": True,
+    "capcut_size": 8,
+    "capcut_sub_scale": 105,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "capcut_wm_size": 5,
+    "capcut_wm_scale": 114,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -207,
     "offset_sub_x": 0,
     "offset_sub_y": 0,              # Centro esatto 960px
     "offset_wm_x": 0,
-    "offset_wm_y": 100,            # 100px sotto il centro (1060px)
+    "offset_wm_y": 207,            # Y: -207 CapCut -> offset_y = +207 (1167px)
     "subtitle_y": SUBTITLE_Y,       # 960
-    "watermark_y": WATERMARK_Y,     # 1060
-    "font_size_sub": FONT_SIZE_SUB, # 45
-    "font_size_wm": FONT_SIZE_WM,   # 30
-    "watermark_text": WATERMARK_TEXT,
+    "watermark_y": 1167,            # 960 + 207
+    "font_size_sub": 46,            # 8 * 1.05 * 5.5 = 46
+    "font_size_wm": 31,             # 5 * 1.14 * 5.5 = 31
+    "watermark_text": "@lavocedelsuccesso",
     "stroke_width": 0,
     "shadow_offset": 0,
     "font_family": "Raleway",
+    "font_name": "Raleway",
+    "pattern": "Light",
+    "all_caps": False,
+    "letter_spacing": 0,
 }
 
 DEFAULT_PRESETS = [
@@ -94,10 +106,18 @@ DEFAULT_PRESETS = [
     {
         "id": "mc",
         "name": "MC",
-        "description": "Preset MC con font Alata Bold, dimensione 10 (55pt), Y: +418 (-418 CapCut), senza watermark",
+        "description": "Preset con font Alata Bold, Dimensione 10, Posizione Y: -418, senza watermark",
         "is_default": False,
+        "capcut_size": 10,
+        "capcut_sub_scale": 100,
+        "capcut_x": 0,
+        "capcut_y": -418,
+        "capcut_wm_size": 0,
+        "capcut_wm_scale": 100,
+        "capcut_wm_x": 0,
+        "capcut_wm_y": 0,
         "offset_sub_x": 0,
-        "offset_sub_y": 418,            # CapCut y: -418 -> Y: +418 nel sistema app
+        "offset_sub_y": 418,
         "offset_wm_x": 0,
         "offset_wm_y": 0,
         "subtitle_y": SUBTITLE_Y + 418, # 1378
@@ -110,12 +130,22 @@ DEFAULT_PRESETS = [
         "font_family": "Alata",
         "font_name": "Alata",
         "pattern": "Bold",
+        "all_caps": False,
+        "letter_spacing": 0,
     },
     {
         "id": "minimal_modern",
         "name": "Minimal Modern",
-        "description": "Stile compatto con sottotitoli a 38pt e contorno leggero per video veloci",
+        "description": "Stile compatto con font Raleway, Dimensione 7, Posizione Y: -20, Watermark Posizione Y: -110",
         "is_default": False,
+        "capcut_size": 7,
+        "capcut_sub_scale": 100,
+        "capcut_x": 0,
+        "capcut_y": -20,
+        "capcut_wm_size": 5,
+        "capcut_wm_scale": 100,
+        "capcut_wm_x": 0,
+        "capcut_wm_y": -110,
         "offset_sub_x": 0,
         "offset_sub_y": 20,
         "offset_wm_x": 0,
@@ -124,29 +154,50 @@ DEFAULT_PRESETS = [
         "watermark_y": WATERMARK_Y + 10,
         "font_size_sub": 38,
         "font_size_wm": 26,
-        "watermark_text": WATERMARK_TEXT,
+        "watermark_text": "@lavocedelsuccesso",
         "stroke_width": 2,
         "shadow_offset": 1,
         "font_family": "Raleway",
         "font_name": "Raleway",
         "pattern": "Normal",
+        "all_caps": False,
+        "letter_spacing": 0,
     }
 ]
 
 PRESETS_FILE = DATA_DIR / "presets.json"
 
 def load_presets() -> list[dict[str, Any]]:
+    # Se il file dati utente non esiste, proviamo a copiare dal template di fabbrica
     if not PRESETS_FILE.exists():
+        factory_file = WORKSPACE / "presets.json"
+        if factory_file.exists():
+            try:
+                data = json.loads(factory_file.read_text(encoding="utf-8"))
+                if isinstance(data, list) and len(data) > 0:
+                    save_presets(data)
+                    return data
+            except Exception:
+                pass
         save_presets(DEFAULT_PRESETS)
         return list(DEFAULT_PRESETS)
     try:
         data = json.loads(PRESETS_FILE.read_text(encoding="utf-8"))
         if isinstance(data, list) and len(data) > 0:
             modified = False
-            has_voce = any(p.get("id") == "voce_del_successo" or p.get("name") == "La Voce del Successo" for p in data)
-            if not has_voce:
+            voce_idx = next((i for i, p in enumerate(data) if p.get("id") == "voce_del_successo"), None)
+            if voce_idx is None:
                 data.insert(0, DEFAULT_PRESET)
                 modified = True
+            else:
+                # Se il preset voce_del_successo esistente ha ancora i vecchi valori senza capcut_wm_scale
+                p = data[voce_idx]
+                if "capcut_wm_scale" not in p or p.get("offset_wm_y") == 100:
+                    for k, v in DEFAULT_PRESET.items():
+                        if k not in p or p.get(k) is None or k in ("capcut_wm_scale", "capcut_sub_scale", "capcut_wm_y", "offset_wm_y", "watermark_y"):
+                            p[k] = v
+                    modified = True
+
             has_mc = any(p.get("id") == "mc" or p.get("name") == "MC" for p in data)
             if not has_mc:
                 mc_preset = next((p for p in DEFAULT_PRESETS if p.get("id") == "mc"), None)
@@ -730,7 +781,13 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/presets":
-            preset_data = payload.get("preset")
+            if isinstance(payload, dict) and "preset" in payload and isinstance(payload.get("preset"), dict):
+                preset_data = payload["preset"]
+            elif isinstance(payload, dict):
+                preset_data = payload
+            else:
+                preset_data = None
+
             if not preset_data or not isinstance(preset_data, dict):
                 self.send_error_json("Dati del preset non validi")
                 return
@@ -745,30 +802,74 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 slug = re.sub(r"[^a-zA-Z0-9_]+", "_", p_name.lower()).strip("_")
                 p_id = f"preset_{slug}_{int(time.time())}" if slug else f"preset_{int(time.time())}"
             preset_data["id"] = p_id
-
             preset_data["name"] = p_name
-            preset_data["offset_sub_x"] = int(preset_data.get("offset_sub_x", 0))
-            preset_data["offset_sub_y"] = int(preset_data.get("offset_sub_y", 0))
-            preset_data["offset_wm_x"] = int(preset_data.get("offset_wm_x", 0))
-            preset_data["offset_wm_y"] = int(preset_data.get("offset_wm_y", 100))
-            preset_data["font_size_sub"] = int(preset_data.get("font_size_sub", 45))
-            preset_data["font_size_wm"] = int(preset_data.get("font_size_wm", 30))
-            preset_data["watermark_text"] = str(preset_data.get("watermark_text", "@lavocedelsuccesso"))
-            preset_data["stroke_width"] = int(preset_data.get("stroke_width", 0))
-            preset_data["shadow_offset"] = int(preset_data.get("shadow_offset", 0))
-            preset_data["font_family"] = str(preset_data.get("font_family", "Raleway"))
+
+            def _to_num(v, default=0, is_float=False):
+                try:
+                    return float(v) if is_float else int(round(float(v)))
+                except (ValueError, TypeError):
+                    return default
+
+            # Valori CapCut nativi
+            capcut_size = _to_num(preset_data.get("capcut_size", 10), 10, is_float=True)
+            capcut_sub_scale = _to_num(preset_data.get("capcut_sub_scale", 100), 100, is_float=True)
+            capcut_x = _to_num(preset_data.get("capcut_x", 0), 0)
+            capcut_y = _to_num(preset_data.get("capcut_y", -418), -418)
+
+            capcut_wm_size = _to_num(preset_data.get("capcut_wm_size", 5), 5, is_float=True)
+            capcut_wm_scale = _to_num(preset_data.get("capcut_wm_scale", 100), 100, is_float=True)
+            capcut_wm_x = _to_num(preset_data.get("capcut_wm_x", 0), 0)
+            capcut_wm_y = _to_num(preset_data.get("capcut_wm_y", -207), -207)
+
+            preset_data["capcut_size"] = capcut_size
+            preset_data["capcut_sub_scale"] = capcut_sub_scale
+            preset_data["capcut_x"] = capcut_x
+            preset_data["capcut_y"] = capcut_y
+
+            preset_data["capcut_wm_size"] = capcut_wm_size
+            preset_data["capcut_wm_scale"] = capcut_wm_scale
+            preset_data["capcut_wm_x"] = capcut_wm_x
+            preset_data["capcut_wm_y"] = capcut_wm_y
+
+            # Calcolo coordinate assolute ed effettive per il motore di rendering
+            eff_sub_size = capcut_size * (capcut_sub_scale / 100.0)
+            preset_data["font_size_sub"] = _to_num(preset_data.get("font_size_sub", round(eff_sub_size * 5.5)), round(eff_sub_size * 5.5))
+            preset_data["offset_sub_x"] = capcut_x
+            preset_data["offset_sub_y"] = -capcut_y
+            preset_data["subtitle_y"] = SUBTITLE_Y - capcut_y
+
+            eff_wm_size = capcut_wm_size * (capcut_wm_scale / 100.0)
+            preset_data["font_size_wm"] = _to_num(preset_data.get("font_size_wm", round(eff_wm_size * 5.5)), round(eff_wm_size * 5.5))
+            preset_data["offset_wm_x"] = capcut_wm_x
+            preset_data["offset_wm_y"] = -capcut_wm_y
+            preset_data["watermark_y"] = WATERMARK_Y - capcut_wm_y
+
+            # Stili e font
+            font = str(preset_data.get("font_name") or preset_data.get("font_family", "Raleway")).strip()
+            preset_data["font_name"] = font
+            preset_data["font_family"] = font
+            preset_data["pattern"] = str(preset_data.get("pattern", "Light")).strip()
+            preset_data["all_caps"] = bool(preset_data.get("all_caps", False))
+            preset_data["letter_spacing"] = _to_num(preset_data.get("letter_spacing", 0), 0)
+            preset_data["watermark_text"] = str(preset_data.get("watermark_text", "")).strip()
+            preset_data["stroke_width"] = _to_num(preset_data.get("stroke_width", 0), 0)
+            preset_data["shadow_offset"] = _to_num(preset_data.get("shadow_offset", 0), 0)
 
             presets = load_presets()
             updated = False
             for idx, p in enumerate(presets):
                 if p.get("id") == p_id:
                     preset_data["is_default"] = p.get("is_default", False)
+                    if "description" in p and ("description" not in preset_data or not preset_data["description"]):
+                        preset_data["description"] = p["description"]
                     presets[idx] = preset_data
                     updated = True
                     break
 
             if not updated:
                 preset_data["is_default"] = False
+                if "description" not in preset_data or not preset_data["description"]:
+                    preset_data["description"] = f"Preset personalizzato {p_name}"
                 presets.append(preset_data)
 
             save_presets(presets)

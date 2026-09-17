@@ -3,7 +3,7 @@
     "id": "mc",
     "name": "MC",
     "description": "Preset con font Alata Bold, Dimensione 10, Posizione Y: -418, senza watermark",
-    "is_default": true,
+    "is_default": false,
     "capcut_size": 10,
     "capcut_sub_scale": 100,
     "capcut_x": 0,
@@ -32,8 +32,8 @@
   {
     "id": "voce_del_successo",
     "name": "La Voce del Successo",
-    "description": "Preset ufficiale con font Raleway, Dimensione 8 (Ridim. 105%), Posizione Y: 0, Watermark Dim. 5 (Ridim. 114%), Posizione Y: -207",
-    "is_default": false,
+    "description": "Preset ufficiale con font Raleway Light, Dimensione 8 (Ridim. 105%), Posizione Y: 0, Watermark Raleway SemiBold Dim. 5 (Ridim. 114%), Posizione Y: -207",
+    "is_default": true,
     "capcut_size": 8,
     "capcut_sub_scale": 105,
     "capcut_x": 0,
@@ -55,7 +55,7 @@
     "shadow_offset": 0,
     "font_family": "Raleway",
     "font_name": "Raleway",
-    "pattern": "Normal",
+    "pattern": "Light",
     "all_caps": false,
     "letter_spacing": 0
   },

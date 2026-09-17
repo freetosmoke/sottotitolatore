@@ -1984,7 +1984,7 @@
           const res = await fetch("/api/presets", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newPresetPayload)
+            body: JSON.stringify({ preset: newPresetPayload })
           });
           const data = await res.json();
           if (data.success && data.preset) {
@@ -2017,7 +2017,7 @@
           const res = await fetch("/api/presets", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(curConfig)
+            body: JSON.stringify({ preset: curConfig })
           });
           const data = await res.json();
           if (data.success && data.preset) {
@@ -2049,7 +2049,7 @@
           const res = await fetch("/api/presets", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ preset: payload })
           });
           const data = await res.json();
           if (data.success && data.preset) {
