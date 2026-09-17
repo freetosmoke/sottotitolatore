@@ -1,8 +1,8 @@
 [
   {
     "id": "mc",
-    "name": "MC (CapCut Calibrato)",
-    "description": "Preset MC calibrato al 100% su CapCut: Font Alata Bold, Dimensione CapCut 10 (55pt), Y: -418, senza watermark",
+    "name": "MC",
+    "description": "Preset con font Alata Bold, Dimensione 10, Posizione Y: -418, senza watermark",
     "is_default": true,
     "capcut_size": 10,
     "capcut_x": 0,
@@ -27,9 +27,9 @@
   {
     "id": "voce_del_successo",
     "name": "La Voce del Successo",
-    "description": "Preset ufficiale con font Raleway, sottotitolo al centro e watermark a +100px",
+    "description": "Preset ufficiale con font Raleway, Dimensione 8, Posizione Y: 0, watermark a +100",
     "is_default": false,
-    "capcut_size": 8.2,
+    "capcut_size": 8,
     "capcut_x": 0,
     "capcut_y": 0,
     "offset_sub_x": 0,
@@ -38,7 +38,7 @@
     "offset_wm_y": 100,
     "subtitle_y": 960,
     "watermark_y": 1060,
-    "font_size_sub": 45,
+    "font_size_sub": 44,
     "font_size_wm": 30,
     "watermark_text": "@lavocedelsuccesso",
     "stroke_width": 0,
@@ -52,7 +52,7 @@
   {
     "id": "minimal_modern",
     "name": "Minimal Modern",
-    "description": "Stile compatto con sottotitoli a 38pt (CapCut 7) e contorno leggero per video veloci",
+    "description": "Stile compatto con font Raleway, Dimensione 7, Posizione Y: -20",
     "is_default": false,
     "capcut_size": 7,
     "capcut_x": 0,
