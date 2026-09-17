@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+*.dmg
+dist/
+web_outputs/
+web_uploads/
+_backup_pre_capcut/
