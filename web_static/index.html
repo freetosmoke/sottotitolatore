@@ -168,21 +168,32 @@
       pointer-events: none;
     }
     /* Fullscreen Container & Overlay */
-    #video-container:fullscreen {
-      width: 100vw !important;
+    #video-container:fullscreen,
+    #video-container:-webkit-full-screen {
       height: 100vh !important;
-      max-height: none !important;
+      width: calc(100vh * 9 / 16) !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      margin: 0 auto !important;
       border-radius: 0 !important;
       border: none !important;
       background-color: #000000 !important;
     }
-    #video-container:-webkit-full-screen {
-      width: 100vw !important;
+    #video-container.is-pseudo-fullscreen {
+      position: fixed !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
       height: 100vh !important;
-      max-height: none !important;
+      width: calc(100vh * 9 / 16) !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
       border-radius: 0 !important;
       border: none !important;
       background-color: #000000 !important;
+      z-index: 999999 !important;
+      box-shadow: 0 0 0 100vmax #000000 !important;
     }
     #fs-controls {
       position: absolute;
@@ -665,19 +676,20 @@
               <input type="text" id="new-preset-wm-text" placeholder="@nomecanale" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none text-xs">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Dim. Watermark (pt)</label>
-              <input type="number" id="new-preset-fs-wm" value="30" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+              <label class="text-slate-400 block mb-1">Dim. Watermark</label>
+              <input type="number" step="0.5" id="new-preset-capcut-wm-size" value="5.5" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+              <input type="hidden" id="new-preset-fs-wm" value="30">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Offset Y Watermark (px)</label>
-              <input type="number" id="new-preset-wm-y" value="100" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs" placeholder="100 = sotto centro">
+              <label class="text-slate-400 block mb-1">Posizione Y Watermark</label>
+              <input type="number" id="new-preset-wm-y" value="-100" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs" placeholder="-100 = giù">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Contorno Nero (px)</label>
+              <label class="text-slate-400 block mb-1">Contorno Nero</label>
               <input type="number" id="new-preset-stroke" value="0" min="0" max="10" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Ombra (px)</label>
+              <label class="text-slate-400 block mb-1">Ombra</label>
               <input type="number" id="new-preset-shadow" value="0" min="0" max="10" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
             </div>
           </div>
@@ -845,7 +857,7 @@
               <span class="text-xs">🔠 Tutto Maiuscolo</span>
             </label>
             <div>
-              <label class="text-slate-400 block mb-1 text-xs">Spaziatura caratteri (px)</label>
+              <label class="text-slate-400 block mb-1 text-xs">Spaziatura caratteri</label>
               <input type="number" id="cfg-letter-spacing" value="0" min="-5" max="20" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
             </div>
           </div>
@@ -867,26 +879,28 @@
 
           <div class="grid grid-cols-3 gap-2.5">
             <div>
-              <label class="text-slate-400 block mb-1">Dimensione (pt)</label>
-              <input type="number" id="cfg-fs-wm" value="30" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
+              <label class="text-slate-400 block mb-1">Dimensione</label>
+              <input type="number" step="0.5" id="cfg-capcut-wm-size" value="5.5" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
+              <input type="hidden" id="cfg-fs-wm" value="30">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Offset X (px)</label>
+              <label class="text-slate-400 block mb-1">Posizione X</label>
               <input type="number" id="cfg-wm-x" value="0" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono" placeholder="0 = Centro">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Offset Y (px)</label>
-              <input type="number" id="cfg-wm-y" value="100" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono" placeholder="100 = giù">
+              <label class="text-slate-400 block mb-1">Posizione Y</label>
+              <input type="number" id="cfg-wm-y" value="-100" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono" placeholder="-100 = giù">
             </div>
           </div>
+          <p class="text-[10.5px] text-slate-500 -mt-1">Posizione: <strong>0</strong> = Centro, <strong>negativo</strong> = verso il basso (es. <code>-100</code>), <strong>positivo</strong> = verso l'alto.</p>
 
           <div class="grid grid-cols-2 gap-2.5 pt-1">
             <div>
-              <label class="text-slate-400 block mb-1">Contorno Nero (px)</label>
+              <label class="text-slate-400 block mb-1">Contorno Nero</label>
               <input type="number" id="cfg-stroke" min="0" max="10" value="0" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Ombra (px)</label>
+              <label class="text-slate-400 block mb-1">Ombra</label>
               <input type="number" id="cfg-shadow" min="0" max="10" value="0" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
             </div>
           </div>
@@ -1067,6 +1081,7 @@
     const cfgAllCaps = document.getElementById("cfg-all-caps");
     const cfgLetterSpacing = document.getElementById("cfg-letter-spacing");
     const cfgFsWm = document.getElementById("cfg-fs-wm");
+    const cfgCapcutWmSize = document.getElementById("cfg-capcut-wm-size");
     const cfgWmX = document.getElementById("cfg-wm-x");
     const cfgWmY = document.getElementById("cfg-wm-y");
     const cfgWmText = document.getElementById("cfg-wm-text");
@@ -1385,6 +1400,10 @@
     }
 
     // Scorciatoie da Tastiera: Spazio (Play/Pausa), Cmd+Z (Annulla), Cmd+Shift+Z (Ripristina)
+    function isFullscreenActive() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement || (videoContainer && videoContainer.classList.contains('is-pseudo-fullscreen')));
+    }
+
     window.addEventListener("keydown", (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
         const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
@@ -1408,7 +1427,7 @@
           e.preventDefault();
           togglePlay();
         }
-      } else if (e.code === 'ArrowLeft' && document.fullscreenElement) {
+      } else if (e.code === 'ArrowLeft' && isFullscreenActive()) {
         const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
         if (tag !== 'input' && tag !== 'textarea') {
           e.preventDefault();
@@ -1417,7 +1436,7 @@
             showFsControls();
           }
         }
-      } else if (e.code === 'ArrowRight' && document.fullscreenElement) {
+      } else if (e.code === 'ArrowRight' && isFullscreenActive()) {
         const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
         if (tag !== 'input' && tag !== 'textarea') {
           e.preventDefault();
@@ -1425,6 +1444,10 @@
             videoPlayer.currentTime = Math.min(videoPlayer.duration || Infinity, videoPlayer.currentTime + 5);
             showFsControls();
           }
+        }
+      } else if (e.key === "Escape" && isFullscreenActive()) {
+        if (typeof exitFullscreen === 'function') {
+          exitFullscreen();
         }
       }
     });
@@ -1520,6 +1543,11 @@
       const allCaps = cfgAllCaps ? cfgAllCaps.checked : false;
       const letterSpacing = num(cfgLetterSpacing ? cfgLetterSpacing.value : 0, 0);
 
+      const capcutWmY = num(cfgWmY ? cfgWmY.value : -100, -100);
+      const capcutWmX = num(cfgWmX ? cfgWmX.value : 0, 0);
+      const capcutWmSize = parseFloat(cfgCapcutWmSize ? cfgCapcutWmSize.value : 5.5) || 5.5;
+      const fsWm = num(cfgFsWm ? cfgFsWm.value : Math.round(capcutWmSize * 5.5), 30);
+
       return {
         id: activePresetId,
         name: cur.name || "Preset",
@@ -1534,9 +1562,12 @@
         offset_sub_y: -capcutY, // Conversione automatica scala CapCut -> coordinate schermo
         all_caps: allCaps,
         letter_spacing: letterSpacing,
-        font_size_wm: num(cfgFsWm ? cfgFsWm.value : 30, 30),
-        offset_wm_x: num(cfgWmX ? cfgWmX.value : 0, 0),
-        offset_wm_y: num(cfgWmY ? cfgWmY.value : 100, 100),
+        capcut_wm_size: capcutWmSize,
+        capcut_wm_x: capcutWmX,
+        capcut_wm_y: capcutWmY,
+        font_size_wm: fsWm,
+        offset_wm_x: capcutWmX,
+        offset_wm_y: -capcutWmY,
         watermark_text: cfgWmText ? cfgWmText.value : "",
         stroke_width: num(cfgStroke ? cfgStroke.value : 0, 0),
         shadow_offset: num(cfgShadow ? cfgShadow.value : 0, 0),
@@ -1621,9 +1652,15 @@
         if (cfgAllCaps) cfgAllCaps.checked = !!p.all_caps;
         if (cfgLetterSpacing) cfgLetterSpacing.value = p.letter_spacing !== undefined ? p.letter_spacing : 0;
 
-        if (cfgFsWm) cfgFsWm.value = p.font_size_wm !== undefined ? p.font_size_wm : 30;
-        if (cfgWmX) cfgWmX.value = p.offset_wm_x !== undefined ? p.offset_wm_x : 0;
-        if (cfgWmY) cfgWmY.value = p.offset_wm_y !== undefined ? p.offset_wm_y : 100;
+        const pWmSize = p.font_size_wm !== undefined ? p.font_size_wm : 30;
+        const pCapcutWmSize = p.capcut_wm_size !== undefined ? p.capcut_wm_size : parseFloat((pWmSize / 5.5).toFixed(1));
+        if (cfgFsWm) cfgFsWm.value = pWmSize;
+        if (cfgCapcutWmSize) cfgCapcutWmSize.value = pCapcutWmSize;
+
+        const pCapcutWmY = p.capcut_wm_y !== undefined ? p.capcut_wm_y : (p.offset_wm_y !== undefined ? -p.offset_wm_y : -100);
+        const pCapcutWmX = p.capcut_wm_x !== undefined ? p.capcut_wm_x : (p.offset_wm_x !== undefined ? p.offset_wm_x : 0);
+        if (cfgWmX) cfgWmX.value = pCapcutWmX;
+        if (cfgWmY) cfgWmY.value = pCapcutWmY;
         if (cfgWmText) cfgWmText.value = p.watermark_text !== undefined ? p.watermark_text : "";
         if (cfgStroke) cfgStroke.value = p.stroke_width !== undefined ? p.stroke_width : 0;
         if (cfgShadow) cfgShadow.value = p.shadow_offset !== undefined ? p.shadow_offset : 0;
@@ -1871,6 +1908,11 @@
         const letterSpacing = num("new-preset-letter-spacing", 0);
         const fsSub = num("new-preset-fs-sub", Math.round(capcutSize * 5.5));
 
+        const capcutWmSizeEl = document.getElementById("new-preset-capcut-wm-size");
+        const capcutWmSize = capcutWmSizeEl ? (parseFloat(capcutWmSizeEl.value) || 5.5) : 5.5;
+        const capcutWmY = num("new-preset-wm-y", -100);
+        const fsWm = num("new-preset-fs-wm", Math.round(capcutWmSize * 5.5));
+
         const newPresetPayload = {
           name: name,
           font_name: fontSelect ? fontSelect.value : "Alata",
@@ -1884,9 +1926,12 @@
           offset_sub_y: -capcutY,
           all_caps: allCaps,
           letter_spacing: letterSpacing,
-          font_size_wm: num("new-preset-fs-wm", 30),
+          capcut_wm_size: capcutWmSize,
+          capcut_wm_x: 0,
+          capcut_wm_y: capcutWmY,
+          font_size_wm: fsWm,
           offset_wm_x: 0,
-          offset_wm_y: num("new-preset-wm-y", 100),
+          offset_wm_y: -capcutWmY,
           watermark_text: wmInput ? wmInput.value : "",
           stroke_width: num("new-preset-stroke", 0),
           shadow_offset: num("new-preset-shadow", 0)
@@ -1981,7 +2026,7 @@
 
     loadPresetsFromApi(true);
 
-    // Sincronizzazione dinamica Dimensione CapCut <-> Punti (pt)
+    // Sincronizzazione dinamica Dimensione Subtitle CapCut <-> Punti (pt)
     if (cfgCapcutSize && cfgFsSub) {
       cfgCapcutSize.addEventListener("input", () => {
         const val = parseFloat(cfgCapcutSize.value);
@@ -2001,21 +2046,47 @@
       });
     }
 
-    const npCapcutSize = document.getElementById("new-preset-capcut-size");
-    const npFsSub = document.getElementById("new-preset-fs-sub");
-    const npFsSubBadge = document.getElementById("new-preset-fs-sub-badge");
-    if (npCapcutSize && npFsSub) {
-      npCapcutSize.addEventListener("input", () => {
-        const val = parseFloat(npCapcutSize.value);
+    // Sincronizzazione dinamica Dimensione Watermark CapCut <-> Punti (pt)
+    if (cfgCapcutWmSize && cfgFsWm) {
+      cfgCapcutWmSize.addEventListener("input", () => {
+        const val = parseFloat(cfgCapcutWmSize.value);
         if (!isNaN(val)) {
-          const pt = Math.round(val * 5.5);
-          npFsSub.value = pt;
-          if (npFsSubBadge) npFsSubBadge.innerText = `≈ ${pt}pt`;
+          cfgFsWm.value = Math.round(val * 5.5);
+          updateLiveOverlayPositions();
+        }
+      });
+      cfgFsWm.addEventListener("input", () => {
+        const val = parseFloat(cfgFsWm.value);
+        if (!isNaN(val)) {
+          cfgCapcutWmSize.value = (val / 5.5).toFixed(1).replace(/\.0$/, "");
+          updateLiveOverlayPositions();
         }
       });
     }
 
-    [cfgFsSub, cfgCapcutSize, cfgSubX, cfgSubY, cfgAllCaps, cfgLetterSpacing, cfgFsWm, cfgWmX, cfgWmY, cfgWmText, cfgStroke, cfgShadow].forEach(input => {
+    const npCapcutSize = document.getElementById("new-preset-capcut-size");
+    const npFsSub = document.getElementById("new-preset-fs-sub");
+    if (npCapcutSize && npFsSub) {
+      npCapcutSize.addEventListener("input", () => {
+        const val = parseFloat(npCapcutSize.value);
+        if (!isNaN(val)) {
+          npFsSub.value = Math.round(val * 5.5);
+        }
+      });
+    }
+
+    const npCapcutWmSize = document.getElementById("new-preset-capcut-wm-size");
+    const npFsWm = document.getElementById("new-preset-fs-wm");
+    if (npCapcutWmSize && npFsWm) {
+      npCapcutWmSize.addEventListener("input", () => {
+        const val = parseFloat(npCapcutWmSize.value);
+        if (!isNaN(val)) {
+          npFsWm.value = Math.round(val * 5.5);
+        }
+      });
+    }
+
+    [cfgFsSub, cfgCapcutSize, cfgSubX, cfgSubY, cfgAllCaps, cfgLetterSpacing, cfgCapcutWmSize, cfgFsWm, cfgWmX, cfgWmY, cfgWmText, cfgStroke, cfgShadow].forEach(input => {
       if (input) {
         input.addEventListener("input", () => {
           updateLiveOverlayPositions();
@@ -2076,9 +2147,11 @@
         if (cfgSubY) cfgSubY.value = cur.capcut_y !== undefined ? cur.capcut_y : (cur.offset_sub_y !== undefined ? -cur.offset_sub_y : -418);
         if (cfgAllCaps) cfgAllCaps.checked = !!cur.all_caps;
         if (cfgLetterSpacing) cfgLetterSpacing.value = cur.letter_spacing || 0;
-        if (cfgFsWm) cfgFsWm.value = cur.font_size_wm || 30;
-        if (cfgWmX) cfgWmX.value = cur.offset_wm_x || 0;
-        if (cfgWmY) cfgWmY.value = cur.offset_wm_y !== undefined ? cur.offset_wm_y : 100;
+        const pWmSize = cur.font_size_wm || 30;
+        if (cfgFsWm) cfgFsWm.value = pWmSize;
+        if (cfgCapcutWmSize) cfgCapcutWmSize.value = cur.capcut_wm_size || (pWmSize / 5.5).toFixed(1);
+        if (cfgWmX) cfgWmX.value = cur.capcut_wm_x !== undefined ? cur.capcut_wm_x : (cur.offset_wm_x || 0);
+        if (cfgWmY) cfgWmY.value = cur.capcut_wm_y !== undefined ? cur.capcut_wm_y : (cur.offset_wm_y !== undefined ? -cur.offset_wm_y : -100);
         if (cfgWmText) cfgWmText.value = cur.watermark_text || "";
         if (cfgStroke) cfgStroke.value = cur.stroke_width || 0;
         if (cfgShadow) cfgShadow.value = cur.shadow_offset || 0;
@@ -2094,19 +2167,20 @@
       const allCaps = cfgAllCaps ? cfgAllCaps.checked : false;
       const letterSpacing = parseInt(cfgLetterSpacing ? cfgLetterSpacing.value : 0) || 0;
 
-      const fsWm = parseInt(cfgFsWm ? cfgFsWm.value : 30) || 30;
-      const offWmX = parseInt(cfgWmX ? cfgWmX.value : 0) || 0;
-      const offWmY = parseInt(cfgWmY ? cfgWmY.value : 100) || 100;
+      const capcutWmSize = parseFloat(cfgCapcutWmSize ? cfgCapcutWmSize.value : ((parseInt(cfgFsWm ? cfgFsWm.value : 30) || 30) / 5.5)) || 5.5;
+      const fsWm = parseInt(cfgFsWm ? cfgFsWm.value : Math.round(capcutWmSize * 5.5)) || Math.round(capcutWmSize * 5.5);
+      const capcutWmX = parseFloat(cfgWmX ? cfgWmX.value : 0) || 0;
+      const capcutWmY = parseFloat(cfgWmY ? cfgWmY.value : -100) || -100;
 
       const wmText = cfgWmText ? cfgWmText.value : "";
       const strokeVal = parseInt(cfgStroke ? cfgStroke.value : 0) || 0;
       const shadowVal = parseInt(cfgShadow ? cfgShadow.value : 0) || 0;
 
-      // Coordinate relative al centro: convenzione CapCut (Y=0 centro, negativo verso il basso)
+      // Coordinate relative al centro: convenzione CapCut (Y=0 centro, negativo verso il basso, positivo verso l'alto)
       const subXPercent = 50 + ((capcutX / 1080) * 100);
       const subYPercent = 50 - ((capcutY / 1920) * 100);
-      const wmXPercent = 50 + ((offWmX / 1080) * 100);
-      const wmYPercent = 50 + ((offWmY / 1920) * 100);
+      const wmXPercent = 50 + ((capcutWmX / 1080) * 100);
+      const wmYPercent = 50 - ((capcutWmY / 1920) * 100);
 
       liveSubBox.style.left = `${subXPercent}%`;
       liveSubBox.style.top = `${subYPercent}%`;
@@ -2149,19 +2223,56 @@
 
     window.addEventListener("resize", updateLiveOverlayPositions);
 
-    // Fullscreen Support
-    btnFullscreen.addEventListener("click", () => {
-      if (!document.fullscreenElement) {
+    // Fullscreen Support (Native with seamless Pseudo-Fullscreen Fallback)
+    async function enterFullscreen() {
+      let nativeRequested = false;
+      try {
         if (videoContainer.requestFullscreen) {
-          videoContainer.requestFullscreen();
+          await videoContainer.requestFullscreen();
+          nativeRequested = true;
         } else if (videoContainer.webkitRequestFullscreen) {
           videoContainer.webkitRequestFullscreen();
+          nativeRequested = true;
         }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
+      } catch (err) {
+        console.warn("Fullscreen nativo non disponibile o bloccato, uso fallback integrato:", err);
       }
+
+      if (!nativeRequested && !document.fullscreenElement && !document.webkitFullscreenElement) {
+        videoContainer.classList.add('is-pseudo-fullscreen');
+        document.body.classList.add('overflow-hidden');
+        fsIsActive = true;
+        showFsControls();
+        updateFsProgress();
+        setTimeout(updateLiveOverlayPositions, 50);
+      }
+    }
+
+    function exitFullscreen() {
+      if (document.fullscreenElement) {
+        try { document.exitFullscreen(); } catch (e) {}
+      } else if (document.webkitFullscreenElement) {
+        try { document.webkitExitFullscreen(); } catch (e) {}
+      }
+      if (videoContainer && videoContainer.classList.contains('is-pseudo-fullscreen')) {
+        videoContainer.classList.remove('is-pseudo-fullscreen');
+        document.body.classList.remove('overflow-hidden');
+      }
+      hideFsControls();
+      setTimeout(updateLiveOverlayPositions, 50);
+    }
+
+    function toggleFullscreen() {
+      if (isFullscreenActive()) {
+        exitFullscreen();
+      } else {
+        enterFullscreen();
+      }
+    }
+
+    btnFullscreen.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleFullscreen();
     });
 
     // === FULLSCREEN ENHANCED CONTROLS ===
@@ -2229,7 +2340,7 @@
     if (fsExitBtn) {
       fsExitBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (document.exitFullscreen) document.exitFullscreen();
+        exitFullscreen();
       });
     }
 
@@ -2255,16 +2366,18 @@
       if (fsIsActive) showFsControls();
     });
 
-    document.addEventListener("fullscreenchange", () => {
+    const handleFsChange = () => {
       setTimeout(updateLiveOverlayPositions, 100);
-      if (document.fullscreenElement) {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
         fsIsActive = true;
         showFsControls();
         updateFsProgress();
-      } else {
+      } else if (!videoContainer.classList.contains('is-pseudo-fullscreen')) {
         hideFsControls();
       }
-    });
+    };
+    document.addEventListener("fullscreenchange", handleFsChange);
+    document.addEventListener("webkitfullscreenchange", handleFsChange);
 
     // Play/Pause
     videoContainer.addEventListener("click", () => togglePlay());

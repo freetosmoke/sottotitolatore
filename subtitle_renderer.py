@@ -271,10 +271,18 @@ def render_watermark(
     shadow_offset: int = 0,
     watermark_x: int | None = None,
     watermark_y: int | None = None,
+    capcut_wm_x: int | None = None,
+    capcut_wm_y: int | None = None,
 ) -> Path:
-    if watermark_x is not None:
+    if capcut_wm_x is not None:
+        offset_x = int(capcut_wm_x)
+    elif watermark_x is not None:
         offset_x = watermark_x - CENTER_X
-    if watermark_y is not None:
+
+    if capcut_wm_y is not None:
+        # Convenzione CapCut: Centro=0, verso il basso negativo (-100 -> offset_y = +100)
+        offset_y = -int(capcut_wm_y)
+    elif watermark_y is not None:
         offset_y = watermark_y - CENTER_Y
 
     img  = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
@@ -387,15 +395,22 @@ def render_all(
         if "capcut_size" in preset and preset["capcut_size"]:
             settings["font_size_sub"] = round(float(preset["capcut_size"]) * 5.5)
 
-        if "offset_wm_x" in preset:
+        if "capcut_wm_x" in preset and preset["capcut_wm_x"] is not None:
+            settings["offset_wm_x"] = int(preset["capcut_wm_x"])
+        elif "offset_wm_x" in preset:
             settings["offset_wm_x"] = int(preset["offset_wm_x"])
         elif "watermark_x" in preset:
             settings["offset_wm_x"] = int(preset["watermark_x"]) - CENTER_X
 
-        if "offset_wm_y" in preset:
+        if "capcut_wm_y" in preset and preset["capcut_wm_y"] is not None:
+            settings["offset_wm_y"] = -int(preset["capcut_wm_y"])
+        elif "offset_wm_y" in preset:
             settings["offset_wm_y"] = int(preset["offset_wm_y"])
         elif "watermark_y" in preset:
             settings["offset_wm_y"] = int(preset["watermark_y"]) - CENTER_Y
+
+        if "capcut_wm_size" in preset and preset["capcut_wm_size"]:
+            settings["font_size_wm"] = round(float(preset["capcut_wm_size"]) * 5.5)
 
         for k in ["font_size_sub", "font_size_wm", "watermark_text", "stroke_width", "shadow_offset", "font_name", "font_family", "pattern", "all_caps", "letter_spacing"]:
             if k in preset:

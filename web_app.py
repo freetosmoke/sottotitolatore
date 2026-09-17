@@ -508,8 +508,23 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 else:
                     sub_oy = int(payload.get("subtitle_y", SUBTITLE_Y)) - 960
 
-                wm_ox = int(payload.get("offset_wm_x", 0))
-                wm_oy = int(payload.get("offset_wm_y", 100)) if "offset_wm_y" in payload else (int(payload.get("watermark_y", WATERMARK_Y)) - 960)
+                if "capcut_wm_size" in payload and payload["capcut_wm_size"]:
+                    fs_wm = round(float(payload["capcut_wm_size"]) * 5.5)
+                else:
+                    fs_wm = int(payload.get("font_size_wm", FONT_SIZE_WM))
+
+                if "capcut_wm_x" in payload and payload["capcut_wm_x"] is not None:
+                    wm_ox = int(payload["capcut_wm_x"])
+                else:
+                    wm_ox = int(payload.get("offset_wm_x", 0))
+
+                if "capcut_wm_y" in payload and payload["capcut_wm_y"] is not None:
+                    wm_oy = -int(payload["capcut_wm_y"])
+                elif "offset_wm_y" in payload:
+                    wm_oy = int(payload["offset_wm_y"])
+                else:
+                    wm_oy = int(payload.get("watermark_y", WATERMARK_Y)) - 960
+
                 stroke_w = int(payload.get("stroke_width", 0))
                 shadow_off = int(payload.get("shadow_offset", 0))
                 all_caps = bool(payload.get("all_caps", False))

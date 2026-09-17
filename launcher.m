@@ -114,6 +114,10 @@ static int find_free_port(int start_port) {
 
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
     config.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone;
+    if (@available(macOS 12.3, *)) {
+        config.preferences.elementFullscreenEnabled = YES;
+    }
+    [config.preferences setValue:@YES forKey:@"fullScreenEnabled"];
     
     self.webView = [[WKWebView alloc] initWithFrame:self.window.contentView.bounds configuration:config];
     self.webView.navigationDelegate = self;
