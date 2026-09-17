@@ -86,11 +86,11 @@ DEFAULT_PRESET = {
     "offset_sub_x": 0,
     "offset_sub_y": 0,              # Centro esatto 960px
     "offset_wm_x": 0,
-    "offset_wm_y": 207,            # Y: -207 CapCut -> offset_y = +207 (1167px)
+    "offset_wm_y": 106,            # Y: -207 CapCut * 0.51 -> offset_y = +106
     "subtitle_y": SUBTITLE_Y,       # 960
-    "watermark_y": 1167,            # 960 + 207
-    "font_size_sub": 46,            # 8 * 1.05 * 5.5 = 46
-    "font_size_wm": 31,             # 5 * 1.14 * 5.5 = 31
+    "watermark_y": 1066,            # 960 + 106 = 1066 (corrispondenza esatta pixel CapCut a 1065.5px)
+    "font_size_sub": 45,            # 8 * 1.05 * 5.35 = 45px
+    "font_size_wm": 30,             # 5 * 1.14 * 5.35 = 30px
     "watermark_text": "@lavocedelsuccesso",
     "stroke_width": 0,
     "shadow_offset": 0,
@@ -117,12 +117,12 @@ DEFAULT_PRESETS = [
         "capcut_wm_x": 0,
         "capcut_wm_y": 0,
         "offset_sub_x": 0,
-        "offset_sub_y": 418,
+        "offset_sub_y": 213,            # -(-418) * 0.51 = 213
         "offset_wm_x": 0,
         "offset_wm_y": 0,
-        "subtitle_y": SUBTITLE_Y + 418, # 1378
+        "subtitle_y": SUBTITLE_Y + 213, # 1173
         "watermark_y": WATERMARK_Y,
-        "font_size_sub": 55,            # CapCut dimensione 10 -> 55pt
+        "font_size_sub": 54,            # 10 * 5.35 = 54px
         "font_size_wm": 0,
         "watermark_text": "",           # no watermark
         "stroke_width": 0,
@@ -147,13 +147,13 @@ DEFAULT_PRESETS = [
         "capcut_wm_x": 0,
         "capcut_wm_y": -110,
         "offset_sub_x": 0,
-        "offset_sub_y": 20,
+        "offset_sub_y": 10,             # -(-20) * 0.51 = 10
         "offset_wm_x": 0,
-        "offset_wm_y": 110,
-        "subtitle_y": SUBTITLE_Y + 20,
-        "watermark_y": WATERMARK_Y + 10,
-        "font_size_sub": 38,
-        "font_size_wm": 26,
+        "offset_wm_y": 56,              # -(-110) * 0.51 = 56
+        "subtitle_y": SUBTITLE_Y + 10,  # 970
+        "watermark_y": SUBTITLE_Y + 56, # 1016
+        "font_size_sub": 37,            # 7 * 5.35 = 37px
+        "font_size_wm": 27,             # 5 * 5.35 = 27px
         "watermark_text": "@lavocedelsuccesso",
         "stroke_width": 2,
         "shadow_offset": 1,
@@ -190,12 +190,10 @@ def load_presets() -> list[dict[str, Any]]:
                 data.insert(0, DEFAULT_PRESET)
                 modified = True
             else:
-                # Se il preset voce_del_successo esistente ha ancora i vecchi valori senza capcut_wm_scale
                 p = data[voce_idx]
-                if "capcut_wm_scale" not in p or p.get("offset_wm_y") == 100:
+                if p.get("offset_wm_y") != 106 or p.get("font_size_sub") != 45 or p.get("watermark_y") != 1066:
                     for k, v in DEFAULT_PRESET.items():
-                        if k not in p or p.get(k) is None or k in ("capcut_wm_scale", "capcut_sub_scale", "capcut_wm_y", "offset_wm_y", "watermark_y"):
-                            p[k] = v
+                        p[k] = v
                     modified = True
 
             has_mc = any(p.get("id") == "mc" or p.get("name") == "MC" for p in data)
@@ -833,16 +831,16 @@ class AppRequestHandler(BaseHTTPRequestHandler):
 
             # Calcolo coordinate assolute ed effettive per il motore di rendering
             eff_sub_size = capcut_size * (capcut_sub_scale / 100.0)
-            preset_data["font_size_sub"] = _to_num(preset_data.get("font_size_sub", round(eff_sub_size * 5.5)), round(eff_sub_size * 5.5))
-            preset_data["offset_sub_x"] = capcut_x
-            preset_data["offset_sub_y"] = -capcut_y
-            preset_data["subtitle_y"] = SUBTITLE_Y - capcut_y
+            preset_data["font_size_sub"] = _to_num(preset_data.get("font_size_sub", round(eff_sub_size * 5.35)), round(eff_sub_size * 5.35))
+            preset_data["offset_sub_x"] = round(capcut_x * 0.51)
+            preset_data["offset_sub_y"] = -round(capcut_y * 0.51)
+            preset_data["subtitle_y"] = SUBTITLE_Y - round(capcut_y * 0.51)
 
             eff_wm_size = capcut_wm_size * (capcut_wm_scale / 100.0)
-            preset_data["font_size_wm"] = _to_num(preset_data.get("font_size_wm", round(eff_wm_size * 5.5)), round(eff_wm_size * 5.5))
-            preset_data["offset_wm_x"] = capcut_wm_x
-            preset_data["offset_wm_y"] = -capcut_wm_y
-            preset_data["watermark_y"] = WATERMARK_Y - capcut_wm_y
+            preset_data["font_size_wm"] = _to_num(preset_data.get("font_size_wm", round(eff_wm_size * 5.35)), round(eff_wm_size * 5.35))
+            preset_data["offset_wm_x"] = round(capcut_wm_x * 0.51)
+            preset_data["offset_wm_y"] = -round(capcut_wm_y * 0.51)
+            preset_data["watermark_y"] = SUBTITLE_Y - round(capcut_wm_y * 0.51)
 
             # Stili e font
             font = str(preset_data.get("font_name") or preset_data.get("font_family", "Raleway")).strip()

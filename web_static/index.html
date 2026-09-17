@@ -61,7 +61,7 @@
       display: inline-flex;
       align-items: baseline;
       justify-content: center;
-      gap: 0.28em;
+      gap: 0.25em;
     }
 
     .podcast-word-light {
@@ -1559,24 +1559,29 @@
     function getActivePresetConfig() {
       const num = (v, def) => { const n = parseInt(v); return isNaN(n) ? def : n; };
       const cur = allPresets.find(p => p.id === activePresetId) || {};
-      const font = (cfgFontName && cfgFontName.value) ? cfgFontName.value : (cur.font_name || cur.font_family || "Alata");
-      const pattern = (cfgPattern && cfgPattern.value) ? cfgPattern.value : (cur.pattern || "Bold");
+      const font = (cfgFontName && cfgFontName.value) ? cfgFontName.value : (cur.font_name || cur.font_family || "Raleway");
+      const pattern = (cfgPattern && cfgPattern.value) ? cfgPattern.value : (cur.pattern || "Light");
 
-      const capcutY = num(cfgSubY ? cfgSubY.value : -418, -418);
+      const capcutY = num(cfgSubY ? cfgSubY.value : 0, 0);
       const capcutX = num(cfgSubX ? cfgSubX.value : 0, 0);
-      const capcutSize = parseFloat(cfgCapcutSize ? cfgCapcutSize.value : 10) || 10;
-      const subScale = parseFloat(cfgSubScale ? cfgSubScale.value : 100) || 100;
+      const capcutSize = parseFloat(cfgCapcutSize ? cfgCapcutSize.value : 8) || 8;
+      const subScale = parseFloat(cfgSubScale ? cfgSubScale.value : 105) || 105;
       const effectiveCapcutSize = capcutSize * (subScale / 100);
-      const fsSub = num(cfgFsSub ? cfgFsSub.value : Math.round(effectiveCapcutSize * 5.5), 55);
+      const fsSub = num(cfgFsSub ? cfgFsSub.value : Math.round(effectiveCapcutSize * 5.35), 45);
       const allCaps = cfgAllCaps ? cfgAllCaps.checked : false;
       const letterSpacing = num(cfgLetterSpacing ? cfgLetterSpacing.value : 0, 0);
 
       const capcutWmY = num(cfgWmY ? cfgWmY.value : -207, -207);
       const capcutWmX = num(cfgWmX ? cfgWmX.value : 0, 0);
       const capcutWmSize = parseFloat(cfgCapcutWmSize ? cfgCapcutWmSize.value : 5) || 5;
-      const wmScale = parseFloat(cfgWmScale ? cfgWmScale.value : 100) || 100;
+      const wmScale = parseFloat(cfgWmScale ? cfgWmScale.value : 114) || 114;
       const effectiveWmCapcutSize = capcutWmSize * (wmScale / 100);
-      const fsWm = num(cfgFsWm ? cfgFsWm.value : Math.round(effectiveWmCapcutSize * 5.5), 31);
+      const fsWm = num(cfgFsWm ? cfgFsWm.value : Math.round(effectiveWmCapcutSize * 5.35), 30);
+
+      const offsetSubX = Math.round(capcutX * 0.51);
+      const offsetSubY = -Math.round(capcutY * 0.51);
+      const offsetWmX = Math.round(capcutWmX * 0.51);
+      const offsetWmY = -Math.round(capcutWmY * 0.51);
 
       return {
         id: activePresetId,
@@ -1589,8 +1594,9 @@
         capcut_x: capcutX,
         capcut_y: capcutY,
         font_size_sub: fsSub,
-        offset_sub_x: capcutX,
-        offset_sub_y: -capcutY, // Conversione automatica scala CapCut -> coordinate schermo
+        offset_sub_x: offsetSubX,
+        offset_sub_y: offsetSubY,
+        subtitle_y: 960 + offsetSubY,
         all_caps: allCaps,
         letter_spacing: letterSpacing,
         capcut_wm_size: capcutWmSize,
@@ -1598,8 +1604,9 @@
         capcut_wm_x: capcutWmX,
         capcut_wm_y: capcutWmY,
         font_size_wm: fsWm,
-        offset_wm_x: capcutWmX,
-        offset_wm_y: -capcutWmY,
+        offset_wm_x: offsetWmX,
+        offset_wm_y: offsetWmY,
+        watermark_y: 960 + offsetWmY,
         watermark_text: cfgWmText ? cfgWmText.value : "",
         stroke_width: num(cfgStroke ? cfgStroke.value : 0, 0),
         shadow_offset: num(cfgShadow ? cfgShadow.value : 0, 0),
@@ -1654,8 +1661,8 @@
       const presetBadge = document.getElementById("preset-badge");
       if (presetBadge) presetBadge.innerText = p.name;
 
-      const font = p.font_name || p.font_family || 'Alata';
-      const pattern = p.pattern || 'Bold';
+      const font = p.font_name || p.font_family || 'Raleway';
+      const pattern = p.pattern || 'Light';
       const patLower = pattern.toLowerCase();
 
       document.documentElement.style.setProperty('--preset-font', `'${font}', sans-serif`);
@@ -1674,15 +1681,15 @@
       if (cfgPattern) cfgPattern.value = pattern;
 
       if (updateInputs) {
-        const pSize = p.font_size_sub !== undefined ? p.font_size_sub : 55;
-        const pCapcutSize = p.capcut_size !== undefined ? p.capcut_size : parseFloat((pSize / 5.5).toFixed(1));
-        const pSubScale = p.capcut_sub_scale !== undefined ? p.capcut_sub_scale : 100;
+        const pSize = p.font_size_sub !== undefined ? p.font_size_sub : 45;
+        const pCapcutSize = p.capcut_size !== undefined ? p.capcut_size : parseFloat((pSize / 5.35).toFixed(1));
+        const pSubScale = p.capcut_sub_scale !== undefined ? p.capcut_sub_scale : 105;
         if (cfgFsSub) cfgFsSub.value = pSize;
         if (cfgCapcutSize) cfgCapcutSize.value = pCapcutSize;
         if (cfgSubScale) cfgSubScale.value = pSubScale;
 
-        const pCapcutY = p.capcut_y !== undefined ? p.capcut_y : (p.offset_sub_y !== undefined ? -p.offset_sub_y : -418);
-        const pCapcutX = p.capcut_x !== undefined ? p.capcut_x : (p.offset_sub_x !== undefined ? p.offset_sub_x : 0);
+        const pCapcutY = p.capcut_y !== undefined ? p.capcut_y : (p.offset_sub_y !== undefined ? -Math.round(p.offset_sub_y / 0.51) : 0);
+        const pCapcutX = p.capcut_x !== undefined ? p.capcut_x : (p.offset_sub_x !== undefined ? Math.round(p.offset_sub_x / 0.51) : 0);
         if (cfgSubX) cfgSubX.value = pCapcutX;
         if (cfgSubY) cfgSubY.value = pCapcutY;
 
@@ -1690,14 +1697,14 @@
         if (cfgLetterSpacing) cfgLetterSpacing.value = p.letter_spacing !== undefined ? p.letter_spacing : 0;
 
         const pWmSize = p.font_size_wm !== undefined ? p.font_size_wm : 30;
-        const pCapcutWmSize = p.capcut_wm_size !== undefined ? p.capcut_wm_size : parseFloat((pWmSize / 5.5).toFixed(1));
-        const pWmScale = p.capcut_wm_scale !== undefined ? p.capcut_wm_scale : 100;
+        const pCapcutWmSize = p.capcut_wm_size !== undefined ? p.capcut_wm_size : parseFloat((pWmSize / 5.35).toFixed(1));
+        const pWmScale = p.capcut_wm_scale !== undefined ? p.capcut_wm_scale : 114;
         if (cfgFsWm) cfgFsWm.value = pWmSize;
         if (cfgCapcutWmSize) cfgCapcutWmSize.value = pCapcutWmSize;
         if (cfgWmScale) cfgWmScale.value = pWmScale;
 
-        const pCapcutWmY = p.capcut_wm_y !== undefined ? p.capcut_wm_y : (p.offset_wm_y !== undefined ? -p.offset_wm_y : -100);
-        const pCapcutWmX = p.capcut_wm_x !== undefined ? p.capcut_wm_x : (p.offset_wm_x !== undefined ? p.offset_wm_x : 0);
+        const pCapcutWmY = p.capcut_wm_y !== undefined ? p.capcut_wm_y : (p.offset_wm_y !== undefined ? -Math.round(p.offset_wm_y / 0.51) : -207);
+        const pCapcutWmX = p.capcut_wm_x !== undefined ? p.capcut_wm_x : (p.offset_wm_x !== undefined ? Math.round(p.offset_wm_x / 0.51) : 0);
         if (cfgWmX) cfgWmX.value = pCapcutWmX;
         if (cfgWmY) cfgWmY.value = pCapcutWmY;
         if (cfgWmText) cfgWmText.value = p.watermark_text !== undefined ? p.watermark_text : "";
@@ -2213,21 +2220,21 @@
     }
 
     function updateLiveOverlayPositions() {
-      const capcutSize = parseFloat(cfgCapcutSize ? cfgCapcutSize.value : 10) || 10;
-      const subScale = (parseFloat(cfgSubScale ? cfgSubScale.value : 100) || 100) / 100;
+      const capcutSize = parseFloat(cfgCapcutSize ? cfgCapcutSize.value : 8) || 8;
+      const subScale = (parseFloat(cfgSubScale ? cfgSubScale.value : 105) || 105) / 100;
       const effectiveCapcutSize = capcutSize * subScale;
-      const fsSub = Math.round(effectiveCapcutSize * 5.5);
+      const fsSub = Math.round(effectiveCapcutSize * 5.35);
       if (cfgFsSub) cfgFsSub.value = fsSub;
 
       const capcutX = parseFloat(cfgSubX ? cfgSubX.value : 0) || 0;
-      const capcutY = parseFloat(cfgSubY ? cfgSubY.value : -418) || 0;
+      const capcutY = parseFloat(cfgSubY ? cfgSubY.value : 0) || 0;
       const allCaps = cfgAllCaps ? cfgAllCaps.checked : false;
       const letterSpacing = parseInt(cfgLetterSpacing ? cfgLetterSpacing.value : 0) || 0;
 
       const capcutWmSize = parseFloat(cfgCapcutWmSize ? cfgCapcutWmSize.value : 5) || 5;
-      const wmScale = (parseFloat(cfgWmScale ? cfgWmScale.value : 100) || 100) / 100;
+      const wmScale = (parseFloat(cfgWmScale ? cfgWmScale.value : 114) || 114) / 100;
       const effectiveWmCapcutSize = capcutWmSize * wmScale;
-      const fsWm = Math.round(effectiveWmCapcutSize * 5.5);
+      const fsWm = Math.round(effectiveWmCapcutSize * 5.35);
       if (cfgFsWm) cfgFsWm.value = fsWm;
 
       const capcutWmX = parseFloat(cfgWmX ? cfgWmX.value : 0) || 0;
@@ -2237,11 +2244,16 @@
       const strokeVal = parseInt(cfgStroke ? cfgStroke.value : 0) || 0;
       const shadowVal = parseInt(cfgShadow ? cfgShadow.value : 0) || 0;
 
-      // Coordinate relative al centro: convenzione CapCut (Y=0 centro, negativo verso il basso, positivo verso l'alto)
-      const subXPercent = 50 + ((capcutX / 1080) * 100);
-      const subYPercent = 50 - ((capcutY / 1920) * 100);
-      const wmXPercent = 50 + ((capcutWmX / 1080) * 100);
-      const wmYPercent = 50 - ((capcutWmY / 1920) * 100);
+      // Coordinate relative al centro: fattore scala CapCut 0.51 per video 1080x1920
+      const subPixelOffsetX = capcutX * 0.51;
+      const subPixelOffsetY = -capcutY * 0.51;
+      const wmPixelOffsetX = capcutWmX * 0.51;
+      const wmPixelOffsetY = -capcutWmY * 0.51;
+
+      const subXPercent = 50 + ((subPixelOffsetX / 1080) * 100);
+      const subYPercent = 50 + ((subPixelOffsetY / 1920) * 100);
+      const wmXPercent = 50 + ((wmPixelOffsetX / 1080) * 100);
+      const wmYPercent = 50 + ((wmPixelOffsetY / 1920) * 100);
 
       liveSubBox.style.left = `${subXPercent}%`;
       liveSubBox.style.top = `${subYPercent}%`;
@@ -2251,8 +2263,8 @@
       const containerH = videoContainer.clientHeight || 540;
       const scaleFactor = containerH / 1920;
 
-      const pxSub = Math.round(fsSub * scaleFactor);
-      const pxWm = Math.round(fsWm * scaleFactor);
+      const pxSub = fsSub * scaleFactor;
+      const pxWm = fsWm * scaleFactor;
 
       liveSubText.style.fontSize = `${pxSub}px`;
       liveSubText.style.textTransform = allCaps ? "uppercase" : "none";

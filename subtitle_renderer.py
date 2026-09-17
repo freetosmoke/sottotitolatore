@@ -204,13 +204,13 @@ def render_subtitle(
     capcut_sub_y: int | None = None,
 ) -> Path:
     if capcut_sub_x is not None:
-        offset_x = int(capcut_sub_x)
+        offset_x = round(float(capcut_sub_x) * 0.51)
     elif subtitle_x is not None:
         offset_x = subtitle_x - CENTER_X
 
     if capcut_sub_y is not None:
-        # Convenzione CapCut: Centro=0, verso il basso negativo (-418 -> offset_y=+418)
-        offset_y = -int(capcut_sub_y)
+        # Convenzione CapCut calibrata: 1 unit CapCut = 0.51 px (negativo = verso il basso)
+        offset_y = -round(float(capcut_sub_y) * 0.51)
     elif subtitle_y is not None:
         offset_y = subtitle_y - CENTER_Y
 
@@ -228,7 +228,8 @@ def render_subtitle(
     img  = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     space_w = _w(" ", light) + letter_spacing
-    fh = _h(light)
+    ref_font = semibold if is_bold_pattern else light
+    asc, desc = ref_font.getmetrics()
 
     def _is_bold(idx):
         if is_light_pattern:
@@ -243,7 +244,7 @@ def render_subtitle(
     abs_center_y = CENTER_Y + offset_y
 
     start_x = abs_center_x - (total_w // 2)
-    start_y = abs_center_y - (fh // 2)
+    start_y = abs_center_y - (asc // 2) - round(asc * 0.12)
 
     cur_x = start_x
     for i, word in enumerate(words):
@@ -281,13 +282,13 @@ def render_watermark(
     capcut_wm_y: int | None = None,
 ) -> Path:
     if capcut_wm_x is not None:
-        offset_x = int(capcut_wm_x)
+        offset_x = round(float(capcut_wm_x) * 0.51)
     elif watermark_x is not None:
         offset_x = watermark_x - CENTER_X
 
     if capcut_wm_y is not None:
-        # Convenzione CapCut: Centro=0, verso il basso negativo (-100 -> offset_y = +100)
-        offset_y = -int(capcut_wm_y)
+        # Convenzione CapCut calibrata: 1 unit CapCut = 0.51 px (negativo = verso il basso)
+        offset_y = -round(float(capcut_wm_y) * 0.51)
     elif watermark_y is not None:
         offset_y = watermark_y - CENTER_Y
 
@@ -297,14 +298,14 @@ def render_watermark(
         return out
 
     draw = ImageDraw.Draw(img)
-    fh   = _h(semibold)
     wm_w = _w(watermark_text, semibold)
+    asc, desc = semibold.getmetrics()
 
     abs_center_x = CENTER_X + offset_x
     abs_center_y = CENTER_Y + offset_y
 
     x = abs_center_x - (wm_w // 2)
-    y = abs_center_y - (fh // 2)
+    y = abs_center_y - (asc // 2) - round(asc * 0.20)
 
     _draw_text(
         draw, x, y, watermark_text, semibold,
@@ -380,19 +381,19 @@ def render_all(
     if preset:
         # Supporta coordinate e dimensioni native CapCut
         if "capcut_sub_x" in preset and preset["capcut_sub_x"] is not None:
-            settings["offset_sub_x"] = int(preset["capcut_sub_x"])
+            settings["offset_sub_x"] = round(float(preset["capcut_sub_x"]) * 0.51)
         elif "capcut_x" in preset and preset["capcut_x"] is not None:
-            settings["offset_sub_x"] = int(preset["capcut_x"])
+            settings["offset_sub_x"] = round(float(preset["capcut_x"]) * 0.51)
         elif "offset_sub_x" in preset:
             settings["offset_sub_x"] = int(preset["offset_sub_x"])
         elif "subtitle_x" in preset:
             settings["offset_sub_x"] = int(preset["subtitle_x"]) - CENTER_X
 
         if "capcut_sub_y" in preset and preset["capcut_sub_y"] is not None:
-            # Scala CapCut: negativo verso il basso -> offset_y positivo
-            settings["offset_sub_y"] = -int(preset["capcut_sub_y"])
+            # Scala CapCut calibrata: 1 unit CapCut = 0.51 px video
+            settings["offset_sub_y"] = -round(float(preset["capcut_sub_y"]) * 0.51)
         elif "capcut_y" in preset and preset["capcut_y"] is not None:
-            settings["offset_sub_y"] = -int(preset["capcut_y"])
+            settings["offset_sub_y"] = -round(float(preset["capcut_y"]) * 0.51)
         elif "offset_sub_y" in preset:
             settings["offset_sub_y"] = int(preset["offset_sub_y"])
         elif "subtitle_y" in preset:
@@ -400,17 +401,17 @@ def render_all(
 
         if "capcut_size" in preset and preset["capcut_size"]:
             sub_scale = float(preset.get("capcut_sub_scale", 100)) / 100.0
-            settings["font_size_sub"] = round(float(preset["capcut_size"]) * sub_scale * 5.5)
+            settings["font_size_sub"] = round(float(preset["capcut_size"]) * sub_scale * 5.35)
 
         if "capcut_wm_x" in preset and preset["capcut_wm_x"] is not None:
-            settings["offset_wm_x"] = int(preset["capcut_wm_x"])
+            settings["offset_wm_x"] = round(float(preset["capcut_wm_x"]) * 0.51)
         elif "offset_wm_x" in preset:
             settings["offset_wm_x"] = int(preset["offset_wm_x"])
         elif "watermark_x" in preset:
             settings["offset_wm_x"] = int(preset["watermark_x"]) - CENTER_X
 
         if "capcut_wm_y" in preset and preset["capcut_wm_y"] is not None:
-            settings["offset_wm_y"] = -int(preset["capcut_wm_y"])
+            settings["offset_wm_y"] = -round(float(preset["capcut_wm_y"]) * 0.51)
         elif "offset_wm_y" in preset:
             settings["offset_wm_y"] = int(preset["offset_wm_y"])
         elif "watermark_y" in preset:
@@ -418,7 +419,7 @@ def render_all(
 
         if "capcut_wm_size" in preset and preset["capcut_wm_size"]:
             wm_scale = float(preset.get("capcut_wm_scale", 100)) / 100.0
-            settings["font_size_wm"] = round(float(preset["capcut_wm_size"]) * wm_scale * 5.5)
+            settings["font_size_wm"] = round(float(preset["capcut_wm_size"]) * wm_scale * 5.35)
 
         for k in ["font_size_sub", "font_size_wm", "watermark_text", "stroke_width", "shadow_offset", "font_name", "font_family", "pattern", "all_caps", "letter_spacing"]:
             if k in preset:
