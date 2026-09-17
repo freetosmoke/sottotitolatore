@@ -484,15 +484,36 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 timestamp = float(payload.get("timestamp", 0.0))
                 words = payload.get("words", [])
                 bold_indices = payload.get("bold_indices", [])
-                fs_sub = int(payload.get("font_size_sub", FONT_SIZE_SUB))
+                if "capcut_size" in payload and payload["capcut_size"]:
+                    fs_sub = round(float(payload["capcut_size"]) * 5.5)
+                else:
+                    fs_sub = int(payload.get("font_size_sub", FONT_SIZE_SUB))
+
                 wm_text = payload.get("watermark_text", WATERMARK_TEXT)
                 fs_wm = int(payload.get("font_size_wm", FONT_SIZE_WM))
-                sub_ox = int(payload.get("offset_sub_x", 0))
-                sub_oy = int(payload.get("offset_sub_y", 0)) if "offset_sub_y" in payload else (int(payload.get("subtitle_y", SUBTITLE_Y)) - 960)
+
+                if "capcut_sub_x" in payload and payload["capcut_sub_x"] is not None:
+                    sub_ox = int(payload["capcut_sub_x"])
+                elif "capcut_x" in payload and payload["capcut_x"] is not None:
+                    sub_ox = int(payload["capcut_x"])
+                else:
+                    sub_ox = int(payload.get("offset_sub_x", 0))
+
+                if "capcut_sub_y" in payload and payload["capcut_sub_y"] is not None:
+                    sub_oy = -int(payload["capcut_sub_y"])
+                elif "capcut_y" in payload and payload["capcut_y"] is not None:
+                    sub_oy = -int(payload["capcut_y"])
+                elif "offset_sub_y" in payload:
+                    sub_oy = int(payload["offset_sub_y"])
+                else:
+                    sub_oy = int(payload.get("subtitle_y", SUBTITLE_Y)) - 960
+
                 wm_ox = int(payload.get("offset_wm_x", 0))
                 wm_oy = int(payload.get("offset_wm_y", 100)) if "offset_wm_y" in payload else (int(payload.get("watermark_y", WATERMARK_Y)) - 960)
                 stroke_w = int(payload.get("stroke_width", 0))
                 shadow_off = int(payload.get("shadow_offset", 0))
+                all_caps = bool(payload.get("all_caps", False))
+                letter_spacing = int(payload.get("letter_spacing", 0))
 
                 font_name = payload.get("font_name") or payload.get("font_family") or "Raleway"
                 pattern = payload.get("pattern", "")
@@ -516,7 +537,9 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         words, bold_indices, light_sub, semibold_sub, sub_png,
                         offset_x=sub_ox, offset_y=sub_oy,
                         stroke_width=stroke_w, shadow_offset=shadow_off,
-                        pattern=pattern
+                        pattern=pattern,
+                        all_caps=all_caps,
+                        letter_spacing=letter_spacing
                     )
                     render_watermark(
                         semibold_wm, wm_png, watermark_text=wm_text,

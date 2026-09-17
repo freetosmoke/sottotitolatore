@@ -638,12 +638,30 @@
               </select>
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Dim. Sottotitoli (pt)</label>
-              <input type="number" id="new-preset-fs-sub" value="45" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+              <label class="text-slate-400 block mb-1 flex items-center justify-between">
+                <span>Dim. CapCut</span>
+                <span id="new-preset-fs-sub-badge" class="text-[10px] text-amber-400/90 font-mono font-normal">≈ 55pt</span>
+              </label>
+              <input type="number" step="0.5" id="new-preset-capcut-size" value="10" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+              <input type="hidden" id="new-preset-fs-sub" value="55">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Offset Y Sottotitoli (px)</label>
-              <input type="number" id="new-preset-sub-y" value="0" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs" placeholder="0 = Centro">
+              <label class="text-slate-400 block mb-1">Pos. Y CapCut</label>
+              <input type="number" id="new-preset-sub-y" value="-418" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs" placeholder="-418 = giù">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Pos. X CapCut</label>
+              <input type="number" id="new-preset-sub-x" value="0" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs" placeholder="0 = Centro">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Spaziatura (px)</label>
+              <input type="number" id="new-preset-letter-spacing" value="0" min="-5" max="20" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+            </div>
+            <div class="col-span-2 py-0.5">
+              <label class="flex items-center gap-2 cursor-pointer text-slate-300 text-xs font-medium select-none">
+                <input type="checkbox" id="new-preset-all-caps" class="rounded border-dark-700 text-amber-500 focus:ring-0">
+                <span>🔠 TUTTO MAIUSCOLO (All-Caps stile Reel/TikTok)</span>
+              </label>
             </div>
             <div class="col-span-2">
               <label class="text-slate-400 block mb-1">Testo Watermark</label>
@@ -779,46 +797,62 @@
           </div>
         </div>
 
-        <!-- Section: Dimensioni & Coordinate Sottotitoli (Centro = 0, 0) -->
+        <!-- Section: Dimensioni & Coordinate Sottotitoli (Misure Precise CapCut) -->
         <div class="bg-dark-900/70 border border-dark-700 rounded-xl p-3.5 space-y-3">
           <div class="flex items-center justify-between border-b border-dark-700/60 pb-2">
             <div class="flex items-center gap-2">
               <span class="text-amber-400">🎯</span>
-              <span class="font-semibold text-slate-200 uppercase tracking-wider text-[11px]">Sottotitoli (Centro = 0, 0)</span>
+              <span class="font-semibold text-slate-200 uppercase tracking-wider text-[11px]">Sottotitoli (Scala & Coordinate CapCut)</span>
             </div>
             <button id="btn-reset-preset" type="button" class="text-[11px] text-slate-400 hover:text-amber-400 transition">Reset Preset</button>
           </div>
 
-          <div class="grid grid-cols-3 gap-2.5">
+          <div class="grid grid-cols-4 gap-2.5">
             <div>
-              <label class="text-slate-400 block mb-1">Dimensione (pt)</label>
-              <input type="number" id="cfg-fs-sub" value="45" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
+              <label class="text-slate-400 block mb-1">Dim. CapCut</label>
+              <input type="number" step="0.5" id="cfg-capcut-size" value="10" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Offset X (px)</label>
+              <label class="text-slate-400 block mb-1">Dim. (pt)</label>
+              <input type="number" id="cfg-fs-sub" value="55" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Pos. X CapCut</label>
               <input type="number" id="cfg-sub-x" value="0" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono" placeholder="0 = Centro">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">Offset Y (px)</label>
-              <input type="number" id="cfg-sub-y" value="0" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono" placeholder="0 = Centro">
+              <label class="text-slate-400 block mb-1">Pos. Y CapCut</label>
+              <input type="number" id="cfg-sub-y" value="-418" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none font-mono" placeholder="-418 = giù">
             </div>
           </div>
+          <p class="text-[10.5px] text-slate-500 -mt-1">Convenzione CapCut: <strong>0</strong> = Centro, <strong>negativo</strong> = verso il basso (es. <code>-418</code>), <strong>positivo</strong> = verso l'alto.</p>
 
           <div class="grid grid-cols-2 gap-2.5 pt-1">
             <div>
               <label class="text-slate-400 block mb-1">Font Carattere</label>
               <select id="cfg-font-name" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none text-xs cursor-pointer">
+                <option value="Alata">Alata (Font CapCut)</option>
                 <option value="Raleway">Raleway</option>
-                <option value="Alata">Alata</option>
                 <option value="Helvetica">Helvetica / Arial</option>
               </select>
             </div>
             <div>
               <label class="text-slate-400 block mb-1">Stile / Pattern</label>
               <select id="cfg-pattern" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none text-xs cursor-pointer">
-                <option value="Normal">Normale (Light + Parola Chiave Bold)</option>
                 <option value="Bold">Bold (Tutto Grassetto / CapCut)</option>
+                <option value="Normal">Normale (Light + Parola Chiave Bold)</option>
               </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 pt-1 items-center">
+            <label class="flex items-center gap-2 cursor-pointer text-slate-300 font-medium select-none pt-2">
+              <input type="checkbox" id="cfg-all-caps" class="rounded border-dark-700 text-amber-500 focus:ring-0">
+              <span class="text-xs">🔠 TUTTO MAIUSCOLO (All-Caps)</span>
+            </label>
+            <div>
+              <label class="text-slate-400 block mb-1 text-xs">Spaziatura lettere / Tracking (px)</label>
+              <input type="number" id="cfg-letter-spacing" value="0" min="-5" max="20" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
             </div>
           </div>
         </div>
@@ -1034,8 +1068,11 @@
     const liveWmText = document.getElementById("live-wm-text");
     const liveWmBox = document.getElementById("live-wm-box");
     const cfgFsSub = document.getElementById("cfg-fs-sub");
+    const cfgCapcutSize = document.getElementById("cfg-capcut-size");
     const cfgSubX = document.getElementById("cfg-sub-x");
     const cfgSubY = document.getElementById("cfg-sub-y");
+    const cfgAllCaps = document.getElementById("cfg-all-caps");
+    const cfgLetterSpacing = document.getElementById("cfg-letter-spacing");
     const cfgFsWm = document.getElementById("cfg-fs-wm");
     const cfgWmX = document.getElementById("cfg-wm-x");
     const cfgWmY = document.getElementById("cfg-wm-y");
@@ -1475,22 +1512,35 @@
     }
 
     // ==========================================
-    // PRESET MANAGEMENT SYSTEM
+    // PRESET MANAGEMENT SYSTEM (CapCut Precision)
     // ==========================================
     function getActivePresetConfig() {
       const num = (v, def) => { const n = parseInt(v); return isNaN(n) ? def : n; };
       const cur = allPresets.find(p => p.id === activePresetId) || {};
-      const font = (cfgFontName && cfgFontName.value) ? cfgFontName.value : (cur.font_name || cur.font_family || "Raleway");
-      const pattern = (cfgPattern && cfgPattern.value) ? cfgPattern.value : (cur.pattern || "Normal");
+      const font = (cfgFontName && cfgFontName.value) ? cfgFontName.value : (cur.font_name || cur.font_family || "Alata");
+      const pattern = (cfgPattern && cfgPattern.value) ? cfgPattern.value : (cur.pattern || "Bold");
+
+      const capcutY = num(cfgSubY ? cfgSubY.value : -418, -418);
+      const capcutX = num(cfgSubX ? cfgSubX.value : 0, 0);
+      const capcutSize = parseFloat(cfgCapcutSize ? cfgCapcutSize.value : 10) || 10;
+      const fsSub = num(cfgFsSub ? cfgFsSub.value : Math.round(capcutSize * 5.5), 55);
+      const allCaps = cfgAllCaps ? cfgAllCaps.checked : false;
+      const letterSpacing = num(cfgLetterSpacing ? cfgLetterSpacing.value : 0, 0);
+
       return {
         id: activePresetId,
-        name: cur.name || "La Voce del Successo",
+        name: cur.name || "Preset",
         font_name: font,
         font_family: font,
         pattern: pattern,
-        font_size_sub: num(cfgFsSub ? cfgFsSub.value : 45, 45),
-        offset_sub_x: num(cfgSubX ? cfgSubX.value : 0, 0),
-        offset_sub_y: num(cfgSubY ? cfgSubY.value : 0, 0),
+        capcut_size: capcutSize,
+        capcut_x: capcutX,
+        capcut_y: capcutY,
+        font_size_sub: fsSub,
+        offset_sub_x: capcutX,
+        offset_sub_y: -capcutY, // Conversione automatica scala CapCut -> coordinate schermo
+        all_caps: allCaps,
+        letter_spacing: letterSpacing,
         font_size_wm: num(cfgFsWm ? cfgFsWm.value : 30, 30),
         offset_wm_x: num(cfgWmX ? cfgWmX.value : 0, 0),
         offset_wm_y: num(cfgWmY ? cfgWmY.value : 100, 100),
@@ -1548,8 +1598,8 @@
       const presetBadge = document.getElementById("preset-badge");
       if (presetBadge) presetBadge.innerText = p.name;
 
-      const font = p.font_name || p.font_family || 'Raleway';
-      const pattern = p.pattern || 'Normal';
+      const font = p.font_name || p.font_family || 'Alata';
+      const pattern = p.pattern || 'Bold';
       const isBoldPattern = (pattern.toLowerCase() === 'bold');
 
       document.documentElement.style.setProperty('--preset-font', `'${font}', sans-serif`);
@@ -1565,13 +1615,23 @@
       if (cfgPattern) cfgPattern.value = pattern;
 
       if (updateInputs) {
-        if (cfgFsSub) cfgFsSub.value = p.font_size_sub !== undefined ? p.font_size_sub : 45;
-        if (cfgSubX) cfgSubX.value = p.offset_sub_x !== undefined ? p.offset_sub_x : 0;
-        if (cfgSubY) cfgSubY.value = p.offset_sub_y !== undefined ? p.offset_sub_y : 0;
+        const pSize = p.font_size_sub !== undefined ? p.font_size_sub : 55;
+        const pCapcutSize = p.capcut_size !== undefined ? p.capcut_size : parseFloat((pSize / 5.5).toFixed(1));
+        if (cfgFsSub) cfgFsSub.value = pSize;
+        if (cfgCapcutSize) cfgCapcutSize.value = pCapcutSize;
+
+        const pCapcutY = p.capcut_y !== undefined ? p.capcut_y : (p.offset_sub_y !== undefined ? -p.offset_sub_y : -418);
+        const pCapcutX = p.capcut_x !== undefined ? p.capcut_x : (p.offset_sub_x !== undefined ? p.offset_sub_x : 0);
+        if (cfgSubX) cfgSubX.value = pCapcutX;
+        if (cfgSubY) cfgSubY.value = pCapcutY;
+
+        if (cfgAllCaps) cfgAllCaps.checked = !!p.all_caps;
+        if (cfgLetterSpacing) cfgLetterSpacing.value = p.letter_spacing !== undefined ? p.letter_spacing : 0;
+
         if (cfgFsWm) cfgFsWm.value = p.font_size_wm !== undefined ? p.font_size_wm : 30;
         if (cfgWmX) cfgWmX.value = p.offset_wm_x !== undefined ? p.offset_wm_x : 0;
         if (cfgWmY) cfgWmY.value = p.offset_wm_y !== undefined ? p.offset_wm_y : 100;
-        if (cfgWmText) cfgWmText.value = p.watermark_text !== undefined ? p.watermark_text : "@lavocedelsuccesso";
+        if (cfgWmText) cfgWmText.value = p.watermark_text !== undefined ? p.watermark_text : "";
         if (cfgStroke) cfgStroke.value = p.stroke_width !== undefined ? p.stroke_width : 0;
         if (cfgShadow) cfgShadow.value = p.shadow_offset !== undefined ? p.shadow_offset : 0;
       }
@@ -1595,8 +1655,10 @@
       container.innerHTML = allPresets.map(p => {
         const isSelected = p.id === selectedModalPresetId;
         const isActive = p.id === activePresetId;
-        const pFont = p.font_name || p.font_family || 'Raleway';
-        const pPattern = p.pattern || 'Normal';
+        const pFont = p.font_name || p.font_family || 'Alata';
+        const pPattern = p.pattern || 'Bold';
+        const pCapcutY = p.capcut_y !== undefined ? p.capcut_y : (p.offset_sub_y !== undefined ? -p.offset_sub_y : 0);
+        const pCapcutSize = p.capcut_size || (p.font_size_sub ? (p.font_size_sub / 5.5).toFixed(1) : "10");
         return `
           <div class="preset-card group p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
             isSelected
@@ -1611,8 +1673,8 @@
               </div>
               <div class="text-[11px] text-slate-400 mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
                 <span>Font: <strong class="text-slate-300">${escapeHtml(pFont)}${pPattern === 'Bold' ? ' (Bold)' : ''}</strong></span>
-                <span>Dim Sub: <strong class="text-slate-300">${p.font_size_sub || 45}pt</strong></span>
-                <span>Pos Sub: <strong class="text-slate-300">Y:${p.offset_sub_y !== undefined ? (p.offset_sub_y > 0 ? '+' + p.offset_sub_y : p.offset_sub_y) : 0}</strong></span>
+                <span>Dim: <strong class="text-slate-300">${pCapcutSize} CapCut (${p.font_size_sub || Math.round(pCapcutSize * 5.5)}pt)</strong></span>
+                <span>Pos CapCut: <strong class="text-slate-300">Y:${pCapcutY}</strong></span>
                 <span>Watermark: <strong class="text-slate-300 truncate max-w-[140px] inline-block align-bottom">${escapeHtml(p.watermark_text || 'Nessuno')}</strong></span>
               </div>
             </div>
@@ -1807,14 +1869,28 @@
         };
         const fontSelect = document.getElementById("new-preset-font");
         const patternSelect = document.getElementById("new-preset-pattern");
+        const capcutY = num("new-preset-sub-y", -418);
+        const capcutX = num("new-preset-sub-x", 0);
+        const capcutSizeEl = document.getElementById("new-preset-capcut-size");
+        const capcutSize = capcutSizeEl ? (parseFloat(capcutSizeEl.value) || 10) : 10;
+        const allCapsEl = document.getElementById("new-preset-all-caps");
+        const allCaps = allCapsEl ? allCapsEl.checked : false;
+        const letterSpacing = num("new-preset-letter-spacing", 0);
+        const fsSub = num("new-preset-fs-sub", Math.round(capcutSize * 5.5));
+
         const newPresetPayload = {
           name: name,
-          font_name: fontSelect ? fontSelect.value : "Raleway",
-          font_family: fontSelect ? fontSelect.value : "Raleway",
-          pattern: patternSelect ? patternSelect.value : "Normal",
-          font_size_sub: num("new-preset-fs-sub", 45),
-          offset_sub_x: 0,
-          offset_sub_y: num("new-preset-sub-y", 0),
+          font_name: fontSelect ? fontSelect.value : "Alata",
+          font_family: fontSelect ? fontSelect.value : "Alata",
+          pattern: patternSelect ? patternSelect.value : "Bold",
+          capcut_size: capcutSize,
+          capcut_x: capcutX,
+          capcut_y: capcutY,
+          font_size_sub: fsSub,
+          offset_sub_x: capcutX,
+          offset_sub_y: -capcutY,
+          all_caps: allCaps,
+          letter_spacing: letterSpacing,
           font_size_wm: num("new-preset-fs-wm", 30),
           offset_wm_x: 0,
           offset_wm_y: num("new-preset-wm-y", 100),
@@ -1912,12 +1988,52 @@
 
     loadPresetsFromApi(true);
 
-    [cfgFsSub, cfgSubX, cfgSubY, cfgFsWm, cfgWmX, cfgWmY, cfgWmText, cfgStroke, cfgShadow].forEach(input => {
+    // Sincronizzazione dinamica Dimensione CapCut <-> Punti (pt)
+    if (cfgCapcutSize && cfgFsSub) {
+      cfgCapcutSize.addEventListener("input", () => {
+        const val = parseFloat(cfgCapcutSize.value);
+        if (!isNaN(val)) {
+          cfgFsSub.value = Math.round(val * 5.5);
+          updateLiveOverlayPositions();
+          updateLiveSubtitleAtCurrentTime();
+        }
+      });
+      cfgFsSub.addEventListener("input", () => {
+        const val = parseFloat(cfgFsSub.value);
+        if (!isNaN(val)) {
+          cfgCapcutSize.value = (val / 5.5).toFixed(1).replace(/\.0$/, "");
+          updateLiveOverlayPositions();
+          updateLiveSubtitleAtCurrentTime();
+        }
+      });
+    }
+
+    const npCapcutSize = document.getElementById("new-preset-capcut-size");
+    const npFsSub = document.getElementById("new-preset-fs-sub");
+    const npFsSubBadge = document.getElementById("new-preset-fs-sub-badge");
+    if (npCapcutSize && npFsSub) {
+      npCapcutSize.addEventListener("input", () => {
+        const val = parseFloat(npCapcutSize.value);
+        if (!isNaN(val)) {
+          const pt = Math.round(val * 5.5);
+          npFsSub.value = pt;
+          if (npFsSubBadge) npFsSubBadge.innerText = `≈ ${pt}pt`;
+        }
+      });
+    }
+
+    [cfgFsSub, cfgCapcutSize, cfgSubX, cfgSubY, cfgAllCaps, cfgLetterSpacing, cfgFsWm, cfgWmX, cfgWmY, cfgWmText, cfgStroke, cfgShadow].forEach(input => {
       if (input) {
         input.addEventListener("input", () => {
           updateLiveOverlayPositions();
           updateLiveSubtitleAtCurrentTime();
         });
+        if (input.type === "checkbox") {
+          input.addEventListener("change", () => {
+            updateLiveOverlayPositions();
+            updateLiveSubtitleAtCurrentTime();
+          });
+        }
       }
     });
 
@@ -1948,8 +2064,8 @@
     if (btnResetPreset) {
       btnResetPreset.addEventListener("click", () => {
         const cur = allPresets.find(p => p.id === activePresetId) || {};
-        const f = cur.font_name || cur.font_family || "Raleway";
-        const pat = cur.pattern || "Normal";
+        const f = cur.font_name || cur.font_family || "Alata";
+        const pat = cur.pattern || "Bold";
         if (cfgFontName) cfgFontName.value = f;
         if (cfgPattern) cfgPattern.value = pat;
         document.documentElement.style.setProperty('--preset-font', `'${f}', sans-serif`);
@@ -1960,9 +2076,13 @@
           document.documentElement.style.setProperty('--preset-weight-light', '300');
           document.documentElement.style.setProperty('--preset-weight-bold', '600');
         }
-        if (cfgFsSub) cfgFsSub.value = cur.font_size_sub || 45;
-        if (cfgSubX) cfgSubX.value = cur.offset_sub_x || 0;
-        if (cfgSubY) cfgSubY.value = cur.offset_sub_y || 0;
+        const pSize = cur.font_size_sub || 55;
+        if (cfgFsSub) cfgFsSub.value = pSize;
+        if (cfgCapcutSize) cfgCapcutSize.value = cur.capcut_size || (pSize / 5.5).toFixed(1);
+        if (cfgSubX) cfgSubX.value = cur.capcut_x !== undefined ? cur.capcut_x : (cur.offset_sub_x || 0);
+        if (cfgSubY) cfgSubY.value = cur.capcut_y !== undefined ? cur.capcut_y : (cur.offset_sub_y !== undefined ? -cur.offset_sub_y : -418);
+        if (cfgAllCaps) cfgAllCaps.checked = !!cur.all_caps;
+        if (cfgLetterSpacing) cfgLetterSpacing.value = cur.letter_spacing || 0;
         if (cfgFsWm) cfgFsWm.value = cur.font_size_wm || 30;
         if (cfgWmX) cfgWmX.value = cur.offset_wm_x || 0;
         if (cfgWmY) cfgWmY.value = cur.offset_wm_y !== undefined ? cur.offset_wm_y : 100;
@@ -1975,21 +2095,23 @@
     }
 
     function updateLiveOverlayPositions() {
-      const fsSub = parseInt(cfgFsSub.value) || 45;
-      const offSubX = parseInt(cfgSubX.value) || 0;
-      const offSubY = parseInt(cfgSubY.value) || 0;
+      const fsSub = parseInt(cfgFsSub ? cfgFsSub.value : 55) || 55;
+      const capcutX = parseFloat(cfgSubX ? cfgSubX.value : 0) || 0;
+      const capcutY = parseFloat(cfgSubY ? cfgSubY.value : -418) || 0;
+      const allCaps = cfgAllCaps ? cfgAllCaps.checked : false;
+      const letterSpacing = parseInt(cfgLetterSpacing ? cfgLetterSpacing.value : 0) || 0;
 
-      const fsWm = parseInt(cfgFsWm.value) || 30;
-      const offWmX = parseInt(cfgWmX.value) || 0;
-      const offWmY = parseInt(cfgWmY.value) || 0;
+      const fsWm = parseInt(cfgFsWm ? cfgFsWm.value : 30) || 30;
+      const offWmX = parseInt(cfgWmX ? cfgWmX.value : 0) || 0;
+      const offWmY = parseInt(cfgWmY ? cfgWmY.value : 100) || 100;
 
       const wmText = cfgWmText ? cfgWmText.value : "";
-      const strokeVal = parseInt(cfgStroke.value) || 0;
-      const shadowVal = parseInt(cfgShadow.value) || 0;
+      const strokeVal = parseInt(cfgStroke ? cfgStroke.value : 0) || 0;
+      const shadowVal = parseInt(cfgShadow ? cfgShadow.value : 0) || 0;
 
-      // Coordinate relative al centro: 50% + offset% (su base 1080x1920)
-      const subXPercent = 50 + ((offSubX / 1080) * 100);
-      const subYPercent = 50 + ((offSubY / 1920) * 100);
+      // Coordinate relative al centro: convenzione CapCut (Y=0 centro, negativo verso il basso)
+      const subXPercent = 50 + ((capcutX / 1080) * 100);
+      const subYPercent = 50 - ((capcutY / 1920) * 100);
       const wmXPercent = 50 + ((offWmX / 1080) * 100);
       const wmYPercent = 50 + ((offWmY / 1920) * 100);
 
@@ -2005,6 +2127,9 @@
       const pxWm = Math.round(fsWm * scaleFactor);
 
       liveSubText.style.fontSize = `${pxSub}px`;
+      liveSubText.style.textTransform = allCaps ? "uppercase" : "none";
+      liveSubText.style.letterSpacing = `${letterSpacing * scaleFactor}px`;
+
       liveWmText.style.fontSize = `${pxWm}px`;
       liveWmText.innerText = wmText;
 

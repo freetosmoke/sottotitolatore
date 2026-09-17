@@ -117,6 +117,11 @@ def _h(font: ImageFont.FreeTypeFont) -> int:
     bb = font.getbbox("Agpj")
     return bb[3] - bb[1]
 
+def _word_w(text: str, font: ImageFont.FreeTypeFont, letter_spacing: int = 0) -> int:
+    if not letter_spacing or len(text) <= 1:
+        return _w(text, font)
+    return sum(_w(ch, font) + letter_spacing for ch in text) - letter_spacing
+
 def _draw_text(
     draw: ImageDraw.ImageDraw,
     x: int,
@@ -128,29 +133,56 @@ def _draw_text(
     stroke_color: tuple[int, int, int, int] = STROKE_COLOR,
     shadow_offset: int = 0,
     shadow_color: tuple[int, int, int, int] = SHADOW_COLOR,
-    faux_bold: bool = False
+    faux_bold: bool = False,
+    letter_spacing: int = 0,
 ) -> None:
-    if shadow_offset > 0 and shadow_color[3] > 0:
-        draw.text((x + shadow_offset, y + shadow_offset), text, font=font, fill=shadow_color)
+    if not letter_spacing or len(text) <= 1:
+        if shadow_offset > 0 and shadow_color[3] > 0:
+            draw.text((x + shadow_offset, y + shadow_offset), text, font=font, fill=shadow_color)
+            if faux_bold:
+                draw.text((x + shadow_offset + 1, y + shadow_offset), text, font=font, fill=shadow_color)
         if faux_bold:
-            draw.text((x + shadow_offset + 1, y + shadow_offset), text, font=font, fill=shadow_color)
-    if faux_bold:
+            draw.text(
+                (x + 1, y),
+                text,
+                font=font,
+                fill=fill_color,
+                stroke_width=stroke_width,
+                stroke_fill=stroke_color if stroke_width > 0 else None
+            )
         draw.text(
-            (x + 1, y),
+            (x, y),
             text,
             font=font,
             fill=fill_color,
             stroke_width=stroke_width,
             stroke_fill=stroke_color if stroke_width > 0 else None
         )
-    draw.text(
-        (x, y),
-        text,
-        font=font,
-        fill=fill_color,
-        stroke_width=stroke_width,
-        stroke_fill=stroke_color if stroke_width > 0 else None
-    )
+    else:
+        cx = x
+        for ch in text:
+            if shadow_offset > 0 and shadow_color[3] > 0:
+                draw.text((cx + shadow_offset, y + shadow_offset), ch, font=font, fill=shadow_color)
+                if faux_bold:
+                    draw.text((cx + shadow_offset + 1, y + shadow_offset), ch, font=font, fill=shadow_color)
+            if faux_bold:
+                draw.text(
+                    (cx + 1, y),
+                    ch,
+                    font=font,
+                    fill=fill_color,
+                    stroke_width=stroke_width,
+                    stroke_fill=stroke_color if stroke_width > 0 else None
+                )
+            draw.text(
+                (cx, y),
+                ch,
+                font=font,
+                fill=fill_color,
+                stroke_width=stroke_width,
+                stroke_fill=stroke_color if stroke_width > 0 else None
+            )
+            cx += _w(ch, font) + letter_spacing + (1 if faux_bold else 0)
 
 # ── Rendering PNG ─────────────────────────────────────────────────────────────
 def render_subtitle(
@@ -165,12 +197,25 @@ def render_subtitle(
     shadow_offset: int = 0,
     subtitle_x: int | None = None,
     subtitle_y: int | None = None,
-    pattern: str = ""
+    pattern: str = "",
+    all_caps: bool = False,
+    letter_spacing: int = 0,
+    capcut_sub_x: int | None = None,
+    capcut_sub_y: int | None = None,
 ) -> Path:
-    if subtitle_x is not None:
+    if capcut_sub_x is not None:
+        offset_x = int(capcut_sub_x)
+    elif subtitle_x is not None:
         offset_x = subtitle_x - CENTER_X
-    if subtitle_y is not None:
+
+    if capcut_sub_y is not None:
+        # Convenzione CapCut: Centro=0, verso il basso negativo (-418 -> offset_y=+418)
+        offset_y = -int(capcut_sub_y)
+    elif subtitle_y is not None:
         offset_y = subtitle_y - CENTER_Y
+
+    if all_caps:
+        words = [w.upper() for w in words]
 
     if isinstance(bold_indices, int):
         b_set = {bold_indices} if bold_indices >= 0 else set()
@@ -181,10 +226,10 @@ def render_subtitle(
 
     img  = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    space_w = _w(" ", light)
+    space_w = _w(" ", light) + letter_spacing
     fh = _h(light)
 
-    total_w = sum(_w(w, semibold if (is_bold_pattern or i in b_set) else light) for i, w in enumerate(words))
+    total_w = sum(_word_w(w, semibold if (is_bold_pattern or i in b_set) else light, letter_spacing) for i, w in enumerate(words))
     total_w += space_w * max(0, len(words) - 1)
 
     # Coordinate assolute convertite dal centro (CENTER_X=540, CENTER_Y=960)
@@ -206,9 +251,10 @@ def render_subtitle(
             stroke_color=(0, 0, 0, 220) if stroke_width > 0 else (0,0,0,0),
             shadow_offset=shadow_offset,
             shadow_color=(0, 0, 0, 140) if shadow_offset > 0 else (0,0,0,0),
-            faux_bold=use_faux
+            faux_bold=use_faux,
+            letter_spacing=letter_spacing
         )
-        cur_x += _w(word, font) + (1 if use_faux else 0)
+        cur_x += _word_w(word, font, letter_spacing) + (1 if use_faux else 0)
         if i < len(words) - 1:
             cur_x += space_w
 
@@ -318,16 +364,28 @@ def render_all(
         "shadow_offset": 0
     }
     if preset:
-        # Supporta sia offset relativi che vecchi parametri assoluti
-        if "offset_sub_x" in preset:
+        # Supporta coordinate e dimensioni native CapCut
+        if "capcut_sub_x" in preset and preset["capcut_sub_x"] is not None:
+            settings["offset_sub_x"] = int(preset["capcut_sub_x"])
+        elif "capcut_x" in preset and preset["capcut_x"] is not None:
+            settings["offset_sub_x"] = int(preset["capcut_x"])
+        elif "offset_sub_x" in preset:
             settings["offset_sub_x"] = int(preset["offset_sub_x"])
         elif "subtitle_x" in preset:
             settings["offset_sub_x"] = int(preset["subtitle_x"]) - CENTER_X
 
-        if "offset_sub_y" in preset:
+        if "capcut_sub_y" in preset and preset["capcut_sub_y"] is not None:
+            # Scala CapCut: negativo verso il basso -> offset_y positivo
+            settings["offset_sub_y"] = -int(preset["capcut_sub_y"])
+        elif "capcut_y" in preset and preset["capcut_y"] is not None:
+            settings["offset_sub_y"] = -int(preset["capcut_y"])
+        elif "offset_sub_y" in preset:
             settings["offset_sub_y"] = int(preset["offset_sub_y"])
         elif "subtitle_y" in preset:
             settings["offset_sub_y"] = int(preset["subtitle_y"]) - CENTER_Y
+
+        if "capcut_size" in preset and preset["capcut_size"]:
+            settings["font_size_sub"] = round(float(preset["capcut_size"]) * 5.5)
 
         if "offset_wm_x" in preset:
             settings["offset_wm_x"] = int(preset["offset_wm_x"])
@@ -339,7 +397,7 @@ def render_all(
         elif "watermark_y" in preset:
             settings["offset_wm_y"] = int(preset["watermark_y"]) - CENTER_Y
 
-        for k in ["font_size_sub", "font_size_wm", "watermark_text", "stroke_width", "shadow_offset", "font_name", "font_family", "pattern"]:
+        for k in ["font_size_sub", "font_size_wm", "watermark_text", "stroke_width", "shadow_offset", "font_name", "font_family", "pattern", "all_caps", "letter_spacing"]:
             if k in preset:
                 settings[k] = preset[k]
 
@@ -353,6 +411,8 @@ def render_all(
     shadow_off = int(settings.get("shadow_offset", 0))
     font_name = settings.get("font_name") or settings.get("font_family") or "Raleway"
     pattern = settings.get("pattern", "")
+    all_caps = bool(settings.get("all_caps", False))
+    letter_spacing = int(settings.get("letter_spacing", 0))
 
     light_sub, semibold_sub = load_pair(fs_sub, font_name=font_name)
     _,         semibold_wm  = load_pair(fs_wm, font_name=font_name)
@@ -412,7 +472,9 @@ def render_all(
             offset_y=sub_oy,
             stroke_width=stroke_w,
             shadow_offset=shadow_off,
-            pattern=pattern
+            pattern=pattern,
+            all_caps=all_caps,
+            letter_spacing=letter_spacing
         )
         rendered.append(RenderedChunk(image_path=out, start=c_start, end=c_end))
 
