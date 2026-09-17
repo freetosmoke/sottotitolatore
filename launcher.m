@@ -86,7 +86,7 @@ static int find_free_port(int start_port) {
 }
 
 - (void)reloadPage:(id)sender {
-    [self.webView reload];
+    [self.webView reloadFromOrigin];
 }
 
 - (void)openInDefaultBrowser:(id)sender {
@@ -246,7 +246,8 @@ static int find_free_port(int start_port) {
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
+            NSURLRequest *req = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:60.0];
+            [self.webView loadRequest:req];
         });
     });
 }
