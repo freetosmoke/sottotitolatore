@@ -223,13 +223,19 @@ def render_subtitle(
         b_set = set(bold_indices)
 
     is_bold_pattern = bool(pattern and pattern.strip().lower() == "bold")
+    is_light_pattern = bool(pattern and pattern.strip().lower() == "light")
 
     img  = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     space_w = _w(" ", light) + letter_spacing
     fh = _h(light)
 
-    total_w = sum(_word_w(w, semibold if (is_bold_pattern or i in b_set) else light, letter_spacing) for i, w in enumerate(words))
+    def _is_bold(idx):
+        if is_light_pattern:
+            return False
+        return is_bold_pattern or (idx in b_set)
+
+    total_w = sum(_word_w(w, semibold if _is_bold(i) else light, letter_spacing) for i, w in enumerate(words))
     total_w += space_w * max(0, len(words) - 1)
 
     # Coordinate assolute convertite dal centro (CENTER_X=540, CENTER_Y=960)
@@ -241,7 +247,7 @@ def render_subtitle(
 
     cur_x = start_x
     for i, word in enumerate(words):
-        is_word_bold = is_bold_pattern or (i in b_set)
+        is_word_bold = _is_bold(i)
         font = semibold if is_word_bold else light
         use_faux = is_bold_pattern or (is_word_bold and light == semibold)
         _draw_text(
@@ -393,7 +399,8 @@ def render_all(
             settings["offset_sub_y"] = int(preset["subtitle_y"]) - CENTER_Y
 
         if "capcut_size" in preset and preset["capcut_size"]:
-            settings["font_size_sub"] = round(float(preset["capcut_size"]) * 5.5)
+            sub_scale = float(preset.get("capcut_sub_scale", 100)) / 100.0
+            settings["font_size_sub"] = round(float(preset["capcut_size"]) * sub_scale * 5.5)
 
         if "capcut_wm_x" in preset and preset["capcut_wm_x"] is not None:
             settings["offset_wm_x"] = int(preset["capcut_wm_x"])
@@ -410,7 +417,8 @@ def render_all(
             settings["offset_wm_y"] = int(preset["watermark_y"]) - CENTER_Y
 
         if "capcut_wm_size" in preset and preset["capcut_wm_size"]:
-            settings["font_size_wm"] = round(float(preset["capcut_wm_size"]) * 5.5)
+            wm_scale = float(preset.get("capcut_wm_scale", 100)) / 100.0
+            settings["font_size_wm"] = round(float(preset["capcut_wm_size"]) * wm_scale * 5.5)
 
         for k in ["font_size_sub", "font_size_wm", "watermark_text", "stroke_width", "shadow_offset", "font_name", "font_family", "pattern", "all_caps", "letter_spacing"]:
             if k in preset:

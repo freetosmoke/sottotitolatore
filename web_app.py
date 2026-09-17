@@ -485,7 +485,8 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 words = payload.get("words", [])
                 bold_indices = payload.get("bold_indices", [])
                 if "capcut_size" in payload and payload["capcut_size"]:
-                    fs_sub = round(float(payload["capcut_size"]) * 5.5)
+                    sub_scale = float(payload.get("capcut_sub_scale", 100)) / 100.0
+                    fs_sub = round(float(payload["capcut_size"]) * sub_scale * 5.5)
                 else:
                     fs_sub = int(payload.get("font_size_sub", FONT_SIZE_SUB))
 
@@ -509,7 +510,8 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                     sub_oy = int(payload.get("subtitle_y", SUBTITLE_Y)) - 960
 
                 if "capcut_wm_size" in payload and payload["capcut_wm_size"]:
-                    fs_wm = round(float(payload["capcut_wm_size"]) * 5.5)
+                    wm_scale = float(payload.get("capcut_wm_scale", 100)) / 100.0
+                    fs_wm = round(float(payload["capcut_wm_size"]) * wm_scale * 5.5)
                 else:
                     fs_wm = int(payload.get("font_size_wm", FONT_SIZE_WM))
 
