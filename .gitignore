@@ -1,9 +1,36 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
+*.pyo
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Build artifacts
 *.dmg
 dist/
+bin/
+
+# Runtime data
 web_outputs/
 web_uploads/
+
+# Test output
+tests/output_test/
+
+# Backup directories
 _backup_pre_capcut/
+_backup_presets_migration/
+
+# Backup files
+*.backup
+*.backup-*
+*.backup_*
+*.bak_*
+*.before_*
+
+# Local models / large model files
+models/
