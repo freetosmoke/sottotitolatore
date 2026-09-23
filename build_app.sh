@@ -12,7 +12,7 @@ PYTHON_TARGET_DIR="$RESOURCES_DIR/python"
 
 echo "🧹 1. Pulizia build precedenti..."
 chmod -R u+w "$DIST_DIR" 2>/dev/null || true
-rm -rf "$DIST_DIR"
+rm -rf "$DIST_DIR" 2>/dev/null || rm -rf "$DIST_DIR" 2>/dev/null || true
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR" "$APP_PAYLOAD_DIR" "$PYTHON_TARGET_DIR"
 
 echo "🎨 2. Copia icona macOS..."
@@ -83,9 +83,15 @@ cp -f "$DIR"/video_renderer.py "$APP_PAYLOAD_DIR/"
 cp -f "$DIR"/keyword_selector.py "$APP_PAYLOAD_DIR/"
 cp -f "$DIR"/audio_extractor.py "$APP_PAYLOAD_DIR/"
 cp -f "$DIR"/ass_generator.py "$APP_PAYLOAD_DIR/"
+cp -f "$DIR"/silence_remover.py "$APP_PAYLOAD_DIR/"
+cp -f "$DIR"/presets.json "$APP_PAYLOAD_DIR/"
 [ -f "$DIR"/translator.py ] && cp -f "$DIR"/translator.py "$APP_PAYLOAD_DIR/"
 rsync -a "$DIR/fonts" "$APP_PAYLOAD_DIR/"
 rsync -a "$DIR/web_static" "$APP_PAYLOAD_DIR/"
+
+mkdir -p "$RESOURCES_DIR/bin"
+[ -f "$DIR/bin/ffmpeg" ] && cp -f "$DIR/bin/ffmpeg" "$RESOURCES_DIR/bin/ffmpeg" && chmod +x "$RESOURCES_DIR/bin/ffmpeg"
+[ -f "$DIR/bin/ffprobe" ] && cp -f "$DIR/bin/ffprobe" "$RESOURCES_DIR/bin/ffprobe" && chmod +x "$RESOURCES_DIR/bin/ffprobe"
 
 echo "🤖 7. Inclusione modello Whisper small locale (offline)..."
 WHISPER_CACHE_SNAPSHOT=$(find "$HOME/.cache/huggingface/hub/models--Systran--faster-whisper-small/snapshots" -mindepth 1 -maxdepth 1 -type d | head -n 1)

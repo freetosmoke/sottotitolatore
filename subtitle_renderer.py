@@ -20,11 +20,21 @@ from transcriber import SubtitleChunk
 
 console = Console(stderr=True)
 
-# ── Dimensioni Canvas 1080x1920 ───────────────────────────────────────────────
-WIDTH  = 1080
-HEIGHT = 1920
-CENTER_X = 540
-CENTER_Y = 960
+# ── Dimensioni Canvas Base e Calibrazione CapCut ─────────────────────────────
+BASE_WIDTH  = 1080
+BASE_HEIGHT = 1920
+BASE_CENTER_X = 540
+BASE_CENTER_Y = 960
+
+# Costanti di calibrazione CapCut (NON MODIFICARE I VALORI)
+CAPCUT_SIZE_FACTOR = 5.35
+CAPCUT_COORD_SCALE = 0.50
+
+# Alias retrocompatibili
+WIDTH  = BASE_WIDTH
+HEIGHT = BASE_HEIGHT
+CENTER_X = BASE_CENTER_X
+CENTER_Y = BASE_CENTER_Y
 
 # Preset defaults con coordinate:
 # Sottotitoli: Raleway Light, size 45pt, Offset (X: 0, Y: 0) -> Centro esatto (Y=960px)
@@ -56,19 +66,21 @@ class RenderedChunk(NamedTuple):
     end: float
 
 # ── Rilevamento font ──────────────────────────────────────────────────────────
-_RALEWAY_LIGHT    = [
+_RALEWAY_LIGHT = [
     "./fonts/Raleway-Light.ttf",
     str(Path(__file__).parent / "fonts" / "Raleway-Light.ttf"),
     "~/Library/Fonts/Raleway-Light.ttf",
     "/Library/Fonts/Raleway-Light.ttf"
 ]
-_RALEWAY_SEMIBOLD = [
+_RALEWAY_BOLD = [
+    "./fonts/Raleway-Bold.ttf",
+    str(Path(__file__).parent / "fonts" / "Raleway-Bold.ttf"),
+    "~/Library/Fonts/Raleway-Bold.ttf",
+    "/Library/Fonts/Raleway-Bold.ttf",
     "./fonts/Raleway-SemiBold.ttf",
     str(Path(__file__).parent / "fonts" / "Raleway-SemiBold.ttf"),
-    "~/Library/Fonts/Raleway-SemiBold.ttf",
-    "/Library/Fonts/Raleway-SemiBold.ttf"
 ]
-_ALATA_REGULAR    = [
+_ALATA_REGULAR = [
     "./fonts/Alata-Regular.ttf",
     str(Path(__file__).parent / "fonts" / "Alata-Regular.ttf"),
     "~/Library/Fonts/alata-regular.ttf",
@@ -88,18 +100,230 @@ def _find(candidates: list[str]) -> str | None:
 def _load(path: str, size: int, index: int = 0) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(path, size, index=index) if path.endswith(".ttc") else ImageFont.truetype(path, size)
 
+
+_FONT_VARIANT_ALIASES = {
+    "thin": ["thin", "100"],
+    "extralight": ["extra light", "extralight", "ultralight", "200"],
+    "light": ["light", "300"],
+    "regular": ["regular", "normal", "book", "400"],
+    "medium": ["medium", "500"],
+    "semibold": ["semibold", "semi bold", "demibold", "600"],
+    "bold": ["bold", "700"],
+    "extrabold": ["extra bold", "extrabold", "800"],
+    "black": ["black", "heavy", "900"],
+    "italic": ["italic", "oblique"],
+}
+
+
+def _normalize_font_variant(variant: str | None) -> str:
+    value = str(variant or "regular").strip().lower()
+    value = value.replace("-", "").replace("_", "").replace(" ", "")
+
+    aliases = {
+        "normal": "regular",
+        "book": "regular",
+        "demibold": "semibold",
+        "semi": "semibold",
+        "heavy": "black",
+        "oblique": "italic",
+    }
+
+    return aliases.get(value, value)
+
+
+def _font_variant_score(path: Path, variant: str) -> int:
+    stem = path.stem.lower()
+    compact = stem.replace("-", "").replace("_", "").replace(" ", "")
+
+    variant = _normalize_font_variant(variant)
+    aliases = _FONT_VARIANT_ALIASES.get(variant, [variant])
+
+    # Corrispondenza esatta.
+    for alias in aliases:
+        token = alias.replace("-", "").replace("_", "").replace(" ", "")
+        if token and token in compact:
+            return 100
+
+    # Se chiediamo Regular, un file senza indicazione di peso
+    # è il fallback naturale.
+    if variant == "regular":
+        known_variants = (
+            "thin", "extralight", "light", "medium",
+            "semibold", "bold", "extrabold", "black",
+            "italic", "oblique"
+        )
+        if not any(v in compact for v in known_variants):
+            return 80
+
+    return 0
+
+
+def load_font_variant(
+    size: int,
+    font_name: str = "Raleway",
+    variant: str = "Regular",
+) -> ImageFont.FreeTypeFont:
+    """
+    Carica una specifica variante del font.
+
+    Se la variante non esiste, utilizza un fallback compatibile.
+    """
+    family = str(font_name or "Raleway").strip()
+    requested = _normalize_font_variant(variant)
+
+    # Raleway: utilizziamo i font già presenti nel progetto.
+    if family.lower() == "raleway":
+        explicit = {
+            "thin": _RALEWAY_LIGHT,
+            "extralight": _RALEWAY_LIGHT,
+            "light": _RALEWAY_LIGHT,
+            "regular": _RALEWAY_LIGHT,
+            "medium": _RALEWAY_BOLD,
+            "semibold": _RALEWAY_BOLD,
+            "bold": _RALEWAY_BOLD,
+            "extrabold": _RALEWAY_BOLD,
+            "black": _RALEWAY_BOLD,
+            "italic": _RALEWAY_LIGHT,
+        }
+
+        candidates = explicit.get(requested)
+
+        if candidates:
+            path = _find(candidates)
+            if path:
+                return ImageFont.truetype(path, size)
+
+    # Alata: attualmente il progetto contiene una sola variante.
+    if family.lower() == "alata":
+        path = _find(_ALATA_REGULAR)
+        if path:
+            return ImageFont.truetype(path, size)
+
+    # Ricerca generica nei font disponibili.
+    font_dirs = []
+
+    # Recupera eventuali directory già definite dal renderer.
+    for name in ("_FONT_DIRS", "_FONT_DIR"):
+        value = globals().get(name)
+
+        if value:
+            if isinstance(value, (list, tuple)):
+                font_dirs.extend(Path(x) for x in value)
+            else:
+                font_dirs.append(Path(value))
+
+    # Aggiunge la cartella fonts del progetto se non già presente.
+    project_fonts = Path(__file__).resolve().parent / "fonts"
+
+    if project_fonts.exists() and project_fonts not in font_dirs:
+        font_dirs.append(project_fonts)
+
+    matches = []
+
+    family_key = family.lower().replace("-", "").replace("_", "").replace(" ", "")
+
+    for root in font_dirs:
+        if not root.exists():
+            continue
+
+        for path in root.rglob("*"):
+            if path.suffix.lower() not in {".ttf", ".otf", ".ttc"}:
+                continue
+
+            stem_key = (
+                path.stem.lower()
+                .replace("-", "")
+                .replace("_", "")
+                .replace(" ", "")
+            )
+
+            if family_key not in stem_key:
+                continue
+
+            score = _font_variant_score(path, requested)
+
+            if score > 0:
+                matches.append((score, path))
+
+    if matches:
+        matches.sort(key=lambda item: (-item[0], str(item[1])))
+        return ImageFont.truetype(str(matches[0][1]), size)
+
+    # Fallback definitivo: comportamento precedente.
+    light, semibold = load_pair(size, font_name=family)
+
+    if requested in {
+        "medium",
+        "semibold",
+        "bold",
+        "extrabold",
+        "black",
+    }:
+        return semibold
+
+    return light
+
+
 def load_pair(size: int, font_name: str = "Raleway") -> tuple[ImageFont.FreeTypeFont, ImageFont.FreeTypeFont]:
     safe_size = max(int(size or 1), 1)
     fn = (font_name or "").strip().lower()
+
+    # 1. Raleway (Light + Grassetto Bold)
+    if fn in ["raleway", ""]:
+        lp = _find(_RALEWAY_LIGHT)
+        bp = _find(_RALEWAY_BOLD)
+        if lp and bp:
+            return _load(lp, safe_size), _load(bp, safe_size)
+
+    # 2. Alata
     if fn == "alata":
         ap = _find(_ALATA_REGULAR)
         if ap:
             af = _load(ap, safe_size)
             return af, af
-    lp = _find(_RALEWAY_LIGHT)
-    sp = _find(_RALEWAY_SEMIBOLD)
-    if lp and sp:
-        return _load(lp, safe_size), _load(sp, safe_size)
+
+    # 3. Custom font caricato dall'utente in fonts/
+    fonts_dirs = [
+        Path(__file__).parent / "fonts",
+        Path("./fonts")
+    ]
+    for fdir in fonts_dirs:
+        if fdir.exists():
+            matching = []
+            for f in fdir.iterdir():
+                if f.is_file() and f.suffix.lower() in [".ttf", ".otf"]:
+                    if fn in f.stem.lower():
+                        matching.append(f)
+                    else:
+                        try:
+                            f_obj = ImageFont.truetype(str(f), 20)
+                            gn = f_obj.getname()
+                            if gn and gn[0] and fn in gn[0].lower():
+                                matching.append(f)
+                        except Exception:
+                            pass
+            if matching:
+                bold_file = None
+                regular_file = None
+                for mf in matching:
+                    stem_lower = mf.stem.lower()
+                    if any(k in stem_lower for k in ["bold", "black", "heavy", "700", "800"]):
+                        bold_file = mf
+                    elif any(k in stem_lower for k in ["regular", "light", "medium", "300", "400"]):
+                        regular_file = mf
+                if regular_file and bold_file:
+                    return _load(str(regular_file), safe_size), _load(str(bold_file), safe_size)
+                elif regular_file:
+                    rf = _load(str(regular_file), safe_size)
+                    return rf, rf
+                elif bold_file:
+                    bf = _load(str(bold_file), safe_size)
+                    return bf, bf
+                else:
+                    f_single = _load(str(matching[0]), safe_size)
+                    return f_single, f_single
+
+    # 4. Fallback di sistema
     rp = _find(_FALLBACK_REG)
     bp = _find(_FALLBACK_BOLD)
     if rp and bp:
@@ -109,6 +333,21 @@ def load_pair(size: int, font_name: str = "Raleway") -> tuple[ImageFont.FreeType
     return d, d
 
 # ── Utility ───────────────────────────────────────────────────────────────────
+def get_font_typo_metrics(font_name: str = "Raleway", font_size: int = 45) -> dict[str, int]:
+    """Calcola le metriche tipografiche (asc, desc, typoH, baselineOffset) usando Pillow FreeType."""
+    safe_size = max(int(font_size or 1), 1)
+    font, _ = load_pair(safe_size, font_name=font_name)
+    asc, desc = font.getmetrics()
+    typo_h = asc + desc
+    diff = asc - desc
+    baseline_offset = (diff // 2) if (diff % 2 == 0) else round(diff / 2)
+    return {
+        "asc": asc,
+        "desc": desc,
+        "typoH": typo_h,
+        "baselineOffset": baseline_offset,
+    }
+
 def _w(text: str, font: ImageFont.FreeTypeFont) -> int:
     bb = font.getbbox(text)
     return bb[2] - bb[0]
@@ -121,6 +360,178 @@ def _word_w(text: str, font: ImageFont.FreeTypeFont, letter_spacing: int = 0) ->
     if not letter_spacing or len(text) <= 1:
         return _w(text, font)
     return sum(_w(ch, font) + letter_spacing for ch in text) - letter_spacing
+
+def _layout_lines(
+    words: list[str],
+    is_bold_fn,
+    light_font: ImageFont.FreeTypeFont,
+    semibold_font: ImageFont.FreeTypeFont,
+    letter_spacing: int,
+    space_w: int,
+    max_width: int,
+    min_words_per_line: int = 2,
+    max_words_per_line: int = 7,
+    num_lines: int = 2,
+) -> list[list[tuple[int, str]]]:
+    """Lay out subtitle words into lines without ever dropping tokens.
+
+    Priority:
+    1. Never lose words.
+    2. Respect explicit newlines.
+    3. Respect max_width whenever possible.
+    4. Respect max_words_per_line whenever possible.
+    5. Keep the number of lines <= num_lines whenever possible.
+    6. Try to satisfy min_words_per_line when possible.
+
+    If the constraints are mathematically incompatible, all words are still
+    rendered and the least important constraint is relaxed rather than
+    dropping tokens.
+    """
+    min_words_per_line = max(1, int(min_words_per_line))
+    max_words_per_line = max(min_words_per_line, int(max_words_per_line))
+    num_lines = max(1, int(num_lines))
+
+    # Expand explicit newlines while preserving the original word indices.
+    tokens: list[tuple[int, str]] = []
+    newline_breaks: set[int] = set()
+
+    for i, word in enumerate(words):
+        parts = str(word).split("\n")
+        for p_idx, part in enumerate(parts):
+            if p_idx > 0 and tokens:
+                newline_breaks.add(len(tokens) - 1)
+            if part:
+                tokens.append((i, part))
+
+    if not tokens:
+        return [[]]
+
+    def token_width(token: tuple[int, str]) -> int:
+        idx, text = token
+        font = semibold_font if is_bold_fn(idx) else light_font
+        return _word_w(text, font, letter_spacing)
+
+    def line_width(line: list[tuple[int, str]]) -> int:
+        if not line:
+            return 0
+        return (
+            sum(token_width(token) for token in line)
+            + space_w * max(0, len(line) - 1)
+        )
+
+    def fits(line: list[tuple[int, str]]) -> bool:
+        return line_width(line) <= max_width
+
+    # Numero di righe come priorità principale.
+    # Tutte le parole devono essere mantenute.
+    all_tokens = tokens
+    n = len(all_tokens)
+
+    # Se ci sono meno parole delle righe richieste, una parola per riga.
+    target_lines = min(num_lines, n)
+
+    if target_lines <= 1:
+        return [all_tokens]
+
+    # Distribuzione:
+    # 1. numero di righe esatto
+    # 2. minimo parole/riga
+    # 3. massimo parole/riga
+    #
+    # Se il minimo è compatibile con il numero di righe,
+    # partiamo dal minimo e distribuiamo le parole rimanenti.
+    if n >= target_lines * min_words_per_line:
+        counts = [min_words_per_line] * target_lines
+        remaining = n - sum(counts)
+
+        # Prima rispettiamo il massimo parole/riga.
+        while remaining > 0:
+            moved = False
+
+            for i in range(target_lines):
+                if remaining <= 0:
+                    break
+
+                if counts[i] < max_words_per_line:
+                    counts[i] += 1
+                    remaining -= 1
+                    moved = True
+
+            # Se abbiamo ancora parole, il numero di righe
+            # ha priorità sul massimo parole/riga.
+            if not moved:
+                for i in range(target_lines):
+                    if remaining <= 0:
+                        break
+                    counts[i] += 1
+                    remaining -= 1
+    else:
+        # Il minimo parole/riga non è possibile.
+        # Manteniamo comunque il numero esatto di righe.
+        base = n // target_lines
+        remainder = n % target_lines
+        counts = [
+            base + (1 if i < remainder else 0)
+            for i in range(target_lines)
+        ]
+
+    candidates = []
+    pos = 0
+
+    for count in counts:
+        candidates.append(all_tokens[pos:pos + count])
+        pos += count
+
+    # Sicurezza assoluta: nessuna parola può essere persa.
+    if pos < n:
+        candidates[-1].extend(all_tokens[pos:])
+
+    # Manteniamo il numero di righe richiesto.
+    # Proviamo solamente a migliorare la larghezza spostando
+    # parole tra righe adiacenti.
+    changed = True
+
+    while changed:
+        changed = False
+
+        for i in range(len(candidates) - 1):
+            left = candidates[i]
+            right = candidates[i + 1]
+
+            # Se la riga sinistra supera la larghezza, prova a spostare
+            # l'ultima parola a destra.
+            if len(left) > 1 and not fits(left):
+                candidate_left = left[:-1]
+                candidate_right = [left[-1]] + right
+
+                if fits(candidate_left):
+                    left.pop()
+                    right.insert(0, candidate_left[-1])
+                    changed = True
+                    continue
+
+            # Se la riga destra supera la larghezza, prova a spostare
+            # la prima parola a sinistra.
+            if len(right) > 1 and not fits(right):
+                candidate_left = left + [right[0]]
+                candidate_right = right[1:]
+
+                if fits(candidate_left):
+                    right_word = right.pop(0)
+                    left.append(right_word)
+                    changed = True
+
+    # Invariante finale: tutte le parole devono essere presenti
+    # esattamente una volta.
+    flattened = [token for line in candidates for token in line]
+
+    if flattened != all_tokens:
+        raise RuntimeError(
+            "Layout subtitle non lossless: una o più parole sono state perse."
+        )
+
+    return candidates
+
 
 def _draw_text(
     draw: ImageDraw.ImageDraw,
@@ -188,8 +599,8 @@ def _draw_text(
 def render_subtitle(
     words: list[str],
     bold_indices: set[int] | list[int] | int,
-    light,
-    semibold,
+    light: ImageFont.FreeTypeFont,
+    semibold: ImageFont.FreeTypeFont,
     out: Path,
     offset_x: int = DEFAULT_OFFSET_SUB_X,
     offset_y: int = DEFAULT_OFFSET_SUB_Y,
@@ -202,17 +613,30 @@ def render_subtitle(
     letter_spacing: int = 0,
     capcut_sub_x: int | None = None,
     capcut_sub_y: int | None = None,
+    rotation: float = 0.0,
+    canvas_width: int = BASE_WIDTH,
+    canvas_height: int = BASE_HEIGHT,
+    max_width_ratio: float = 0.82,
+    normal_color: tuple[int, int, int, int] = TEXT_COLOR,
+    keyword_color: tuple[int, int, int, int] = TEXT_COLOR,
+    min_words_per_line: int = 2,
+    max_words_per_line: int = 7,
+    num_lines: int = 2,
 ) -> Path:
+    scale = canvas_height / BASE_HEIGHT
+    center_x = canvas_width / 2.0
+    center_y = canvas_height / 2.0
+
     if capcut_sub_x is not None:
-        offset_x = round(float(capcut_sub_x) * 0.51)
+        offset_x = round(float(capcut_sub_x) * CAPCUT_COORD_SCALE * scale)
     elif subtitle_x is not None:
-        offset_x = subtitle_x - CENTER_X
+        offset_x = round((subtitle_x - BASE_CENTER_X) * scale)
 
     if capcut_sub_y is not None:
-        # Convenzione CapCut calibrata: 1 unit CapCut = 0.51 px (negativo = verso il basso)
-        offset_y = -round(float(capcut_sub_y) * 0.51)
+        # Convenzione CapCut calibrata: 1 unit CapCut = 0.50 px (negativo = verso il basso)
+        offset_y = -round(float(capcut_sub_y) * CAPCUT_COORD_SCALE * scale)
     elif subtitle_y is not None:
-        offset_y = subtitle_y - CENTER_Y
+        offset_y = round((subtitle_y - BASE_CENTER_Y) * scale)
 
     if all_caps:
         words = [w.upper() for w in words]
@@ -225,7 +649,7 @@ def render_subtitle(
     is_bold_pattern = bool(pattern and pattern.strip().lower() == "bold")
     is_light_pattern = bool(pattern and pattern.strip().lower() == "light")
 
-    img  = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    img = Image.new("RGBA", (canvas_width, canvas_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     space_w = _w(" ", light) + letter_spacing
     ref_font = semibold if is_bold_pattern else light
@@ -236,40 +660,78 @@ def render_subtitle(
             return False
         return is_bold_pattern or (idx in b_set)
 
-    total_w = sum(_word_w(w, semibold if _is_bold(i) else light, letter_spacing) for i, w in enumerate(words))
-    total_w += space_w * max(0, len(words) - 1)
+    # Coordinate assolute convertite dal centro del canvas
+    abs_center_x = round(center_x + offset_x)
+    abs_center_y = round(center_y + offset_y)
 
-    # Coordinate assolute convertite dal centro (CENTER_X=540, CENTER_Y=960)
-    abs_center_x = CENTER_X + offset_x
-    abs_center_y = CENTER_Y + offset_y
+    max_allowed_w = int(canvas_width * max_width_ratio)
+    lines = _layout_lines(
+        words=words,
+        is_bold_fn=_is_bold,
+        light_font=light,
+        semibold_font=semibold,
+        letter_spacing=letter_spacing,
+        space_w=space_w,
+        max_width=max_allowed_w,
+        min_words_per_line=min_words_per_line,
+        max_words_per_line=max_words_per_line,
+        num_lines=num_lines,
+    )
 
-    start_x = abs_center_x - (total_w // 2)
-    start_y = abs_center_y - (asc // 2) - round(asc * 0.12)
+    num_lines = len(lines)
+    diff = asc - desc
+    baseline_offset = (diff // 2) if (diff % 2 == 0) else round(diff / 2)
+    single_line_baseline = abs_center_y + baseline_offset
 
-    cur_x = start_x
-    for i, word in enumerate(words):
-        is_word_bold = _is_bold(i)
-        font = semibold if is_word_bold else light
-        use_faux = is_bold_pattern or (is_word_bold and light == semibold)
-        _draw_text(
-            draw, cur_x, start_y, word, font,
-            fill_color=TEXT_COLOR,
-            stroke_width=stroke_width,
-            stroke_color=(0, 0, 0, 220) if stroke_width > 0 else (0,0,0,0),
-            shadow_offset=shadow_offset,
-            shadow_color=(0, 0, 0, 140) if shadow_offset > 0 else (0,0,0,0),
-            faux_bold=use_faux,
-            letter_spacing=letter_spacing
+    if num_lines <= 1:
+        first_baseline = single_line_baseline
+        line_h = asc + desc
+    else:
+        # Centra il blocco multi-riga verticalmente attorno ad abs_center_y
+        line_gap = max(4, round(asc * 0.25))
+        line_h = asc + desc + line_gap
+        total_block_h = (num_lines - 1) * line_h + (asc + desc)
+        top_y = abs_center_y - (total_block_h // 2)
+        first_baseline = top_y + asc
+
+    for line_idx, line_tokens in enumerate(lines):
+        line_w = sum(
+            _word_w(tok, semibold if _is_bold(tok_idx) else light, letter_spacing)
+            for tok_idx, tok in line_tokens
         )
-        cur_x += _word_w(word, font, letter_spacing) + (1 if use_faux else 0)
-        if i < len(words) - 1:
-            cur_x += space_w
+        line_w += space_w * max(0, len(line_tokens) - 1)
+
+        start_x = abs_center_x - (line_w // 2)
+        baseline = first_baseline + line_idx * line_h
+        start_y = baseline - asc
+
+        cur_x = start_x
+        for word_pos, (tok_idx, tok) in enumerate(line_tokens):
+            is_word_bold = _is_bold(tok_idx)
+            font = semibold if is_word_bold else light
+            use_faux = is_bold_pattern or (is_word_bold and light == semibold)
+            _draw_text(
+                draw, cur_x, start_y, tok, font,
+                fill_color=keyword_color if is_word_bold else normal_color,
+                stroke_width=stroke_width,
+                stroke_color=(0, 0, 0, 220) if stroke_width > 0 else (0, 0, 0, 0),
+                shadow_offset=shadow_offset,
+                shadow_color=(0, 0, 0, 140) if shadow_offset > 0 else (0, 0, 0, 0),
+                faux_bold=use_faux,
+                letter_spacing=letter_spacing
+            )
+            cur_x += _word_w(tok, font, letter_spacing) + (1 if use_faux else 0)
+            if word_pos < len(line_tokens) - 1:
+                cur_x += space_w
+
+    if rotation:
+        img = img.rotate(-rotation, resample=Image.BICUBIC, center=(abs_center_x, abs_center_y))
 
     img.save(out, "PNG")
     return out
 
 def render_watermark(
-    semibold,
+    semibold: ImageFont.FreeTypeFont,
     out: Path,
     watermark_text: str = WATERMARK_TEXT,
     offset_x: int = DEFAULT_OFFSET_WM_X,
@@ -280,19 +742,26 @@ def render_watermark(
     watermark_y: int | None = None,
     capcut_wm_x: int | None = None,
     capcut_wm_y: int | None = None,
+    rotation: float = 0.0,
+    canvas_width: int = BASE_WIDTH,
+    canvas_height: int = BASE_HEIGHT,
 ) -> Path:
+    scale = canvas_height / BASE_HEIGHT
+    center_x = canvas_width / 2.0
+    center_y = canvas_height / 2.0
+
     if capcut_wm_x is not None:
-        offset_x = round(float(capcut_wm_x) * 0.51)
+        offset_x = round(float(capcut_wm_x) * CAPCUT_COORD_SCALE * scale)
     elif watermark_x is not None:
-        offset_x = watermark_x - CENTER_X
+        offset_x = round((watermark_x - BASE_CENTER_X) * scale)
 
     if capcut_wm_y is not None:
-        # Convenzione CapCut calibrata: 1 unit CapCut = 0.51 px (negativo = verso il basso)
-        offset_y = -round(float(capcut_wm_y) * 0.51)
+        # Convenzione CapCut calibrata: 1 unit CapCut = 0.50 px (negativo = verso il basso)
+        offset_y = -round(float(capcut_wm_y) * CAPCUT_COORD_SCALE * scale)
     elif watermark_y is not None:
-        offset_y = watermark_y - CENTER_Y
+        offset_y = round((watermark_y - BASE_CENTER_Y) * scale)
 
-    img  = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    img = Image.new("RGBA", (canvas_width, canvas_height), (0, 0, 0, 0))
     if not watermark_text or not watermark_text.strip():
         img.save(out, "PNG")
         return out
@@ -301,26 +770,31 @@ def render_watermark(
     wm_w = _w(watermark_text, semibold)
     asc, desc = semibold.getmetrics()
 
-    abs_center_x = CENTER_X + offset_x
-    abs_center_y = CENTER_Y + offset_y
+    abs_center_x = round(center_x + offset_x)
+    abs_center_y = round(center_y + offset_y)
 
     x = abs_center_x - (wm_w // 2)
-    y = abs_center_y - (asc // 2) - round(asc * 0.20)
+    diff = asc - desc
+    baseline_offset = (diff // 2) if (diff % 2 == 0) else round(diff / 2)
+    baseline = abs_center_y + baseline_offset
+    y = baseline - asc
 
     _draw_text(
         draw, x, y, watermark_text, semibold,
         fill_color=TEXT_COLOR,
         stroke_width=stroke_width,
-        stroke_color=(0, 0, 0, 220) if stroke_width > 0 else (0,0,0,0),
+        stroke_color=(0, 0, 0, 220) if stroke_width > 0 else (0, 0, 0, 0),
         shadow_offset=shadow_offset,
-        shadow_color=(0, 0, 0, 140) if shadow_offset > 0 else (0,0,0,0)
+        shadow_color=(0, 0, 0, 140) if shadow_offset > 0 else (0, 0, 0, 0)
     )
+    if rotation:
+        img = img.rotate(-rotation, resample=Image.BICUBIC, center=(abs_center_x, abs_center_y))
     img.save(out, "PNG")
     return out
 
-def render_blank(work_dir: Path) -> Path:
+def render_blank(work_dir: Path, canvas_width: int = BASE_WIDTH, canvas_height: int = BASE_HEIGHT) -> Path:
     blank = work_dir / "blank.png"
-    Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0)).save(blank, "PNG")
+    Image.new("RGBA", (canvas_width, canvas_height), (0, 0, 0, 0)).save(blank, "PNG")
     return blank
 
 # ── ffconcat ──────────────────────────────────────────────────────────────────
@@ -366,6 +840,8 @@ def render_all(
     work_dir: Path,
     total_duration: float,
     preset: dict[str, Any] | None = None,
+    canvas_width: int = BASE_WIDTH,
+    canvas_height: int = BASE_HEIGHT,
 ) -> tuple[list[RenderedChunk], Path, Path]:
     settings = {
         "offset_sub_x": DEFAULT_OFFSET_SUB_X,
@@ -376,69 +852,107 @@ def render_all(
         "font_size_wm": FONT_SIZE_WM,
         "watermark_text": WATERMARK_TEXT,
         "stroke_width": 0,
-        "shadow_offset": 0
+        "shadow_offset": 0,
+        "subtitle_style": {
+            "normal": {
+                "font_family": "Raleway",
+                "font_variant": "Light",
+                "color": "#FFFFFF",
+            },
+            "keyword": {
+                "font_family": "Raleway",
+                "font_variant": "SemiBold",
+                "color": "#FFFFFF",
+            },
+        },
+        "keywords": {
+            "enabled": True,
+            "mode": "automatic",
+        },
     }
     if preset:
         # Supporta coordinate e dimensioni native CapCut
         if "capcut_sub_x" in preset and preset["capcut_sub_x"] is not None:
-            settings["offset_sub_x"] = round(float(preset["capcut_sub_x"]) * 0.51)
+            settings["offset_sub_x"] = round(float(preset["capcut_sub_x"]) * CAPCUT_COORD_SCALE)
         elif "capcut_x" in preset and preset["capcut_x"] is not None:
-            settings["offset_sub_x"] = round(float(preset["capcut_x"]) * 0.51)
+            settings["offset_sub_x"] = round(float(preset["capcut_x"]) * CAPCUT_COORD_SCALE)
         elif "offset_sub_x" in preset:
             settings["offset_sub_x"] = int(preset["offset_sub_x"])
         elif "subtitle_x" in preset:
-            settings["offset_sub_x"] = int(preset["subtitle_x"]) - CENTER_X
+            settings["offset_sub_x"] = int(preset["subtitle_x"]) - BASE_CENTER_X
 
         if "capcut_sub_y" in preset and preset["capcut_sub_y"] is not None:
-            # Scala CapCut calibrata: 1 unit CapCut = 0.51 px video
-            settings["offset_sub_y"] = -round(float(preset["capcut_sub_y"]) * 0.51)
+            # Scala CapCut calibrata: 1 unit CapCut = 0.50 px video
+            settings["offset_sub_y"] = -round(float(preset["capcut_sub_y"]) * CAPCUT_COORD_SCALE)
         elif "capcut_y" in preset and preset["capcut_y"] is not None:
-            settings["offset_sub_y"] = -round(float(preset["capcut_y"]) * 0.51)
+            settings["offset_sub_y"] = -round(float(preset["capcut_y"]) * CAPCUT_COORD_SCALE)
         elif "offset_sub_y" in preset:
             settings["offset_sub_y"] = int(preset["offset_sub_y"])
         elif "subtitle_y" in preset:
-            settings["offset_sub_y"] = int(preset["subtitle_y"]) - CENTER_Y
+            settings["offset_sub_y"] = int(preset["subtitle_y"]) - BASE_CENTER_Y
 
         if "capcut_size" in preset and preset["capcut_size"]:
             sub_scale = float(preset.get("capcut_sub_scale", 100)) / 100.0
-            settings["font_size_sub"] = round(float(preset["capcut_size"]) * sub_scale * 5.35)
+            settings["font_size_sub"] = round(float(preset["capcut_size"]) * sub_scale * CAPCUT_SIZE_FACTOR)
 
         if "capcut_wm_x" in preset and preset["capcut_wm_x"] is not None:
-            settings["offset_wm_x"] = round(float(preset["capcut_wm_x"]) * 0.51)
+            settings["offset_wm_x"] = round(float(preset["capcut_wm_x"]) * CAPCUT_COORD_SCALE)
         elif "offset_wm_x" in preset:
             settings["offset_wm_x"] = int(preset["offset_wm_x"])
         elif "watermark_x" in preset:
-            settings["offset_wm_x"] = int(preset["watermark_x"]) - CENTER_X
+            settings["offset_wm_x"] = int(preset["watermark_x"]) - BASE_CENTER_X
 
         if "capcut_wm_y" in preset and preset["capcut_wm_y"] is not None:
-            settings["offset_wm_y"] = -round(float(preset["capcut_wm_y"]) * 0.51)
+            settings["offset_wm_y"] = -round(float(preset["capcut_wm_y"]) * CAPCUT_COORD_SCALE)
         elif "offset_wm_y" in preset:
             settings["offset_wm_y"] = int(preset["offset_wm_y"])
         elif "watermark_y" in preset:
-            settings["offset_wm_y"] = int(preset["watermark_y"]) - CENTER_Y
+            settings["offset_wm_y"] = int(preset["watermark_y"]) - BASE_CENTER_Y
 
         if "capcut_wm_size" in preset and preset["capcut_wm_size"]:
             wm_scale = float(preset.get("capcut_wm_scale", 100)) / 100.0
-            settings["font_size_wm"] = round(float(preset["capcut_wm_size"]) * wm_scale * 5.35)
+            settings["font_size_wm"] = round(float(preset["capcut_wm_size"]) * wm_scale * CAPCUT_SIZE_FACTOR)
 
-        for k in ["font_size_sub", "font_size_wm", "watermark_text", "stroke_width", "shadow_offset", "font_name", "font_family", "pattern", "all_caps", "letter_spacing"]:
+        settings["rotation_sub"] = float(preset.get("rotation_sub", 0.0))
+        settings["rotation_wm"] = float(preset.get("rotation_wm", 0.0))
+
+        for k in ["font_size_sub", "font_size_wm", "watermark_text", "stroke_width", "shadow_offset", "font_name", "font_family", "pattern", "all_caps", "letter_spacing", "subtitle_style", "keywords", "subtitle_layout"]:
             if k in preset:
                 settings[k] = preset[k]
 
-    sub_ox = int(settings["offset_sub_x"])
-    sub_oy = int(settings["offset_sub_y"])
-    wm_ox  = int(settings["offset_wm_x"])
-    wm_oy  = int(settings["offset_wm_y"])
-    fs_sub = int(settings["font_size_sub"])
-    fs_wm  = int(settings["font_size_wm"])
-    stroke_w = int(settings.get("stroke_width", 0))
-    shadow_off = int(settings.get("shadow_offset", 0))
+    # Scala per risoluzione effettiva rispetto al canvas logico 1080x1920
+    scale = canvas_height / BASE_HEIGHT
+    sub_ox = int(round(settings["offset_sub_x"] * scale))
+    sub_oy = int(round(settings["offset_sub_y"] * scale))
+    wm_ox  = int(round(settings["offset_wm_x"] * scale))
+    wm_oy  = int(round(settings["offset_wm_y"] * scale))
+    fs_sub = max(1, int(round(settings["font_size_sub"] * scale)))
+    fs_wm  = max(1, int(round(settings["font_size_wm"] * scale)))
+    stroke_w = int(round(settings.get("stroke_width", 0) * scale))
+    shadow_off = int(round(settings.get("shadow_offset", 0) * scale))
+    letter_spacing = int(round(settings.get("letter_spacing", 0) * scale))
     font_name = settings.get("font_name") or settings.get("font_family") or "Raleway"
     pattern = settings.get("pattern", "")
     all_caps = bool(settings.get("all_caps", False))
-    letter_spacing = int(settings.get("letter_spacing", 0))
 
-    light_sub, semibold_sub = load_pair(fs_sub, font_name=font_name)
+    # Layout sottotitoli
+    subtitle_layout = settings.get("subtitle_layout") or {}
+    min_words_per_line = int(subtitle_layout.get("min_words_per_line", 2))
+    max_words_per_line = int(subtitle_layout.get("max_words_per_line", 7))
+    num_lines = int(subtitle_layout.get("num_lines", 2))
+
+    # Carica i font separatamente per normal e keyword usando subtitle_style
+    _subtitle_style = settings.get("subtitle_style") or {}
+    _normal_style = _subtitle_style.get("normal") or {}
+    _keyword_style = _subtitle_style.get("keyword") or {}
+
+    normal_family = str(_normal_style.get("font_family") or font_name).strip()
+    normal_variant = str(_normal_style.get("font_variant") or "Light").strip()
+    keyword_family = str(_keyword_style.get("font_family") or font_name).strip()
+    keyword_variant = str(_keyword_style.get("font_variant") or "SemiBold").strip()
+
+    light_sub = load_font_variant(fs_sub, font_name=normal_family, variant=normal_variant)
+    semibold_sub = load_font_variant(fs_sub, font_name=keyword_family, variant=keyword_variant)
     _,         semibold_wm  = load_pair(fs_wm, font_name=font_name)
 
     wm_path = work_dir / "watermark.png"
@@ -449,10 +963,18 @@ def render_all(
         offset_x=wm_ox,
         offset_y=wm_oy,
         stroke_width=stroke_w,
-        shadow_offset=shadow_off
+        shadow_offset=shadow_off,
+        rotation=settings.get("rotation_wm", 0.0),
+        canvas_width=canvas_width,
+        canvas_height=canvas_height,
     )
 
-    blank = render_blank(work_dir)
+    blank = render_blank(work_dir, canvas_width=canvas_width, canvas_height=canvas_height)
+
+    # Gestione globale delle keyword.
+    # Le selezioni bold_indices vengono comunque conservate nei chunk.
+    keywords_config = settings.get("keywords") or {}
+    keywords_enabled = bool(keywords_config.get("enabled", True))
 
     rendered: list[RenderedChunk] = []
     for i, chunk in enumerate(chunks):
@@ -478,6 +1000,11 @@ def render_all(
             c_start = float(chunk.start)
             c_end = float(chunk.end)
 
+        # Se le keyword sono disabilitate, il renderer non evidenzia
+        # nessuna parola. I bold_indices originali restano intatti nei chunk.
+        if not keywords_enabled:
+            b_indices = set()
+
         if i > 0 and len(rendered) > 0:
             last_end = rendered[-1].end
             if c_start < last_end:
@@ -486,6 +1013,53 @@ def render_all(
             c_end = c_start + 0.15
 
         out = work_dir / f"sub_{i:04d}.png"
+        # Colori Normal / Keyword dal nuovo sistema di stile.
+        def _parse_color(value, fallback=TEXT_COLOR):
+            if isinstance(value, (list, tuple)) and len(value) in (3, 4):
+                try:
+                    vals = tuple(int(x) for x in value)
+                    return vals if len(vals) == 4 else vals + (255,)
+                except (TypeError, ValueError):
+                    return fallback
+
+            if isinstance(value, str):
+                raw_color = value.strip().lstrip("#")
+                if len(raw_color) == 6:
+                    try:
+                        return (
+                            int(raw_color[0:2], 16),
+                            int(raw_color[2:4], 16),
+                            int(raw_color[4:6], 16),
+                            255,
+                        )
+                    except ValueError:
+                        pass
+                elif len(raw_color) == 8:
+                    try:
+                        return (
+                            int(raw_color[0:2], 16),
+                            int(raw_color[2:4], 16),
+                            int(raw_color[4:6], 16),
+                            int(raw_color[6:8], 16),
+                        )
+                    except ValueError:
+                        pass
+
+            return fallback
+
+        current_subtitle_style = settings.get("subtitle_style") or {}
+        current_normal_style = current_subtitle_style.get("normal") or {}
+        current_keyword_style = current_subtitle_style.get("keyword") or {}
+
+        normal_color = _parse_color(
+            current_normal_style.get("color"),
+            TEXT_COLOR,
+        )
+        keyword_color = _parse_color(
+            current_keyword_style.get("color"),
+            TEXT_COLOR,
+        )
+
         render_subtitle(
             words,
             b_indices,
@@ -498,10 +1072,18 @@ def render_all(
             shadow_offset=shadow_off,
             pattern=pattern,
             all_caps=all_caps,
-            letter_spacing=letter_spacing
+            letter_spacing=letter_spacing,
+            rotation=settings.get("rotation_sub", 0.0),
+            canvas_width=canvas_width,
+            canvas_height=canvas_height,
+            normal_color=normal_color,
+            keyword_color=keyword_color,
+            min_words_per_line=min_words_per_line,
+            max_words_per_line=max_words_per_line,
+            num_lines=num_lines,
         )
         rendered.append(RenderedChunk(image_path=out, start=c_start, end=c_end))
 
-    console.log(f"[green]✓ {len(rendered)} frame sottotitolo renderizzati (sub_offset=({sub_ox},{sub_oy}), wm_offset=({wm_ox},{wm_oy}))[/]")
+    console.log(f"[green]✓ {len(rendered)} frame sottotitolo renderizzati (sub_offset=({sub_ox},{sub_oy}), wm_offset=({wm_ox},{wm_oy}), canvas={canvas_width}x{canvas_height})[/]")
     ffconcat_path = create_ffconcat(rendered, blank, total_duration, work_dir)
     return rendered, ffconcat_path, wm_path

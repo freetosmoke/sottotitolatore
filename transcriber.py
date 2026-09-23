@@ -296,3 +296,165 @@ def group_into_chunks(words: list[WordToken]) -> list[SubtitleChunk]:
 
     console.log(f"[green]✓ Raggruppamento:[/] {len(chunks)} chunk creati")
     return chunks
+
+
+# ---------------------------------------------------------------------------
+# Ri-segmentazione dinamica basata su parametri layout
+# ---------------------------------------------------------------------------
+
+def resegment_subtitles(
+    words: list[dict[str, Any] | WordToken],
+    min_words_per_line: int = 2,
+    max_words_per_line: int = 7,
+    num_lines: int = 2,
+    gap_split_threshold: float = GAP_SPLIT_THRESHOLD,
+) -> list[SubtitleChunk]:
+    """
+    Ri-segmenta le parole originali in nuovi SubtitleChunk basandosi sui
+    parametri di layout specificati.
+
+    Non riesegue Whisper: usa i timestamp word-level originali.
+
+    Args:
+        words: Lista di dizionari o WordToken con chiavi 'word', 'start', 'end'.
+        min_words_per_line: Minimo parole per riga.
+        max_words_per_line: Massimo parole per riga.
+        num_lines: Numero massimo di righe per chunk.
+        gap_split_threshold: Pausa (secondi) che forza nuovo chunk.
+
+    Returns:
+        Lista di SubtitleChunk con start=first_word.start, end=last_word.end.
+    """
+    if not words:
+        return []
+
+    # Normalizza input a WordToken
+    normalized: list[WordToken] = []
+    for w in words:
+        if isinstance(w, WordToken):
+            normalized.append(w)
+        else:
+            normalized.append(WordToken(
+                word=str(w.get("word", "")),
+                start=float(w.get("start", 0.0)),
+                end=float(w.get("end", 0.0)),
+            ))
+
+    # Prima passa: raggruppa per pause lunghe (GAP_SPLIT_THRESHOLD)
+    # Questo preserva le pause naturali dell'audio
+    macro_chunks: list[list[WordToken]] = []
+    current_macro: list[WordToken] = []
+
+    for w in normalized:
+        if not current_macro:
+            current_macro.append(w)
+            continue
+
+        gap = w.start - current_macro[-1].end
+        if gap >= gap_split_threshold:
+            macro_chunks.append(current_macro)
+            current_macro = [w]
+        else:
+            current_macro.append(w)
+
+    if current_macro:
+        macro_chunks.append(current_macro)
+
+    # Seconda passa: dentro ogni macro-chunk, applica vincoli layout
+    # per creare i chunk finali rispettando min/max parole per riga e num_lines
+    final_chunks: list[SubtitleChunk] = []
+
+    for macro in macro_chunks:
+        if not macro:
+            continue
+
+        sub_chunks = _split_macro_by_layout(
+            macro,
+            min_words_per_line=min_words_per_line,
+            max_words_per_line=max_words_per_line,
+            num_lines=num_lines,
+        )
+        final_chunks.extend(sub_chunks)
+
+    # Risolvi eventuali micro-overlap tra chunk finali
+    for i in range(len(final_chunks) - 1):
+        if final_chunks[i].end > final_chunks[i + 1].start:
+            split_point = round((final_chunks[i].end + final_chunks[i + 1].start) / 2, 2)
+            if split_point > final_chunks[i].start + 0.1 and split_point < final_chunks[i + 1].end - 0.1:
+                final_chunks[i] = dataclasses.replace(final_chunks[i], end=split_point)
+                final_chunks[i + 1] = dataclasses.replace(final_chunks[i + 1], start=split_point)
+            else:
+                final_chunks[i] = dataclasses.replace(
+                    final_chunks[i], end=max(round(final_chunks[i].start + 0.15, 2), round(final_chunks[i + 1].start, 2))
+                )
+                if final_chunks[i + 1].start < final_chunks[i].end:
+                    final_chunks[i + 1] = dataclasses.replace(
+                        final_chunks[i + 1], start=final_chunks[i].end
+                    )
+
+    console.log(f"[green]✓ Ri-segmentazione:[/] {len(final_chunks)} chunk creati")
+    return final_chunks
+
+
+def _split_macro_by_layout(
+    words: list[WordToken],
+    min_words_per_line: int,
+    max_words_per_line: int,
+    num_lines: int,
+) -> list[SubtitleChunk]:
+    """
+    Divide un macro-chunk in sottotitoli rispettando i vincoli di layout.
+    Priorità (come _layout_lines):
+    1. num_lines (hard constraint)
+    2. min_words_per_line
+    3. max_words_per_line
+    """
+    if not words:
+        return []
+
+    min_w = max(1, int(min_words_per_line))
+    max_w = max(min_w, int(max_words_per_line))
+    n_lines = max(1, int(num_lines))
+
+    n = len(words)
+
+    # Massimo parole per chunk basato su layout: n_lines * max_w
+    layout_max_words = n_lines * max_w
+
+    # Se tutte le parole stanno in un chunk rispettando i vincoli, restituisci chunk singolo
+    if n <= layout_max_words:
+        return [SubtitleChunk(
+            words=list(words),
+            start=words[0].start,
+            end=words[-1].end,
+        )]
+
+    # Altrimenti, dobbiamo dividere in più chunk
+    # Ogni chunk può contenere al massimo layout_max_words parole
+    chunks: list[SubtitleChunk] = []
+    pos = 0
+
+    while pos < n:
+        # Quante parole possiamo mettere in questo chunk?
+        remaining = n - pos
+        chunk_size = min(layout_max_words, remaining)
+
+        # Ma se le parole rimanenti dopo questo chunk sarebbero troppo poche
+        # (meno di min_w * num_lines ma > 0), aggiustiamo
+        remaining_after = remaining - chunk_size
+        if 0 < remaining_after < min_w * n_lines:
+            # Ridistribuiamo per evitare chunk finale troppo piccolo
+            chunk_size = remaining - (min_w * n_lines)
+            if chunk_size < min_w:
+                chunk_size = min(layout_max_words, remaining)
+
+        chunk_words = words[pos:pos + chunk_size]
+        chunks.append(SubtitleChunk(
+            words=list(chunk_words),
+            start=chunk_words[0].start,
+            end=chunk_words[-1].end,
+        ))
+
+        pos += chunk_size
+
+    return chunks

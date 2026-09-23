@@ -89,6 +89,8 @@ cp -f "$PROJECT_DIR"/video_renderer.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/keyword_selector.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/audio_extractor.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/ass_generator.py "$APP_PAYLOAD_DIR/"
+cp -f "$PROJECT_DIR"/silence_remover.py "$APP_PAYLOAD_DIR/"
+cp -f "$PROJECT_DIR"/presets.json "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/translator.py "$APP_PAYLOAD_DIR/"
 cp -R "$PROJECT_DIR"/fonts "$APP_PAYLOAD_DIR/"
 cp -R "$PROJECT_DIR"/web_static "$APP_PAYLOAD_DIR/"
@@ -105,7 +107,11 @@ fi
 mkdir -p "$RESOURCES_DIR/bin"
 cp -f "$PROJECT_DIR/bin/ffmpeg" "$RESOURCES_DIR/bin/ffmpeg"
 chmod +x "$RESOURCES_DIR/bin/ffmpeg"
-echo "✓ Binario statico FFmpeg (Apple Silicon arm64) integrato nel bundle"
+if [ -f "$PROJECT_DIR/bin/ffprobe" ]; then
+    cp -f "$PROJECT_DIR/bin/ffprobe" "$RESOURCES_DIR/bin/ffprobe"
+    chmod +x "$RESOURCES_DIR/bin/ffprobe"
+fi
+echo "✓ Binari statici FFmpeg/ffprobe (Apple Silicon arm64) integrati nel bundle"
 
 # Launcher nativo Cocoa (arm64)
 echo "🔨 Compilazione launcher nativo Cocoa Apple Silicon (arm64)..."

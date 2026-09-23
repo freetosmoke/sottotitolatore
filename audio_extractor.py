@@ -10,6 +10,8 @@ from pathlib import Path
 
 from rich.console import Console
 
+from video_renderer import _get_bin
+
 console = Console(stderr=True)
 
 
@@ -33,7 +35,7 @@ def extract_audio(video_path: Path, output_wav: Path | None = None) -> Path:
     console.log(f"[cyan]Estrazione audio:[/] {video_path.name} → {output_wav.name}")
 
     cmd = [
-        "ffmpeg",
+        _get_bin("ffmpeg"),
         "-y",                       # sovrascrittura senza prompt
         "-i", str(video_path),
         "-vn",                       # niente video

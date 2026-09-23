@@ -81,9 +81,14 @@ def build():
 
     # 3. Python standalone arm64 + pacchetti
     print("🐍 3/6 Copia runtime Python 3.12 Apple Silicon e librerie...")
-    py_standalone = Path("/Users/salvatorepuglisi/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none")
+    uv_python_dir = Path.home() / ".local/share/uv/python"
+    py_standalone = uv_python_dir / "cpython-3.12.14-macos-aarch64-none"
     if not py_standalone.exists():
-        py_standalone = Path("/Users/salvatorepuglisi/.local/share/uv/python/cpython-3.12-macos-aarch64-none")
+        py_standalone = uv_python_dir / "cpython-3.12-macos-aarch64-none"
+    if not py_standalone.exists():
+        candidates = list(uv_python_dir.glob("cpython-3.12*"))
+        if candidates:
+            py_standalone = candidates[0]
     shutil.copytree(py_standalone, python_target_dir, symlinks=True)
 
     venv_packages = base_dir / ".venv/lib/python3.12/site-packages"
@@ -95,10 +100,12 @@ def build():
     py_files = [
         "web_app.py", "transcriber.py", "subtitle_renderer.py",
         "video_renderer.py", "keyword_selector.py", "audio_extractor.py",
-        "ass_generator.py"
+        "ass_generator.py", "silence_remover.py", "translator.py", "presets.json"
     ]
     for pf in py_files:
-        shutil.copy2(base_dir / pf, app_payload_dir / pf)
+        src_file = base_dir / pf
+        if src_file.exists():
+            shutil.copy2(src_file, app_payload_dir / pf)
 
     shutil.copytree(base_dir / "fonts", app_payload_dir / "fonts", dirs_exist_ok=True)
     shutil.copytree(base_dir / "web_static", app_payload_dir / "web_static", dirs_exist_ok=True)

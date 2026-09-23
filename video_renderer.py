@@ -12,23 +12,37 @@ import subprocess
 import sys
 from pathlib import Path
 
+import os
+import re
+
 from rich.console import Console
 
 console = Console(stderr=True)
 
 
+def _get_bin(name: str) -> str:
+    """Restituisce il percorso del binario (ffmpeg/ffprobe) dando priorità al bundle dell'app."""
+    candidates = [
+        Path(__file__).resolve().parent / "bin" / name,
+        Path(__file__).resolve().parent.parent / "bin" / name,
+        Path(__file__).resolve().parent.parent / "Resources" / "bin" / name,
+    ]
+    for c in candidates:
+        if c.exists() and os.access(c, os.X_OK):
+            return str(c)
+    return name
+
+
 def _hw_available() -> bool:
-    r = subprocess.run(["ffmpeg", "-hide_banner", "-encoders"], capture_output=True, text=True)
+    r = subprocess.run([_get_bin("ffmpeg"), "-hide_banner", "-encoders"], capture_output=True, text=True)
     return "h264_videotoolbox" in r.stdout
 
-
-import re
 
 def get_video_duration(video_path: Path) -> float:
     """Legge la durata del file video con ffprobe o direttamente con ffmpeg."""
     try:
         r = subprocess.run(
-            ["ffprobe", "-v", "error",
+            [_get_bin("ffprobe"), "-v", "error",
              "-show_entries", "format=duration",
              "-of", "default=noprint_wrappers=1:nokey=1",
              str(video_path)],
@@ -40,7 +54,7 @@ def get_video_duration(video_path: Path) -> float:
         pass
 
     try:
-        r = subprocess.run(["ffmpeg", "-i", str(video_path)], stderr=subprocess.PIPE, stdout=subprocess.DEVNULL, text=True)
+        r = subprocess.run([_get_bin("ffmpeg"), "-i", str(video_path)], stderr=subprocess.PIPE, stdout=subprocess.DEVNULL, text=True)
         m = re.search(r"Duration:\s*(\d+):(\d+):(\d+\.\d+)", r.stderr)
         if m:
             h, mn, s = float(m.group(1)), float(m.group(2)), float(m.group(3))
@@ -49,6 +63,35 @@ def get_video_duration(video_path: Path) -> float:
         raise RuntimeError(f"Impossibile leggere la durata del video con ffmpeg: {exc}")
 
     raise RuntimeError(f"Impossibile determinare la durata del video per: {video_path}")
+
+
+def get_video_dimensions(video_path: Path) -> tuple[int, int]:
+    """Legge larghezza e altezza del video con ffprobe o ffmpeg (default 1080x1920)."""
+    try:
+        r = subprocess.run(
+            [_get_bin("ffprobe"), "-v", "error",
+             "-select_streams", "v:0",
+             "-show_entries", "stream=width,height",
+             "-of", "csv=s=x:p=0",
+             str(video_path)],
+            capture_output=True, text=True,
+        )
+        if r.returncode == 0 and r.stdout.strip():
+            parts = r.stdout.strip().split("x")
+            if len(parts) >= 2:
+                return int(parts[0]), int(parts[1])
+    except Exception:
+        pass
+
+    try:
+        r = subprocess.run([_get_bin("ffmpeg"), "-i", str(video_path)], stderr=subprocess.PIPE, stdout=subprocess.DEVNULL, text=True)
+        m = re.search(r",\s*(\d{2,5})x(\d{2,5})", r.stderr)
+        if m:
+            return int(m.group(1)), int(m.group(2))
+    except Exception:
+        pass
+
+    return 1080, 1920
 
 
 def burn_subtitles(
@@ -107,14 +150,14 @@ def burn_subtitles(
         )
 
     cmd = [
-        "ffmpeg", "-y",
+        _get_bin("ffmpeg"), "-y",
         "-i", str(video_path.resolve()),                           # [0] video
         "-f", "concat", "-safe", "0",
         "-i", str(ffconcat_path.resolve()),                        # [1] sottotitoli
         "-loop", "1", "-i", str(watermark_path.resolve()),         # [2] watermark
         "-filter_complex", filter_complex,
         "-map", "[out]",
-        "-map", "0:a",
+        "-map", "0:a?",
         *vcodec,
         "-c:a", "aac",
         "-b:a", "320k",
@@ -123,10 +166,12 @@ def burn_subtitles(
     ]
 
     console.log(f"[cyan]Rendering:[/] {video_path.name} → {output_path.name}")
-    result = subprocess.run(cmd, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
-        raise RuntimeError("ffmpeg fallito. Controlla l'output sopra.")
+        raise RuntimeError(
+            f"ffmpeg fallito (exit {result.returncode}):\n{result.stderr}"
+        )
 
     console.log(f"[green]✓ Video renderizzato:[/] {output_path}")
     return output_path

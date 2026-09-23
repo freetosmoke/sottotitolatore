@@ -68,49 +68,38 @@ The CLI pipeline uses:
 
 ## User Interface
 
-Sottotitolatore includes a local Web UI designed for working with vertical video subtitles.
+Sottotitolatore includes a powerful local Web UI structured into a **3-column desktop layout**:
 
-The Web UI provides:
+- **Header**: Brand identity, active video status, Silence Removal (`silencedetect`), Theme switcher, Export quality, and Final Video generation.
+- **Left Column (Preview & Player)**: 9:16 vertical video player, play/pause controls, seekbar, timecode, and full-screen preview.
+- **Center Column (Subtitles Editor)**: Chunk counter, transcription status, inline subtitle & word timing editor, chunk splitting/merging, and translation.
+- **Right Column (Inspector & Style)**: Live preset manager, typography options (normal & keyword font families, weights, colors, tracking), coordinate sliders, and watermark controls.
+- **Bottom Full-Width Area (Timeline)**: Audio waveform peaks, zoom controls, fit-to-view, interactive subtitle time blocks with CapCut-style transform Gizmo and snapping guides.
 
-- Video upload
-- Video frame preview
-- Synchronized video playback
-- Subtitle preview
-- Audio waveform visualization
-- Subtitle correction
-- Multiple highlighted words within the same subtitle line
-- Preset selection
-- Final video rendering
-
-The Web UI runs locally on the user's Mac.
+The Web UI runs locally on your Mac with zero cloud dependencies.
 
 ---
 
 ## Subtitle Presets
 
-The project includes several predefined subtitle styles.
+The project includes several predefined subtitle styles:
 
-### La Voce del Successo
+### La Voce del Successo New
 
-The default preset.
-
-It uses the Raleway font and includes a watermark.
+The official default preset:
+- Primary typography: Raleway Light with Raleway Bold keyword accents
+- CapCut calibrated coordinate ratios and font scaling
+- Proportional watermark support
 
 ### MC
 
-A preset using the Alata font without a watermark.
-
-### Minimal Modern
-
-A compact Raleway-based preset with subtitle outline/shadow and watermark support.
+A preset using the Alata font without watermark.
 
 Presets are stored in:
 
 ```text
 presets.json
 ```
-
-The application can load and save preset configurations from the configured data directory.
 
 ---
 
@@ -119,41 +108,58 @@ The application can load and save preset configurations from the configured data
 ```text
 sottotitolatore/
 │
-├── main.py
-├── web_app.py
+├── main.py                     # CLI pipeline
+├── web_app.py                  # Local HTTP backend & API
 │
-├── transcriber.py
-├── translator.py
-├── audio_extractor.py
-├── keyword_selector.py
-├── subtitle_renderer.py
-├── ass_generator.py
-├── video_renderer.py
-├── silence_remover.py
+├── transcriber.py              # faster-whisper transcription & dynamic resegmentation
+├── silence_remover.py          # FFmpeg silence detection & timeline compaction
+├── translator.py               # Subtitle translation (Gemini API & Web)
+├── audio_extractor.py          # Audio extraction to 16kHz WAV
+├── keyword_selector.py         # Keyword & emphasis identification
+├── subtitle_renderer.py        # Pillow-based 9:16 subtitle rendering & CapCut calibration
+├── ass_generator.py            # ASS subtitle generator
+├── video_renderer.py           # FFmpeg video overlay burn-in
 │
-├── presets.json
-├── requirements.txt
+├── presets.json                # Predefined & custom subtitle styling presets
+├── requirements.txt            # Python dependencies
 │
 ├── web_static/
-│   └── index.html
+│   ├── index.html              # 3-column Studio interface (Single Page App)
+│   └── vendor/
+│       └── tailwindcss.js      # Offline Tailwind bundle for standalone macOS app
 │
 ├── fonts/
 │   ├── Alata-Regular.ttf
 │   ├── Raleway-Light.ttf
-│   └── Raleway-SemiBold.ttf
+│   ├── Raleway-SemiBold.ttf
+│   └── Raleway-Bold.ttf
 │
-├── build_app.sh
-├── build_dmg.sh
-├── build_silicon_dmg.sh
-├── package_dmg.py
-├── create_icon.py
-├── launcher.m
+├── build_app.sh                # macOS application bundle builder
+├── build_dmg.sh                # Compressed DMG disk image creator
+├── build_silicon_dmg.sh        # Standalone Apple Silicon DMG installer builder
+├── package_dmg.py              # Python packaging script
+├── create_icon.py              # App icon generator
+├── launcher.m                  # Native Cocoa/WebKit app launcher
 │
 ├── AppIcon.icns
 └── LICENSE
 ```
 
 ---
+
+## Web UI Development & Lovable Integration
+
+When customizing or redesigning the frontend with tools like **Lovable**:
+
+1. **Keep Backend Intact**: The Python backend (`web_app.py`) and processing engines (`transcriber.py`, `silence_remover.py`, `subtitle_renderer.py`, `video_renderer.py`) manage speech recognition and FFmpeg encoding. Do not replace or modify them unless changing core processing logic.
+2. **Preserve API Contracts**: All interactive frontend features communicate via pure JSON REST endpoints:
+   - `GET /api/presets`, `GET /api/preset?id=<id>`, `POST /api/presets`, `POST /api/delete_preset`, `POST /api/duplicate_preset`
+   - `GET /api/default_video`, `POST /api/upload`
+   - `POST /api/transcribe`, `POST /api/translate_chunks`, `POST /api/analyze_silences`
+   - `POST /api/preview_chunk`, `POST /api/render`, `POST /api/rename_output`, `POST /api/batch_zip`
+   - `GET /api/font_metrics?font=&size=`
+   - `GET /fonts/<filename>`, `GET /vendor/<filename>`, `GET /media/<filename>`
+3. **Offline Assets**: The macOS standalone application runs completely offline; vendor assets such as `/vendor/tailwindcss.js` and local fonts must be served locally without relying on external CDNs.
 
 ## Requirements
 
