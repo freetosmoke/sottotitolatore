@@ -9503,6 +9503,12 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       videoPlayer.src = videoUrl.startsWith("/") ? videoUrl : "/media/" + videoUrl.split("/").pop();
       videoPlayer.load();
 
+      if (uploadBox) uploadBox.classList.add("hidden");
+      const tlEmpty = document.getElementById("timeline-empty");
+      if (tlEmpty) tlEmpty.classList.add("hidden");
+      const videoContainer = document.getElementById("video-container");
+      if (videoContainer) videoContainer.classList.remove("hidden");
+
       initWaveform(serverPath);
 
       editorEmpty.classList.add("hidden");
@@ -10733,8 +10739,41 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         }
       }
 
+      if (!activeChunk && currentChunks.length > 0) {
+        if (videoPlayer.paused) {
+          // Quando in pausa, mantieni l'anteprima sul chunk selezionato nell'editor per permettere l'ispezione/styling
+          if (selectedChunkIndex >= 0 && selectedChunkIndex < currentChunks.length) {
+            activeChunk = currentChunks[selectedChunkIndex];
+          } else {
+            let closestDist = Infinity;
+            let closestChunk = currentChunks[0];
+            for (let i = 0; i < currentChunks.length; i++) {
+              const c = currentChunks[i];
+              const dist = Math.min(Math.abs(cur - c.start), Math.abs(cur - c.end));
+              if (dist < closestDist) {
+                closestDist = dist;
+                closestChunk = c;
+              }
+            }
+            activeChunk = closestChunk;
+          }
+        } else {
+          // In riproduzione: colma i micro-gap (< 0.35s) per evitare sfarfallii/buchi neri tra frasi contigue
+          for (let i = 0; i < currentChunks.length; i++) {
+            const c = currentChunks[i];
+            if (cur >= c.start && cur <= c.end + 0.35) {
+              const nextC = currentChunks[i + 1];
+              if (!nextC || cur < nextC.start) {
+                activeChunk = c;
+                break;
+              }
+            }
+          }
+        }
+      }
+
       // Gestione Mute Live per Speaker Silenziati
-      if (activeChunk && activeChunk.speaker && mutedSpeakers.has(activeChunk.speaker)) {
+      if (activeChunk && activeChunk.speaker && mutedSpeakers.has(activeChunk.speaker) && !videoPlayer.paused) {
         if (!videoPlayer.muted) {
           videoPlayer.muted = true;
           autoMutedBySpeaker = true;
@@ -10870,6 +10909,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           }
           if (activeWordIdx === -1 && cur >= activeChunk.start && cur <= activeChunk.end) {
             activeWordIdx = nWords - 1;
+          } else if (activeWordIdx === -1 && words.length > 0) {
+            activeWordIdx = (cur > activeChunk.end) ? (nWords - 1) : 0;
           }
         }
 
@@ -10921,6 +10962,18 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     }
     videoPlayer.addEventListener("loadedmetadata", updateDurationDisplays);
     videoPlayer.addEventListener("durationchange", updateDurationDisplays);
+    videoPlayer.addEventListener("loadeddata", () => {
+      if (videoPlayer.currentTime === 0) {
+        try {
+          videoPlayer.currentTime = 0.001;
+        } catch (e) {}
+      }
+      updateDurationDisplays();
+      updateLiveSubtitleAtCurrentTime();
+    });
+    videoPlayer.addEventListener("error", (e) => {
+      console.error("Video player error:", videoPlayer.error);
+    });
 
     videoPlayer.addEventListener("timeupdate", () => {
       let cur = videoPlayer.currentTime;

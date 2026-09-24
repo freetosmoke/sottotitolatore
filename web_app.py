@@ -478,10 +478,14 @@ class AppRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Expires", "0")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        if self.command != "HEAD":
+            self.wfile.write(body)
 
     def send_error_json(self, message: str, status: int = 400):
         self.send_json({"error": message, "success": False}, status=status)
+
+    def do_HEAD(self):
+        self.do_GET()
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -497,7 +501,8 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 self.send_header("Cache-Control", "public, max-age=86400")
                 self.send_header("Content-Length", str(len(content)))
                 self.end_headers()
-                self.wfile.write(content)
+                if self.command != "HEAD":
+                    self.wfile.write(content)
                 return
 
         if path == "/" or path == "/index.html":
@@ -511,7 +516,8 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 self.send_header("Expires", "0")
                 self.send_header("Content-Length", str(len(content)))
                 self.end_headers()
-                self.wfile.write(content)
+                if self.command != "HEAD":
+                    self.wfile.write(content)
                 return
             else:
                 self.send_error_json("Interfaccia non trovata", 404)
@@ -587,7 +593,8 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(content)))
                 self.send_header("Cache-Control", "public, max-age=86400")
                 self.end_headers()
-                self.wfile.write(content)
+                if self.command != "HEAD":
+                    self.wfile.write(content)
                 return
             else:
                 self.send_error_json("Font file not found", 404)
@@ -609,7 +616,8 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Type", mime)
                 self.send_header("Content-Length", str(len(content)))
                 self.end_headers()
-                self.wfile.write(content)
+                if self.command != "HEAD":
+                    self.wfile.write(content)
                 return
             else:
                 self.send_error_json("Vendor file not found", 404)
@@ -620,10 +628,18 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             target = (UPLOADS_DIR / filename).resolve()
             if not target.exists():
                 target = (OUTPUTS_DIR / filename).resolve()
+            if not target.exists():
+                alt = Path.home() / "Movies" / "SubStudio" / "web_uploads" / filename
+                if alt.exists():
+                    target = alt
+            if not target.exists():
+                alt = WORKSPACE / "web_uploads" / filename
+                if alt.exists():
+                    target = alt
 
             if target.exists() and target.is_file():
                 mime, _ = mimetypes.guess_type(str(target))
-                mime = mime or "application/octet-stream"
+                mime = mime or "video/mp4"
                 size = target.stat().st_size
 
                 range_header = self.headers.get("Range")
@@ -631,13 +647,26 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                     try:
                         range_str = range_header[6:].strip()
                         parts = range_str.split("-")
-                        start = int(parts[0]) if parts[0] else 0
-                        end = int(parts[1]) if len(parts) > 1 and parts[1] else size - 1
-                        if start >= size:
+                        if not parts[0]:
+                            # Suffix range: bytes=-500 (last 500 bytes)
+                            suffix_len = int(parts[1]) if len(parts) > 1 and parts[1] else 0
+                            if suffix_len <= 0:
+                                self.send_response(416)
+                                self.send_header("Content-Range", f"bytes */{size}")
+                                self.end_headers()
+                                return
+                            start = max(0, size - suffix_len)
+                            end = size - 1
+                        else:
+                            start = int(parts[0])
+                            end = int(parts[1]) if len(parts) > 1 and parts[1] else size - 1
+
+                        if start >= size or start > end or start < 0:
                             self.send_response(416)
                             self.send_header("Content-Range", f"bytes */{size}")
                             self.end_headers()
                             return
+
                         end = min(end, size - 1)
                         length = end - start + 1
 
@@ -646,19 +675,21 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
                         self.send_header("Content-Length", str(length))
                         self.send_header("Accept-Ranges", "bytes")
+                        self.send_header("Cache-Control", "no-cache")
                         self.end_headers()
 
-                        with open(target, "rb") as f:
-                            f.seek(start)
-                            remaining = length
-                            chunk_size = 64 * 1024
-                            while remaining > 0:
-                                read_len = min(chunk_size, remaining)
-                                buf = f.read(read_len)
-                                if not buf:
-                                    break
-                                self.wfile.write(buf)
-                                remaining -= len(buf)
+                        if self.command != "HEAD":
+                            with open(target, "rb") as f:
+                                f.seek(start)
+                                remaining = length
+                                chunk_size = 64 * 1024
+                                while remaining > 0:
+                                    read_len = min(chunk_size, remaining)
+                                    buf = f.read(read_len)
+                                    if not buf:
+                                        break
+                                    self.wfile.write(buf)
+                                    remaining -= len(buf)
                     except (BrokenPipeError, ConnectionResetError):
                         pass
                     return
@@ -667,12 +698,14 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Type", mime)
                 self.send_header("Content-Length", str(size))
                 self.send_header("Accept-Ranges", "bytes")
+                self.send_header("Cache-Control", "no-cache")
                 self.end_headers()
-                try:
-                    with open(target, "rb") as f:
-                        shutil.copyfileobj(f, self.wfile)
-                except (BrokenPipeError, ConnectionResetError):
-                    pass
+                if self.command != "HEAD":
+                    try:
+                        with open(target, "rb") as f:
+                            shutil.copyfileobj(f, self.wfile)
+                    except (BrokenPipeError, ConnectionResetError):
+                        pass
                 return
             else:
                 self.send_error_json("Media file not found", 404)
@@ -707,6 +740,18 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         raw_filename = part.get_filename() or "uploaded_video.mp4"
                         dest_file = get_unique_upload_path(raw_filename)
                         dest_file.write_bytes(file_bytes)
+                        if dest_file.suffix.lower() in ('.mp4', '.mov', '.m4v'):
+                            fast_dest = dest_file.with_name(f"fast_{dest_file.name}")
+                            try:
+                                res = subprocess.run([
+                                    "ffmpeg", "-y", "-i", str(dest_file),
+                                    "-c", "copy", "-movflags", "+faststart",
+                                    str(fast_dest)
+                                ], capture_output=True, timeout=30)
+                                if res.returncode == 0 and fast_dest.exists() and fast_dest.stat().st_size > 0:
+                                    fast_dest.replace(dest_file)
+                            except Exception as e:
+                                logger.warning(f"Faststart optimization failed: {e}")
                         try:
                             duration = get_video_duration(dest_file)
                         except Exception:
