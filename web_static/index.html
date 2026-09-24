@@ -489,7 +489,7 @@ html[data-theme="light"] .video-timecode-box .text-slate-400 {
 </style>
 
 <style>
-/* SOTTOTITOLATORE_RESIZABLE_LAYOUT_V3 */
+/* SUBSTUDIO_RESIZABLE_LAYOUT_V3 */
 
 :root {
   --layout-preview-width: 360px;
@@ -3924,7 +3924,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         videoPlayer.style.filter = enabled ? "grayscale(100%)" : "none";
       }
       try {
-        localStorage.setItem("sottotitolatore_bw_filter", enabled ? "1" : "0");
+        localStorage.setItem("substudio_bw_filter", enabled ? "1" : "0");
       } catch (e) {}
     }
 
@@ -3937,7 +3937,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
     // Carica preferenza salvata per il filtro B&W
     try {
-      const savedBw = localStorage.getItem("sottotitolatore_bw_filter") === "1";
+      const savedBw = (localStorage.getItem("substudio_bw_filter") || localStorage.getItem("sottotitolatore_bw_filter")) === "1";
       setBwFilter(savedBw);
     } catch (e) {}
 
@@ -4053,10 +4053,12 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     });
 
     if (cfgGeminiKey) {
-      const savedKey = localStorage.getItem("sottotitolatore_gemini_key") || "";
+      const savedKey = localStorage.getItem("substudio_gemini_key") || localStorage.getItem("sottotitolatore_gemini_key") || "";
       cfgGeminiKey.value = savedKey;
       cfgGeminiKey.oninput = () => {
-        localStorage.setItem("sottotitolatore_gemini_key", cfgGeminiKey.value.trim());
+        const val = cfgGeminiKey.value.trim();
+        localStorage.setItem("substudio_gemini_key", val);
+        localStorage.setItem("sottotitolatore_gemini_key", val);
       };
     }
 
@@ -4427,7 +4429,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           allPresets = data.presets;
         }
 
-        const savedPresetId = localStorage.getItem("sottotitolatore_active_preset_id");
+        const savedPresetId = localStorage.getItem("substudio_active_preset_id") || localStorage.getItem("sottotitolatore_active_preset_id");
         if (savedPresetId && allPresets.some(p => p.id === savedPresetId)) {
           activePresetId = savedPresetId;
         } else if (data.default_id && allPresets.some(p => p.id === data.default_id)) {
@@ -4441,7 +4443,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         populateSettingsPresetDropdown();
         renderModalPresetsList();
 
-        const hideStartup = localStorage.getItem("sottotitolatore_hide_preset_modal") === "true";
+        const hideStartup = (localStorage.getItem("substudio_hide_preset_modal") || localStorage.getItem("sottotitolatore_hide_preset_modal")) === "true";
         const chkStartup = document.getElementById("chk-dont-show-preset-startup");
         if (chkStartup) chkStartup.checked = hideStartup;
 
@@ -4459,6 +4461,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
       activePresetId = p.id;
       selectedModalPresetId = p.id;
+      localStorage.setItem("substudio_active_preset_id", activePresetId);
       localStorage.setItem("sottotitolatore_active_preset_id", activePresetId);
 
       const headerPresetName = document.getElementById("header-preset-name");
@@ -10200,12 +10203,12 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
   </script>
 
 <script>
-/* SOTTOTITOLATORE_RESIZABLE_LAYOUT_V3 */
+/* SUBSTUDIO_RESIZABLE_LAYOUT_V3 */
 
 (function() {
   "use strict";
 
-  const KEY = "sottotitolatore_layout_v3";
+  const KEY = "substudio_layout_v3";
 
   const defaults = {
     preview: 360,
@@ -10226,7 +10229,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
   let layout = {...defaults};
 
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    const saved = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem("sottotitolatore_layout_v3") || "null");
     if (saved) {
       layout.preview = clamp(Number(saved.preview) || defaults.preview, ...limits.preview);
       layout.inspector = clamp(Number(saved.inspector) || defaults.inspector, ...limits.inspector);
@@ -10384,14 +10387,15 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       setInspectorCollapsed(!layout.inspectorCollapsed);
     };
 
-    window.resetSottotitolatoreLayout = function() {
+    window.resetSubStudioLayout = function() {
       layout = {...defaults};
       setInspectorCollapsed(false);
       apply();
       save();
     };
+    window.resetSottotitolatoreLayout = window.resetSubStudioLayout;
 
-    console.log("Sottotitolatore Resize V3 attivo", layout);
+    console.log("SubStudio Resize V3 attivo", layout);
   }
 
   if (document.readyState === "loading") {
@@ -10409,7 +10413,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
    ========================================================= */
 
 (function initTheme() {
-  const savedTheme = localStorage.getItem("sottotitolatore-theme");
+  const savedTheme = localStorage.getItem("substudio-theme") || localStorage.getItem("sottotitolatore-theme");
   const theme = savedTheme === "light" ? "light" : "dark";
 
   document.documentElement.setAttribute("data-theme", theme);
@@ -10446,6 +10450,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       const next = current === "light" ? "dark" : "light";
 
       document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("substudio-theme", next);
       localStorage.setItem("sottotitolatore-theme", next);
 
       updateThemeIcon();

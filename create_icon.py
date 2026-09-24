@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Genera l'icona per Sottotitolatore.app (AppIcon.icns) in formato macOS nativo.
+Genera l'icona per SubStudio.app (AppIcon.icns) in formato macOS nativo.
 """
 import os
 import shutil

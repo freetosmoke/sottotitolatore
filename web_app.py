@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 web_app.py
-Interfaccia Web UI per Sottotitolatore Podcast Verticale 9:16
+Interfaccia Web UI per SubStudio Podcast Verticale 9:16
 Preset: "La Voce del Successo"
 - Supporto per selezione multipla di parole in grassetto nella stessa riga
 - Anteprima visiva istantanea e solida (frame video o canvas podcast studio)
@@ -20,7 +20,7 @@ try:
 except ImportError:
     _script_dir = os.path.dirname(os.path.abspath(__file__))
     _candidates = [
-        os.path.join(_script_dir, "dist", "Sottotitolatore.app", "Contents", "Resources", "python", "bin", "python3"),
+        os.path.join(_script_dir, "dist", "SubStudio.app", "Contents", "Resources", "python", "bin", "python3"),
         os.path.join(_script_dir, "..", "python", "bin", "python3"),
         os.path.join(_script_dir, ".venv", "bin", "python3"),
     ]
@@ -87,9 +87,9 @@ except Exception:
     console = _SimpleConsole()
 
 
-PORT = int(os.environ.get("SOTTOTITOLATORE_PORT", 8501))
+PORT = int(os.environ.get("SUBSTUDIO_PORT", os.environ.get("SOTTOTITOLATORE_PORT", 8501)))
 WORKSPACE = Path(__file__).resolve().parent
-DATA_DIR_ENV = os.environ.get("SOTTOTITOLATORE_DATA_DIR")
+DATA_DIR_ENV = os.environ.get("SUBSTUDIO_DATA_DIR", os.environ.get("SOTTOTITOLATORE_DATA_DIR"))
 DATA_DIR = Path(DATA_DIR_ENV) if DATA_DIR_ENV else WORKSPACE
 UPLOADS_DIR = DATA_DIR / "web_uploads"
 OUTPUTS_DIR = DATA_DIR / "web_outputs"

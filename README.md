@@ -1,8 +1,8 @@
-# Sottotitolatore
+# SubStudio
 
 A macOS-focused subtitle and video processing tool for creating styled subtitles for vertical 9:16 video content.
 
-Sottotitolatore combines automatic speech transcription, subtitle chunking, visual subtitle rendering, video preview and final video export in a single local workflow.
+SubStudio combines automatic speech transcription, subtitle chunking, visual subtitle rendering, video preview and final video export in a single local workflow.
 
 The project provides both a command-line interface and a local Web UI.
 
@@ -68,7 +68,7 @@ The CLI pipeline uses:
 
 ## User Interface
 
-Sottotitolatore includes a powerful local Web UI structured into a **3-column desktop layout**:
+SubStudio includes a powerful local Web UI structured into a **3-column desktop layout**:
 
 - **Header**: Brand identity, active video status, Silence Removal (`silencedetect`), Theme switcher, Export quality, and Final Video generation.
 - **Left Column (Preview & Player)**: 9:16 vertical video player, play/pause controls, seekbar, timecode, and full-screen preview.
@@ -106,7 +106,7 @@ presets.json
 ## Project Structure
 
 ```text
-sottotitolatore/
+substudio/
 │
 ├── main.py                     # CLI pipeline
 ├── web_app.py                  # Local HTTP backend & API
@@ -155,7 +155,7 @@ sottotitolatore/
 
 ## Typography & Font Management System
 
-Sottotitolatore includes a comprehensive typography engine managed by `font_manager.py`:
+SubStudio includes a comprehensive typography engine managed by `font_manager.py`:
 
 - **Complete Font Catalog (39+ Families)**:
   - **macOS System Fonts**: `Arial`, `Helvetica`, `Helvetica Neue` (mapped to local system fonts and `.ttc` collection indices).
@@ -265,7 +265,7 @@ Pillow
 
 # CLI
 
-Sottotitolatore can be used directly from the command line.
+SubStudio can be used directly from the command line.
 
 ## Process a Video
 
@@ -446,7 +446,7 @@ http://localhost:8501
 The port can be changed using:
 
 ```bash
-SOTTOTITOLATORE_PORT=9000 python web_app.py
+SUBSTUDIO_PORT=9000 python web_app.py
 ```
 
 ---
@@ -456,7 +456,7 @@ SOTTOTITOLATORE_PORT=9000 python web_app.py
 The application supports a custom data directory:
 
 ```bash
-SOTTOTITOLATORE_DATA_DIR=/path/to/data python web_app.py
+SUBSTUDIO_DATA_DIR=/path/to/data python web_app.py
 ```
 
 The application uses this directory for its runtime upload/output data and preset storage.
@@ -563,7 +563,7 @@ When contributing:
 
 # Project Status
 
-Sottotitolatore is a macOS-oriented subtitle and video processing project currently under development.
+SubStudio is a macOS-oriented subtitle and video processing project currently under development.
 
 The repository contains both:
 
@@ -576,7 +576,7 @@ The project is primarily designed around vertical 9:16 video content and customi
 
 # License
 
-Sottotitolatore is released under the MIT License.
+SubStudio is released under the MIT License.
 
 See [`LICENSE`](LICENSE) for the complete license text.
 

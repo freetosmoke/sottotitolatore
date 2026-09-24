@@ -8,16 +8,16 @@ from pathlib import Path
 def build():
     base_dir = Path(__file__).resolve().parent
     dist_dir = base_dir / "dist"
-    app_dir = dist_dir / "Sottotitolatore.app"
+    app_dir = dist_dir / "SubStudio.app"
     contents_dir = app_dir / "Contents"
     macos_dir = contents_dir / "MacOS"
     resources_dir = contents_dir / "Resources"
     app_payload_dir = resources_dir / "app"
     python_target_dir = resources_dir / "python"
     dmg_staging = base_dir / "dmg_staging"
-    output_dmg = base_dir / "Sottotitolatore-Apple-Silicon.dmg"
+    output_dmg = base_dir / "SubStudio-Apple-Silicon.dmg"
 
-    print("🚀 Inizio creazione pacchetto Sottotitolatore per Apple Silicon...")
+    print("🚀 Inizio creazione pacchetto SubStudio per Apple Silicon...")
 
     # 1. Pulizia
     print("🧹 1/6 Pulizia cartelle di build...")
@@ -46,17 +46,17 @@ def build():
     <key>CFBundleDevelopmentRegion</key>
     <string>it</string>
     <key>CFBundleExecutable</key>
-    <string>Sottotitolatore</string>
+    <string>SubStudio</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
-    <string>com.salvatorepuglisi.sottotitolatore</string>
+    <string>com.salvatorepuglisi.substudio</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>Sottotitolatore</string>
+    <string>SubStudio</string>
     <key>CFBundleDisplayName</key>
-    <string>Sottotitolatore</string>
+    <string>SubStudio</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -141,7 +141,7 @@ def build():
             print("✓ Modello Whisper integrato con successo!")
 
     # 5. Launcher script
-    print("⚙️ 5/6 Creazione launcher Sottotitolatore.app...")
+    print("⚙️ 5/6 Creazione launcher SubStudio.app...")
     launcher_script = """#!/bin/bash
 set -e
 
@@ -158,12 +158,13 @@ export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 
 # Cartella di output in Filmati
-USER_DATA_DIR="$HOME/Movies/Sottotitolatore"
+USER_DATA_DIR="$HOME/Movies/SubStudio"
 mkdir -p "$USER_DATA_DIR/web_uploads" "$USER_DATA_DIR/web_outputs"
+export SUBSTUDIO_DATA_DIR="$USER_DATA_DIR"
 export SOTTOTITOLATORE_DATA_DIR="$USER_DATA_DIR"
 
 if ! command -v ffmpeg &>/dev/null; then
-    osascript -e 'display alert "FFmpeg non trovato" message "Sottotitolatore richiede FFmpeg per il rendering video su Apple Silicon.\\n\\nPuoi installarlo aprendo il Terminale e digitando:\\nbrew install ffmpeg" as critical'
+    osascript -e 'display alert "FFmpeg non trovato" message "SubStudio richiede FFmpeg per il rendering video su Apple Silicon.\\n\\nPuoi installarlo aprendo il Terminale e digitando:\\nbrew install ffmpeg" as critical'
     exit 1
 fi
 
@@ -175,11 +176,12 @@ while lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1; do
     fi
 done
 
+export SUBSTUDIO_PORT=$PORT
 export SOTTOTITOLATORE_PORT=$PORT
 
-LOG_FILE="$HOME/Library/Logs/Sottotitolatore.log"
+LOG_FILE="$HOME/Library/Logs/SubStudio.log"
 mkdir -p "$HOME/Library/Logs"
-echo "=== Avvio Sottotitolatore su porta $PORT ($(date)) ===" > "$LOG_FILE"
+echo "=== Avvio SubStudio su porta $PORT ($(date)) ===" > "$LOG_FILE"
 
 cd "$APP_DIR"
 "$PYTHON_BIN" web_app.py < /dev/null >> "$LOG_FILE" 2>&1 &
@@ -202,14 +204,14 @@ done
 open "http://localhost:$PORT"
 wait "$SERVER_PID"
 """
-    launcher_path = macos_dir / "Sottotitolatore"
+    launcher_path = macos_dir / "SubStudio"
     launcher_path.write_text(launcher_script, encoding="utf-8")
     launcher_path.chmod(0o755)
 
     # 6. Creazione DMG
     print("💿 6/6 Creazione immagine disco DMG compressa (UDZO)...")
     dmg_staging.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(app_dir, dmg_staging / "Sottotitolatore.app", symlinks=True)
+    shutil.copytree(app_dir, dmg_staging / "SubStudio.app", symlinks=True)
     try:
         os.symlink("/Applications", dmg_staging / "Applicazioni")
     except FileExistsError:
@@ -220,7 +222,7 @@ wait "$SERVER_PID"
 
     cmd = [
         "hdiutil", "create",
-        "-volname", "Sottotitolatore",
+        "-volname", "SubStudio",
         "-srcfolder", str(dmg_staging),
         "-ov",
         "-format", "UDZO",

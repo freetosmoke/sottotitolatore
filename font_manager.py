@@ -1,5 +1,5 @@
 """
-font_manager.py — Gestione centralizzata della libreria tipografica per il Sottotitolatore.
+font_manager.py — Gestione centralizzata della libreria tipografica per SubStudio.
 
 Fornisce:
 - Catalogo centralizzato dei font con varianti reali (pesi e stili)

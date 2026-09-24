@@ -192,7 +192,8 @@ static int find_free_port(int start_port) {
         env[@"PYTHONHOME"] = [resourcesPath stringByAppendingPathComponent:@"python"];
         env[@"PYTHONPATH"] = [NSString stringWithFormat:@"%@:%@/python/lib/python3.12/site-packages", appDir, resourcesPath];
         env[@"LC_ALL"] = @"en_US.UTF-8";
-        env[@"LANG"] = @"en_US.UTF-8";
+        env[@"SUBSTUDIO_DATA_DIR"] = userDataDir;
+        env[@"SUBSTUDIO_PORT"] = [NSString stringWithFormat:@"%d", self.port];
         env[@"SOTTOTITOLATORE_DATA_DIR"] = userDataDir;
         env[@"SOTTOTITOLATORE_PORT"] = [NSString stringWithFormat:@"%d", self.port];
         self.serverTask.environment = env;

@@ -190,7 +190,7 @@ def test_4_video_export():
         "font_name": "Poppins",
         "font_size_sub": 45,
         "font_size_wm": 25,
-        "watermark_text": "@sottotitolatore",
+        "watermark_text": "@substudio",
         "offset_sub_x": 0,
         "offset_sub_y": 0,
         "offset_wm_x": 0,

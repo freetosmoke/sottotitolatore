@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-main.py — Sottotitolatore CLI
+main.py — SubStudio CLI
 Pipeline: estrazione audio → Whisper → Pillow PNG → ffconcat overlay.
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ from subtitle_renderer import render_all
 from transcriber import group_into_chunks, transcribe
 from video_renderer import burn_subtitles, get_video_duration
 
-app = typer.Typer(name="sottotitolatore", add_completion=False, rich_markup_mode="rich")
+app = typer.Typer(name="substudio", add_completion=False, rich_markup_mode="rich")
 console = Console(stderr=True)
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v"}
 
@@ -33,7 +33,7 @@ def process_video(input_path, output_path, model_size, compute_type, language, k
     if output_path is None:
         output_path = input_path.with_stem(input_path.stem + "_subtitled")
 
-    tmp_dir = Path(tempfile.mkdtemp(prefix="sottotitolatore_"))
+    tmp_dir = Path(tempfile.mkdtemp(prefix="substudio_"))
     wav_path = tmp_dir / "audio.wav"
 
     try:
@@ -90,9 +90,9 @@ def run(
     keep_temp:    bool       = typer.Option(False,   "--keep-temp"),
     hw:           bool|None  = typer.Option(None,    "--hw/--no-hw"),
 ):
-    """🎬 Sottotitolatore — Pipeline sottotitoli verticali 9:16."""
+    """🎬 SubStudio — Pipeline sottotitoli verticali 9:16."""
     console.print(Panel(
-        "[bold]🎬 Sottotitolatore CLI[/] — Podcast Verticale 9:16\n"
+        "[bold]🎬 SubStudio CLI[/] — Podcast Verticale 9:16\n"
         "[dim]Powered by faster-whisper + Pillow + ffmpeg[/]", expand=False))
 
     if batch:

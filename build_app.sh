@@ -3,7 +3,7 @@ set -e
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 DIST_DIR="$DIR/dist"
-APP_DIR="$DIST_DIR/Sottotitolatore.app"
+APP_DIR="$DIST_DIR/SubStudio.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
@@ -30,17 +30,17 @@ cat << 'PLIST' > "$CONTENTS_DIR/Info.plist"
     <key>CFBundleDevelopmentRegion</key>
     <string>it</string>
     <key>CFBundleExecutable</key>
-    <string>Sottotitolatore</string>
+    <string>SubStudio</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
-    <string>com.salvatorepuglisi.sottotitolatore</string>
+    <string>com.salvatorepuglisi.substudio</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>Sottotitolatore</string>
+    <string>SubStudio</string>
     <key>CFBundleDisplayName</key>
-    <string>Sottotitolatore</string>
+    <string>SubStudio</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -116,8 +116,8 @@ clang -O2 -fobjc-arc \
     -framework Cocoa \
     -framework WebKit \
     "$DIR/launcher.m" \
-    -o "$MACOS_DIR/Sottotitolatore"
+    -o "$MACOS_DIR/SubStudio"
 
-chmod +x "$MACOS_DIR/Sottotitolatore"
+chmod +x "$MACOS_DIR/SubStudio"
 
-echo "✓ Sottotitolatore.app creata con successo in $DIST_DIR/Sottotitolatore.app"
+echo "✓ SubStudio.app creata con successo in $DIST_DIR/SubStudio.app"
