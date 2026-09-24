@@ -2,16 +2,16 @@
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BUILD_DIR="/tmp/sottotitolatore_app_build_$$"
-STAGING_DIR="/tmp/sottotitolatore_dmg_staging_$$"
-OUTPUT_DMG="$PROJECT_DIR/Sottotitolatore-Apple-Silicon.dmg"
+BUILD_DIR="/tmp/substudio_app_build_$$"
+STAGING_DIR="/tmp/substudio_dmg_staging_$$"
+OUTPUT_DMG="$PROJECT_DIR/SubStudio-Apple-Silicon.dmg"
 
 echo "🚀 [1/5] Inizializzazione ambiente di build in $BUILD_DIR..."
 rm -rf "$BUILD_DIR" "$STAGING_DIR"
-mkdir -p "$BUILD_DIR/Sottotitolatore.app/Contents/MacOS"
-mkdir -p "$BUILD_DIR/Sottotitolatore.app/Contents/Resources/app"
+mkdir -p "$BUILD_DIR/SubStudio.app/Contents/MacOS"
+mkdir -p "$BUILD_DIR/SubStudio.app/Contents/Resources/app"
 
-APP_DIR="$BUILD_DIR/Sottotitolatore.app"
+APP_DIR="$BUILD_DIR/SubStudio.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
@@ -32,17 +32,17 @@ cat << 'PLIST' > "$CONTENTS_DIR/Info.plist"
     <key>CFBundleDevelopmentRegion</key>
     <string>it</string>
     <key>CFBundleExecutable</key>
-    <string>Sottotitolatore</string>
+    <string>SubStudio</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
-    <string>com.salvatorepuglisi.sottotitolatore</string>
+    <string>com.salvatorepuglisi.substudio</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>Sottotitolatore</string>
+    <string>SubStudio</string>
     <key>CFBundleDisplayName</key>
-    <string>Sottotitolatore</string>
+    <string>SubStudio</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -116,20 +116,20 @@ echo "✓ Binari statici FFmpeg/ffprobe (Apple Silicon arm64) integrati nel bund
 
 # Launcher nativo Cocoa (arm64)
 echo "🔨 Compilazione launcher nativo Cocoa Apple Silicon (arm64)..."
-clang -O2 -fobjc-arc -arch arm64 -framework Cocoa -framework WebKit -o "$MACOS_DIR/Sottotitolatore" "$PROJECT_DIR/launcher.m"
-chmod +x "$MACOS_DIR/Sottotitolatore"
+clang -O2 -fobjc-arc -arch arm64 -framework Cocoa -framework WebKit -o "$MACOS_DIR/SubStudio" "$PROJECT_DIR/launcher.m"
+chmod +x "$MACOS_DIR/SubStudio"
 
 echo "✍️ Firma ad-hoc del bundle e di tutte le librerie interne..."
 codesign --force --deep -s - "$APP_DIR"
 
 echo "💿 [5/5] Creazione DMG compressa per Apple Silicon con hdiutil..."
 mkdir -p "$STAGING_DIR"
-cp -R "$APP_DIR" "$STAGING_DIR/Sottotitolatore.app"
+cp -R "$APP_DIR" "$STAGING_DIR/SubStudio.app"
 ln -s /Applications "$STAGING_DIR/Applicazioni"
 
 rm -f "$OUTPUT_DMG"
 hdiutil create \
-    -volname "Sottotitolatore" \
+    -volname "SubStudio" \
     -srcfolder "$STAGING_DIR" \
     -ov \
     -format UDZO \

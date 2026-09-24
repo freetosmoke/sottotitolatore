@@ -487,6 +487,19 @@ class AppRequestHandler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
+        if path in ("/app_icon.png", "/favicon.png", "/favicon.ico"):
+            icon_file = WORKSPACE / "web_static" / path.lstrip("/")
+            if icon_file.exists():
+                content = icon_file.read_bytes()
+                mime = "image/png" if path.endswith(".png") else "image/x-icon"
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+                return
+
         if path == "/" or path == "/index.html":
             html_file = WORKSPACE / "web_static" / "index.html"
             if html_file.exists():
@@ -1542,7 +1555,7 @@ def run_server():
     server_address = ("127.0.0.1", PORT)
     httpd = ThreadingHTTPServer(server_address, AppRequestHandler)
     httpd.daemon_threads = True
-    print(f"\n🚀 Sottotitolatore Web UI avviato con successo!")
+    print(f"\n🚀 SubStudio Web UI avviato con successo!")
     print(f"👉 Apri nel tuo browser: http://localhost:{PORT}")
     print("Premi Ctrl+C per arrestare il server.\n")
     try:

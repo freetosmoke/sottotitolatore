@@ -15,14 +15,21 @@ def generate_icon():
         shutil.rmtree(iconset_dir)
     iconset_dir.mkdir(parents=True, exist_ok=True)
 
-    size = 1024
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-
-    # 1. Base squircle macOS (arrotondamento Apple standard)
-    pad = 64
-    box = [pad, pad, size - pad, size - pad]
-    radius = 200
+    png_src = base_dir / "AppIcon.png"
+    if png_src.exists():
+        img = Image.open(png_src).convert("RGBA")
+        # Aggiorna anche asset web
+        (base_dir / "web_static").mkdir(parents=True, exist_ok=True)
+        img.resize((256, 256), Image.Resampling.LANCZOS).save(base_dir / "web_static" / "app_icon.png", "PNG")
+        img.resize((64, 64), Image.Resampling.LANCZOS).save(base_dir / "web_static" / "favicon.png", "PNG")
+        img.resize((32, 32), Image.Resampling.LANCZOS).save(base_dir / "web_static" / "favicon.ico", "ICO")
+    else:
+        size = 1024
+        img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        pad = 64
+        box = [pad, pad, size - pad, size - pad]
+        radius = 200
 
     # Maschera arrotondata
     mask = Image.new("L", (size, size), 0)

@@ -41,15 +41,15 @@ static int find_free_port(int start_port) {
     
     // 1. App Menu
     NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
-    NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"Sottotitolatore"];
-    [appMenu addItemWithTitle:@"Informazioni su Sottotitolatore" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+    NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"SubStudio"];
+    [appMenu addItemWithTitle:@"Informazioni su SubStudio" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
     [appMenu addItem:[NSMenuItem separatorItem]];
-    [appMenu addItemWithTitle:@"Nascondi Sottotitolatore" action:@selector(hide:) keyEquivalent:@"h"];
+    [appMenu addItemWithTitle:@"Nascondi SubStudio" action:@selector(hide:) keyEquivalent:@"h"];
     NSMenuItem *hideOthers = [appMenu addItemWithTitle:@"Nascondi altre" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
     [hideOthers setKeyEquivalentModifierMask:(NSEventModifierFlagCommand | NSEventModifierFlagOption)];
     [appMenu addItemWithTitle:@"Mostra tutte" action:@selector(unhideAllApplications:) keyEquivalent:@""];
     [appMenu addItem:[NSMenuItem separatorItem]];
-    [appMenu addItemWithTitle:@"Esci da Sottotitolatore" action:@selector(terminate:) keyEquivalent:@"q"];
+    [appMenu addItemWithTitle:@"Esci da SubStudio" action:@selector(terminate:) keyEquivalent:@"q"];
     [appMenuItem setSubmenu:appMenu];
     [mainMenu addItem:appMenuItem];
     
@@ -108,7 +108,7 @@ static int find_free_port(int start_port) {
                               
     NSWindowStyleMask style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
     self.window = [[NSWindow alloc] initWithContentRect:frame styleMask:style backing:NSBackingStoreBuffered defer:NO];
-    [self.window setTitle:@"Sottotitolatore"];
+    [self.window setTitle:@"SubStudio"];
     [self.window setMinSize:NSMakeSize(900, 600)];
     self.window.backgroundColor = [NSColor colorWithCalibratedRed:0.06 green:0.09 blue:0.16 alpha:1.0]; // #0f172a
 
@@ -130,12 +130,12 @@ static int find_free_port(int start_port) {
     
     // Schermata di caricamento iniziale
     NSString *loadingHTML = @"<!DOCTYPE html><html><head><meta charset='utf-8'><style>"
-        "body{background:#0f172a;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;user-select:none;}"
-        ".spinner{width:44px;height:44px;border:3.5px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:18px;}"
+        "body{background:#0b0d10;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;user-select:none;}"
+        ".spinner{width:44px;height:44px;border:3.5px solid #1e293b;border-top-color:#818cf8;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:18px;}"
         "@keyframes spin{to{transform:rotate(360deg);}}"
         "h2{font-size:18px;font-weight:600;margin:0 0 8px;letter-spacing:-0.02em;}"
         "p{color:#94a3b8;font-size:13px;margin:0;}"
-        "</style></head><body><div class='spinner'></div><h2>Avvio Sottotitolatore...</h2><p>Preparazione dell'ambiente locale in corso</p></body></html>";
+        "</style></head><body><div class='spinner'></div><h2>Avvio SubStudio...</h2><p>Preparazione dell'ambiente locale in corso</p></body></html>";
     [self.webView loadHTMLString:loadingHTML baseURL:nil];
     
     [self startBackend];
@@ -150,7 +150,7 @@ static int find_free_port(int start_port) {
     NSString *scriptPath = [appDir stringByAppendingPathComponent:@"web_app.py"];
     
     // Cartella dati utente in Filmati (Movies)
-    NSString *userDataDir = [NSString stringWithFormat:@"%@/Movies/Sottotitolatore", NSHomeDirectory()];
+    NSString *userDataDir = [NSString stringWithFormat:@"%@/Movies/SubStudio", NSHomeDirectory()];
     NSFileManager *fm = [NSFileManager defaultManager];
     [fm createDirectoryAtPath:[userDataDir stringByAppendingPathComponent:@"web_uploads"] withIntermediateDirectories:YES attributes:nil error:nil];
     [fm createDirectoryAtPath:[userDataDir stringByAppendingPathComponent:@"web_outputs"] withIntermediateDirectories:YES attributes:nil error:nil];
@@ -167,7 +167,7 @@ static int find_free_port(int start_port) {
     if (!hasFfmpeg) {
         NSAlert *alert = [[NSAlert alloc] init];
         [alert setMessageText:@"FFmpeg non trovato"];
-        [alert setInformativeText:@"Sottotitolatore richiede FFmpeg per il rendering video su Apple Silicon.\n\nPuoi installarlo aprendo il Terminale e digitando:\nbrew install ffmpeg"];
+        [alert setInformativeText:@"SubStudio richiede FFmpeg per il rendering video su Apple Silicon.\n\nPuoi installarlo aprendo il Terminale e digitando:\nbrew install ffmpeg"];
         [alert setAlertStyle:NSAlertStyleCritical];
         [alert runModal];
         [NSApp terminate:nil];
@@ -177,7 +177,7 @@ static int find_free_port(int start_port) {
     // Log file
     NSString *logDir = [NSString stringWithFormat:@"%@/Library/Logs", NSHomeDirectory()];
     [fm createDirectoryAtPath:logDir withIntermediateDirectories:YES attributes:nil error:nil];
-    NSString *logFile = [logDir stringByAppendingPathComponent:@"Sottotitolatore.log"];
+    NSString *logFile = [logDir stringByAppendingPathComponent:@"SubStudio.log"];
     [fm createFileAtPath:logFile contents:[NSData data] attributes:nil];
     NSFileHandle *logHandle = [NSFileHandle fileHandleForWritingAtPath:logFile];
     
