@@ -24,6 +24,27 @@
       "enabled": true,
       "mode": "automatic"
     },
+    "highlighter": {
+      "enabled": false,
+      "box_color": "#FFE600",
+      "text_color": "#000000",
+      "box_radius": 8,
+      "box_padding_x": 10,
+      "box_padding_y": 4
+    },
+    "speaker_styles": {
+      "enabled": false,
+      "speakers": {
+        "Speaker 1": {
+          "color": "#FFFFFF",
+          "highlight_color": "#00F0FF"
+        },
+        "Speaker 2": {
+          "color": "#FFEB3B",
+          "highlight_color": "#FF007A"
+        }
+      }
+    },
     "subtitle_layout": {
       "min_words_per_line": 2,
       "max_words_per_line": 7,
@@ -54,39 +75,60 @@
     "font_size_wm": 30
   },
   {
-    "id": "preset_test_1790083883",
-    "name": "test",
-    "description": "Preset personalizzato creato dall'editor",
-    "is_system": false,
+    "id": "hormozi_kinetic",
+    "name": "Hormozi Kinetic Highlighter",
+    "description": "Stile iconico virale di Alex Hormozi: box giallo fluorescente dinamico parola per parola, font bold ad altissimo impatto e massimo contrasto.",
+    "is_system": true,
     "is_default": false,
-    "font_family": "Helvetica",
-    "font_name": "Helvetica",
-    "pattern": "Normal",
+    "font_family": "Raleway",
+    "font_name": "Raleway",
+    "pattern": "Bold",
     "subtitle_style": {
       "normal": {
         "font_family": "Raleway",
-        "font_variant": "Light",
-        "color": "#ff0000"
+        "font_variant": "Bold",
+        "color": "#FFFFFF"
       },
       "keyword": {
         "font_family": "Raleway",
-        "font_variant": "Italic",
-        "color": "#ff0000"
+        "font_variant": "Bold",
+        "color": "#FFE600"
       }
     },
     "keywords": {
       "enabled": true,
       "mode": "automatic"
     },
+    "highlighter": {
+      "enabled": true,
+      "box_color": "#FFE600",
+      "text_color": "#000000",
+      "box_radius": 8,
+      "box_padding_x": 12,
+      "box_padding_y": 6
+    },
+    "speaker_styles": {
+      "enabled": false,
+      "speakers": {
+        "Speaker 1": {
+          "color": "#FFFFFF",
+          "highlight_color": "#FFE600"
+        },
+        "Speaker 2": {
+          "color": "#00F0FF",
+          "highlight_color": "#FF007A"
+        }
+      }
+    },
     "subtitle_layout": {
-      "min_words_per_line": 2,
-      "max_words_per_line": 2,
+      "min_words_per_line": 1,
+      "max_words_per_line": 4,
       "num_lines": 1
     },
-    "all_caps": false,
-    "letter_spacing": 0,
-    "capcut_size": 8.0,
-    "capcut_sub_scale": 105.0,
+    "all_caps": true,
+    "letter_spacing": 1,
+    "capcut_size": 9.0,
+    "capcut_sub_scale": 110.0,
     "capcut_x": 0,
     "capcut_y": 0,
     "rotation_sub": 0.0,
@@ -96,15 +138,15 @@
     "capcut_wm_x": 0,
     "capcut_wm_y": -197,
     "rotation_wm": 0.0,
-    "stroke_width": 0,
-    "shadow_offset": 0,
+    "stroke_width": 2,
+    "shadow_offset": 2,
     "offset_sub_x": 0,
     "offset_sub_y": 0,
     "offset_wm_x": 0,
     "offset_wm_y": 98,
     "subtitle_y": 960,
     "watermark_y": 1058,
-    "font_size_sub": 45,
+    "font_size_sub": 52,
     "font_size_wm": 30
   }
 ]

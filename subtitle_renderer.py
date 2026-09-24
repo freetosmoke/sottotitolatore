@@ -484,6 +484,13 @@ def render_subtitle(
     min_words_per_line: int = 2,
     max_words_per_line: int = 7,
     num_lines: int = 2,
+    active_word_index: int | None = None,
+    highlighter_enabled: bool = False,
+    highlighter_box_color: tuple[int, int, int, int] = (255, 230, 0, 255),
+    highlighter_text_color: tuple[int, int, int, int] = (0, 0, 0, 255),
+    highlighter_radius: int = 8,
+    highlighter_padding_x: int = 10,
+    highlighter_padding_y: int = 4,
 ) -> Path:
     scale = canvas_height / BASE_HEIGHT
     center_x = canvas_width / 2.0
@@ -572,17 +579,51 @@ def render_subtitle(
             is_word_bold = _is_bold(tok_idx)
             font = semibold if is_word_bold else light
             use_faux = is_bold_pattern or (is_word_bold and light == semibold)
-            _draw_text(
-                draw, cur_x, start_y, tok, font,
-                fill_color=keyword_color if is_word_bold else normal_color,
-                stroke_width=stroke_width,
-                stroke_color=(0, 0, 0, 220) if stroke_width > 0 else (0, 0, 0, 0),
-                shadow_offset=shadow_offset,
-                shadow_color=(0, 0, 0, 140) if shadow_offset > 0 else (0, 0, 0, 0),
-                faux_bold=use_faux,
-                letter_spacing=letter_spacing
-            )
-            cur_x += _word_w(tok, font, letter_spacing) + (1 if use_faux else 0)
+            is_active_word = highlighter_enabled and (active_word_index is not None) and (tok_idx == active_word_index)
+            word_w_px = _word_w(tok, font, letter_spacing) + (1 if use_faux else 0)
+
+            if is_active_word:
+                # Disegna rettangolo arrotondato evidenziatore dietro alla parola attiva
+                # Padding orizzontale sicuro che non invade la parola adiacente
+                safe_pad_x = min(
+                    max(2, round(highlighter_padding_x * scale)),
+                    max(2, int(space_w * 0.45))
+                )
+                pad_y = max(1, round(highlighter_padding_y * scale))
+                rad = max(2, round(highlighter_radius * scale))
+                box_x0 = cur_x - safe_pad_x
+                box_y0 = start_y - pad_y
+                box_x1 = cur_x + word_w_px + safe_pad_x
+                box_y1 = start_y + (asc + desc) + pad_y
+                draw.rounded_rectangle(
+                    [box_x0, box_y0, box_x1, box_y1],
+                    radius=rad,
+                    fill=highlighter_box_color
+                )
+
+                # Testo con colore ad alto contrasto per la parola attiva
+                _draw_text(
+                    draw, cur_x, start_y, tok, font,
+                    fill_color=highlighter_text_color,
+                    stroke_width=0,
+                    stroke_color=(0, 0, 0, 0),
+                    shadow_offset=0,
+                    shadow_color=(0, 0, 0, 0),
+                    faux_bold=use_faux,
+                    letter_spacing=letter_spacing
+                )
+            else:
+                _draw_text(
+                    draw, cur_x, start_y, tok, font,
+                    fill_color=keyword_color if is_word_bold else normal_color,
+                    stroke_width=stroke_width,
+                    stroke_color=(0, 0, 0, 220) if stroke_width > 0 else (0, 0, 0, 0),
+                    shadow_offset=shadow_offset,
+                    shadow_color=(0, 0, 0, 140) if shadow_offset > 0 else (0, 0, 0, 0),
+                    faux_bold=use_faux,
+                    letter_spacing=letter_spacing
+                )
+            cur_x += word_w_px
             if word_pos < len(line_tokens) - 1:
                 cur_x += space_w
 
@@ -922,29 +963,146 @@ def render_all(
             TEXT_COLOR,
         )
 
-        render_subtitle(
-            words,
-            b_indices,
-            light_sub,
-            semibold_sub,
-            out,
-            offset_x=sub_ox,
-            offset_y=sub_oy,
-            stroke_width=stroke_w,
-            shadow_offset=shadow_off,
-            pattern=pattern,
-            all_caps=all_caps,
-            letter_spacing=letter_spacing,
-            rotation=settings.get("rotation_sub", 0.0),
-            canvas_width=canvas_width,
-            canvas_height=canvas_height,
-            normal_color=normal_color,
-            keyword_color=keyword_color,
-            min_words_per_line=min_words_per_line,
-            max_words_per_line=max_words_per_line,
-            num_lines=num_lines,
+        # Configurazione Highlighter
+        highlighter_config = settings.get("highlighter") or (preset.get("highlighter") if preset else {}) or {}
+        highlighter_enabled = bool(highlighter_config.get("enabled", False))
+        default_hl_box_color = _parse_color(highlighter_config.get("box_color"), fallback=(255, 230, 0, 255))
+        default_hl_text_color = _parse_color(highlighter_config.get("text_color"), fallback=(0, 0, 0, 255))
+        hl_radius = int(highlighter_config.get("box_radius", 8))
+        hl_pad_x = int(highlighter_config.get("box_padding_x", 10))
+        hl_pad_y = int(highlighter_config.get("box_padding_y", 4))
+
+        # Configurazione Stili Speaker
+        speaker_styles_config = settings.get("speaker_styles") or (preset.get("speaker_styles") if preset else {}) or {}
+        speaker_styles_enabled = bool(speaker_styles_config.get("enabled", False))
+        speakers_map = speaker_styles_config.get("speakers") or {}
+
+        chunk_normal_color = normal_color
+        chunk_hl_box_color = default_hl_box_color
+
+        if speaker_styles_enabled and isinstance(chunk, dict):
+            spk_label = str(chunk.get("speaker") or f"Speaker {(chunk.get('speaker_id', 0) + 1)}")
+            spk_conf = speakers_map.get(spk_label) or speakers_map.get(spk_label.lower().replace(" ", "_")) or {}
+            if "color" in spk_conf and spk_conf["color"]:
+                chunk_normal_color = _parse_color(spk_conf["color"], fallback=normal_color)
+            if "highlight_color" in spk_conf and spk_conf["highlight_color"]:
+                chunk_hl_box_color = _parse_color(spk_conf["highlight_color"], fallback=default_hl_box_color)
+
+        # Rendering con highlighter parola per parola (se disponibile e abilitato)
+        word_objs = raw_words if isinstance(chunk, dict) else []
+        has_word_timings = (
+            highlighter_enabled
+            and bool(word_objs)
+            and all(isinstance(w, dict) and "start" in w and "end" in w for w in word_objs)
+            and len(word_objs) > 0
         )
-        rendered.append(RenderedChunk(image_path=out, start=c_start, end=c_end))
+
+        if has_word_timings:
+            n_w = len(word_objs)
+            # Determina una sequenza temporale continua [c_start, c_end] senza buchi (zero-gap)
+            w0_start = float(word_objs[0].get("start", c_start))
+            if w0_start > c_start + 0.25:
+                # Se c'è una pausa iniziale prima della prima parola, mostra il sottotitolo neutro
+                out_neutral = work_dir / f"sub_{i:04d}_intro.png"
+                render_subtitle(
+                    words,
+                    b_indices,
+                    light_sub,
+                    semibold_sub,
+                    out_neutral,
+                    offset_x=sub_ox,
+                    offset_y=sub_oy,
+                    stroke_width=stroke_w,
+                    shadow_offset=shadow_off,
+                    pattern=pattern,
+                    all_caps=all_caps,
+                    letter_spacing=letter_spacing,
+                    rotation=settings.get("rotation_sub", 0.0),
+                    canvas_width=canvas_width,
+                    canvas_height=canvas_height,
+                    normal_color=chunk_normal_color,
+                    keyword_color=keyword_color,
+                    min_words_per_line=min_words_per_line,
+                    max_words_per_line=max_words_per_line,
+                    num_lines=num_lines,
+                    active_word_index=None,
+                    highlighter_enabled=False,
+                )
+                rendered.append(RenderedChunk(image_path=out_neutral, start=c_start, end=w0_start))
+                current_word_t = w0_start
+            else:
+                # Altrimenti la prima parola è evidenziata fin dall'inizio del blocco
+                current_word_t = c_start
+
+            for w_idx in range(n_w):
+                w_info = word_objs[w_idx]
+                w_end = float(w_info.get("end", c_end))
+
+                if w_idx < n_w - 1:
+                    next_start = float(word_objs[w_idx + 1].get("start", w_end))
+                    boundary = (w_end + next_start) / 2.0 if w_end > next_start else next_start
+                    frame_end = max(current_word_t + 0.04, boundary)
+                else:
+                    frame_end = max(current_word_t + 0.04, max(w_end, c_end))
+
+                out_w = work_dir / f"sub_{i:04d}_w{w_idx:02d}.png"
+                render_subtitle(
+                    words,
+                    b_indices,
+                    light_sub,
+                    semibold_sub,
+                    out_w,
+                    offset_x=sub_ox,
+                    offset_y=sub_oy,
+                    stroke_width=stroke_w,
+                    shadow_offset=shadow_off,
+                    pattern=pattern,
+                    all_caps=all_caps,
+                    letter_spacing=letter_spacing,
+                    rotation=settings.get("rotation_sub", 0.0),
+                    canvas_width=canvas_width,
+                    canvas_height=canvas_height,
+                    normal_color=chunk_normal_color,
+                    keyword_color=keyword_color,
+                    min_words_per_line=min_words_per_line,
+                    max_words_per_line=max_words_per_line,
+                    num_lines=num_lines,
+                    active_word_index=w_idx,
+                    highlighter_enabled=True,
+                    highlighter_box_color=chunk_hl_box_color,
+                    highlighter_text_color=default_hl_text_color,
+                    highlighter_radius=hl_radius,
+                    highlighter_padding_x=hl_pad_x,
+                    highlighter_padding_y=hl_pad_y,
+                )
+                rendered.append(RenderedChunk(image_path=out_w, start=current_word_t, end=frame_end))
+                current_word_t = frame_end
+        else:
+            render_subtitle(
+                words,
+                b_indices,
+                light_sub,
+                semibold_sub,
+                out,
+                offset_x=sub_ox,
+                offset_y=sub_oy,
+                stroke_width=stroke_w,
+                shadow_offset=shadow_off,
+                pattern=pattern,
+                all_caps=all_caps,
+                letter_spacing=letter_spacing,
+                rotation=settings.get("rotation_sub", 0.0),
+                canvas_width=canvas_width,
+                canvas_height=canvas_height,
+                normal_color=chunk_normal_color,
+                keyword_color=keyword_color,
+                min_words_per_line=min_words_per_line,
+                max_words_per_line=max_words_per_line,
+                num_lines=num_lines,
+                active_word_index=None,
+                highlighter_enabled=False,
+            )
+            rendered.append(RenderedChunk(image_path=out, start=c_start, end=c_end))
 
     console.log(f"[green]✓ {len(rendered)} frame sottotitolo renderizzati (sub_offset=({sub_ox},{sub_oy}), wm_offset=({wm_ox},{wm_oy}), canvas={canvas_width}x{canvas_height})[/]")
     ffconcat_path = create_ffconcat(rendered, blank, total_duration, work_dir)

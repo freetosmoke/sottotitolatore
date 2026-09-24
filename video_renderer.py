@@ -102,6 +102,7 @@ def burn_subtitles(
     use_hw: bool | None = None,
     quality: str = "high",
     black_and_white: bool = False,
+    mute_intervals: list[tuple[float, float]] | None = None,
 ) -> Path:
     """
     Sovrappone sottotitoli e watermark al video originale ad alta qualità.
@@ -149,6 +150,18 @@ def burn_subtitles(
             "[v1][2:v]overlay=0:0:eof_action=pass,format=yuv420p[out]"
         )
 
+    af_args = []
+    if mute_intervals:
+        valid_intervals = [
+            (max(0.0, float(s)), max(0.0, float(e)))
+            for s, e in mute_intervals
+            if float(e) > float(s)
+        ]
+        if valid_intervals:
+            between_expr = "+".join(f"between(t,{s:.3f},{e:.3f})" for s, e in valid_intervals)
+            af_args = ["-af", f"volume=enable='{between_expr}':volume=0"]
+            console.log(f"[yellow]🔇 Applicato silenziamento audio per {len(valid_intervals)} intervalli di speaker[/]")
+
     cmd = [
         _get_bin("ffmpeg"), "-y",
         "-i", str(video_path.resolve()),                           # [0] video
@@ -158,6 +171,7 @@ def burn_subtitles(
         "-filter_complex", filter_complex,
         "-map", "[out]",
         "-map", "0:a?",
+        *af_args,
         *vcodec,
         "-c:a", "aac",
         "-b:a", "320k",

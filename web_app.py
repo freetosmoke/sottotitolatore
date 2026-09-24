@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 web_app.py
-Interfaccia Web UI per SubStudio Podcast Verticale 9:16
+Interfaccia Web UI per Sub Studio Podcast Verticale 9:16
 Preset: "La Voce del Successo"
 - Supporto per selezione multipla di parole in grassetto nella stessa riga
 - Anteprima visiva istantanea e solida (frame video o canvas podcast studio)
@@ -839,33 +839,143 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         chunks = group_into_chunks(words, min_words_per_line=min_w, max_words_per_line=max_w, num_lines=num_l)
                     else:
                         chunks = group_into_chunks(words)
+
+                    chunks_data = []
+                    for i, c in enumerate(chunks):
+                        w_list = [w.word for w in c.words]
+
+                        if keyword_mode == "automatic":
+                            kw_idx = select_keyword(w_list)
+                        else:
+                            kw_idx = None
+
+                        chunks_data.append({
+                            "id": i,
+                            "start": round(c.start, 2),
+                            "end": round(c.end, 2),
+                            "words": [{"word": w, "start": round(token.start, 2), "end": round(token.end, 2)} for w, token in zip(w_list, c.words)],
+                            "bold_indices": [kw_idx] if (kw_idx is not None and kw_idx >= 0) else [],
+                            "text": c.text,
+                        })
+
+                    if payload.get("diarize"):
+                        try:
+                            import speaker_diarizer
+                            num_speakers = int(payload.get("num_speakers", 2))
+                            chunks_data = speaker_diarizer.diarize_audio(wav_path, chunks_data, num_speakers=num_speakers)
+                        except Exception as ex_diar:
+                            logging.warning(f"Diarizzazione fallita durante trascrizione: {ex_diar}")
+
                 except Exception as e:
                     self.send_error_json(f"Errore trascrizione: {str(e)}", 500)
                     return
-
-            chunks_data = []
-            for i, c in enumerate(chunks):
-                w_list = [w.word for w in c.words]
-
-                if keyword_mode == "automatic":
-                    kw_idx = select_keyword(w_list)
-                else:
-                    kw_idx = None
-
-                chunks_data.append({
-                    "id": i,
-                    "start": round(c.start, 2),
-                    "end": round(c.end, 2),
-                    "words": [{"word": w, "start": round(token.start, 2), "end": round(token.end, 2)} for w, token in zip(w_list, c.words)],
-                    "bold_indices": [kw_idx] if (kw_idx is not None and kw_idx >= 0) else [],
-                    "text": c.text,
-                })
 
             self.send_json({
                 "success": True,
                 "chunks": chunks_data,
                 "count": len(chunks_data)
             })
+            return
+
+        if path == "/api/diarize":
+            video_path_str = payload.get("video_path")
+            chunks_data = payload.get("chunks", [])
+            raw_num_speakers = payload.get("num_speakers", "auto")
+
+            if not video_path_str or not chunks_data:
+                self.send_error_json("video_path e chunks sono richiesti per la diarizzazione")
+                return
+
+            video_path = Path(video_path_str)
+            if not video_path.exists():
+                self.send_error_json("File video non trovato")
+                return
+
+            with tempfile.TemporaryDirectory(prefix="diarize_") as tmp_dir:
+                tmp_p = Path(tmp_dir)
+                wav_path = tmp_p / "audio.wav"
+                try:
+                    extract_audio(video_path, wav_path)
+                    import speaker_diarizer
+                    diarized_chunks = speaker_diarizer.diarize_audio(
+                        wav_path, chunks_data, num_speakers=raw_num_speakers
+                    )
+                    unique_speakers = sorted(list(set(c.get("speaker", "Speaker 1") for c in diarized_chunks)))
+                    self.send_json({
+                        "success": True,
+                        "chunks": diarized_chunks,
+                        "count": len(diarized_chunks),
+                        "detected_speakers": unique_speakers,
+                        "num_speakers": len(unique_speakers),
+                    })
+                except Exception as exc:
+                    self.send_error_json(f"Errore durante la diarizzazione: {str(exc)}", 500)
+            return
+
+        if path == "/api/cut_speaker":
+            video_path_str = payload.get("video_path")
+            chunks_data = payload.get("chunks", [])
+            speaker_to_cut = payload.get("speaker")
+            quality = payload.get("quality", "high")
+
+            if not video_path_str or not chunks_data or not speaker_to_cut:
+                self.send_error_json("Parametri mancanti per il taglio dello speaker")
+                return
+
+            video_path = Path(video_path_str)
+            if not video_path.exists():
+                self.send_error_json("File video non trovato")
+                return
+
+            try:
+                duration = get_video_duration(video_path)
+                speaker_name = str(speaker_to_cut).strip()
+                remove_intervals = []
+                for c in chunks_data:
+                    if str(c.get("speaker", "")).strip() == speaker_name:
+                        c_s = float(c.get("start", 0.0))
+                        c_e = float(c.get("end", c_s + 0.5))
+                        if c_e > c_s:
+                            remove_intervals.append((c_s, c_e))
+
+                if not remove_intervals:
+                    self.send_error_json(f"Nessun blocco trovato per lo speaker {speaker_name}")
+                    return
+
+                keeps = calculate_keep_intervals(duration, remove_intervals)
+                if not keeps:
+                    self.send_error_json("Impossibile tagliare: l'intero video appartiene allo speaker selezionato.")
+                    return
+
+                clean_spk = re.sub(r'[^a-zA-Z0-9_]', '_', speaker_name.lower())
+                cut_video_name = f"cut_{clean_spk}_{video_path.name}"
+                output_cut_video = OUTPUTS_DIR / cut_video_name
+
+                _, comp_dur = cut_and_compact_video_audio(
+                    video_path=video_path,
+                    keep_intervals=keeps,
+                    output_path=output_cut_video,
+                    use_hw=True,
+                    quality=quality,
+                )
+
+                remaining_chunks = [c for c in chunks_data if str(c.get("speaker", "")).strip() != speaker_name]
+                new_chunks = remap_chunks_and_words(remaining_chunks, keeps)
+                for idx, c in enumerate(new_chunks):
+                    c["id"] = idx
+
+                self.send_json({
+                    "success": True,
+                    "new_video_path": str(output_cut_video),
+                    "download_url": f"/media/{cut_video_name}",
+                    "new_filename": cut_video_name,
+                    "new_duration": comp_dur,
+                    "chunks": new_chunks,
+                    "cut_speaker": speaker_name,
+                    "cut_segments_count": len(remove_intervals),
+                })
+            except Exception as exc:
+                self.send_error_json(f"Errore durante il taglio dello speaker: {str(exc)}", 500)
             return
 
         if path == "/api/translate_chunks":
@@ -1111,6 +1221,26 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                     if video_path_str and Path(video_path_str).exists():
                         has_frame = extract_video_frame(Path(video_path_str), timestamp, frame_png)
 
+                    hl_conf = payload.get("highlighter") or {}
+                    hl_enabled = bool(hl_conf.get("enabled", False))
+                    hl_box_color = _preview_parse_color(hl_conf.get("box_color"), fallback=(255, 230, 0, 255))
+                    hl_text_color = _preview_parse_color(hl_conf.get("text_color"), fallback=(0, 0, 0, 255))
+                    hl_radius = int(hl_conf.get("box_radius", 8))
+                    hl_pad_x = int(hl_conf.get("box_padding_x", 10))
+                    hl_pad_y = int(hl_conf.get("box_padding_y", 4))
+                    active_word_idx = payload.get("active_word_index")
+
+                    # Stili per speaker se configurati
+                    spk_styles_conf = payload.get("speaker_styles") or {}
+                    if spk_styles_conf.get("enabled", False):
+                        spk_name = str(payload.get("speaker") or "Speaker 1")
+                        spk_map = spk_styles_conf.get("speakers") or {}
+                        spk_entry = spk_map.get(spk_name) or spk_map.get(spk_name.lower().replace(" ", "_")) or {}
+                        if spk_entry.get("color"):
+                            normal_color = _preview_parse_color(spk_entry["color"], fallback=normal_color)
+                        if spk_entry.get("highlight_color"):
+                            hl_box_color = _preview_parse_color(spk_entry["highlight_color"], fallback=hl_box_color)
+
                     render_subtitle(
                         words, bold_indices, light_sub, semibold_sub, sub_png,
                         offset_x=sub_ox, offset_y=sub_oy,
@@ -1126,6 +1256,13 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         min_words_per_line=min_words_per_line,
                         max_words_per_line=max_words_per_line,
                         num_lines=num_lines,
+                        active_word_index=active_word_idx,
+                        highlighter_enabled=hl_enabled,
+                        highlighter_box_color=hl_box_color,
+                        highlighter_text_color=hl_text_color,
+                        highlighter_radius=hl_radius,
+                        highlighter_padding_x=hl_pad_x,
+                        highlighter_padding_y=hl_pad_y,
                     )
                     render_watermark(
                         semibold_wm, wm_png, watermark_text=wm_text,
@@ -1274,6 +1411,17 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         canvas_width=canvas_w,
                         canvas_height=canvas_h,
                     )
+                    mute_intervals = []
+                    muted_speakers = payload.get("muted_speakers", [])
+                    if muted_speakers and isinstance(muted_speakers, list):
+                        spk_set = set(str(s).strip() for s in muted_speakers)
+                        for c in render_chunks:
+                            if c.get("speaker") in spk_set:
+                                c_s = float(c.get("start", 0.0))
+                                c_e = float(c.get("end", c_s + 0.5))
+                                if c_e > c_s:
+                                    mute_intervals.append((c_s, c_e))
+
                     burn_subtitles(
                         video_path=render_video_source,
                         ffconcat_path=ffconcat_path,
@@ -1282,6 +1430,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         use_hw=True,
                         quality=quality,
                         black_and_white=black_and_white,
+                        mute_intervals=mute_intervals,
                     )
                     actual_final_dur = get_video_duration(output_file)
                 except Exception as e:
@@ -1555,7 +1704,7 @@ def run_server():
     server_address = ("127.0.0.1", PORT)
     httpd = ThreadingHTTPServer(server_address, AppRequestHandler)
     httpd.daemon_threads = True
-    print(f"\n🚀 SubStudio Web UI avviato con successo!")
+    print(f"\n🚀 Sub Studio Web UI avviato con successo!")
     print(f"👉 Apri nel tuo browser: http://localhost:{PORT}")
     print("Premi Ctrl+C per arrestare il server.\n")
     try:

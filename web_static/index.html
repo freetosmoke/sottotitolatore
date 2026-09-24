@@ -2,8 +2,9 @@
 <html lang="it" class="dark">
 <head>
   <meta charset="UTF-8">
-  <title>SubStudio — Studio Sottotitoli Verticali 9:16</title>
+  <title>Sub Studio — Studio Sottotitoli Verticali 9:16</title>
   <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/app_icon.png">
   <script src="/vendor/tailwindcss.js"></script>
   <script>
@@ -12,8 +13,46 @@
       theme: {
         extend: {
           colors: {
-            brand: { 50: '#fbf7ee', 500: '#e5a93b', 600: '#c88720' },
-            dark: { 950: '#07090b', 900: '#0b0d10', 850: '#11141a', 800: '#161b22', 700: '#212631', 600: '#303644' }
+            brand: {
+              50: '#ecfeff',
+              100: '#cffafe',
+              200: '#a5f3fc',
+              300: '#67e8f9',
+              400: '#22d3ee',
+              500: '#00d2ff',
+              600: '#0088ff',
+              700: '#4f46e5',
+              800: '#3730a3',
+              900: '#1e1b4b'
+            },
+            dark: {
+              950: '#050711',
+              900: '#090d1c',
+              850: '#0e162c',
+              800: '#131e3a',
+              750: '#1a2748',
+              700: '#23345c',
+              650: '#2c4172',
+              600: '#3b548f'
+            },
+            amber: {
+              50: '#ecfeff',
+              100: '#cffafe',
+              200: '#a5f3fc',
+              300: '#67e8f9',
+              400: '#00f0ff',
+              500: '#00d2ff',
+              600: '#0088ff',
+              700: '#0284c7',
+              800: '#0369a1',
+              900: '#075985'
+            }
+          },
+          boxShadow: {
+            'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.45)',
+            'neon-blue': '0 0 20px rgba(0, 136, 255, 0.4)',
+            'neon-indigo': '0 0 25px rgba(99, 102, 241, 0.35)',
+            'neon-magenta': '0 0 20px rgba(217, 70, 239, 0.35)'
           }
         }
       }
@@ -77,6 +116,15 @@
       display: inline-block;
     }
 
+    .is-active-highlight-word {
+      display: inline-block;
+      will-change: transform, background-color, color;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      z-index: 2;
+      position: relative;
+    }
+
     .podcast-wm-text {
       font-family: var(--preset-font);
       font-weight: 600;
@@ -98,9 +146,9 @@
     .gizmo-box {
       position: absolute;
       inset: -6px;
-      border: 2px solid #f59e0b;
+      border: 2px solid #00f0ff;
       border-radius: 4px;
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
       cursor: move;
       pointer-events: auto;
     }
@@ -110,7 +158,7 @@
       top: -24px;
       width: 1.5px;
       height: 18px;
-      background: #f59e0b;
+      background: #00f0ff;
       transform: translateX(-50%);
       pointer-events: none;
     }
@@ -121,16 +169,16 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      background: #f59e0b;
-      border: 2px solid #11141a;
+      background: #00f0ff;
+      border: 2px solid #050711;
       transform: translateX(-50%);
       cursor: grab;
       pointer-events: auto;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
       transition: transform 0.1s, background-color 0.15s;
     }
     .gizmo-rot-handle:hover {
-      background: #fbbf24;
+      background: #38bdf8;
       transform: translateX(-50%) scale(1.25);
     }
     .gizmo-rot-handle:active {
@@ -141,15 +189,15 @@
       width: 10px;
       height: 10px;
       background: #ffffff;
-      border: 2px solid #f59e0b;
+      border: 2px solid #00d2ff;
       border-radius: 2px;
       pointer-events: auto;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      box-shadow: 0 1px 6px rgba(0, 210, 255, 0.5);
       box-sizing: border-box;
       transition: transform 0.1s, background-color 0.15s;
     }
     .gizmo-handle:hover {
-      background: #fef08a;
+      background: #a5f3fc;
       transform: scale(1.3);
     }
     .handle-nw { top: -11px; left: -11px; cursor: nwse-resize; }
@@ -177,41 +225,42 @@
       bottom: 0;
       left: 50%;
       width: 1px;
-      border-left: 1.5px dashed #06b6d4;
-      box-shadow: 0 0 6px rgba(6, 182, 212, 0.7);
+      border-left: 1.5px dashed #00f0ff;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
     }
     .snap-guide-h {
       left: 0;
       right: 0;
       top: 50%;
       height: 1px;
-      border-top: 1.5px dashed #06b6d4;
-      box-shadow: 0 0 6px rgba(6, 182, 212, 0.7);
+      border-top: 1.5px dashed #00f0ff;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
     }
 
     ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #0c0e12; }
-    ::-webkit-scrollbar-thumb { background: #262c38; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #3b4354; }
+    ::-webkit-scrollbar-track { background: #050711; }
+    ::-webkit-scrollbar-thumb { background: #1a2748; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2c4172; }
 
     /* Studio Chunk Card Interactive Styling */
     .studio-chunk-card {
       position: relative;
-      background: #11141b;
-      border: 1px solid #1f2533;
+      background: #090d1c;
+      border: 1px solid rgba(56, 189, 248, 0.12);
       border-radius: 12px;
       padding: 12px 14px;
       transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
       cursor: pointer;
     }
     .studio-chunk-card:hover {
-      border-color: #333d52;
-      background: #141822;
+      border-color: rgba(0, 210, 255, 0.4);
+      background: #0e162c;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
     .studio-chunk-card.is-active-chunk {
-      background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, rgba(17, 20, 27, 0.95) 100%);
-      border-color: #f59e0b !important;
-      box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.15), inset 3px 0 0 #f59e0b;
+      background: linear-gradient(90deg, rgba(0, 210, 255, 0.14) 0%, rgba(99, 102, 241, 0.06) 50%, rgba(9, 13, 28, 0.98) 100%);
+      border-color: #00f0ff !important;
+      box-shadow: 0 4px 24px -2px rgba(0, 210, 255, 0.25), inset 3px 0 0 #00f0ff;
     }
 
     /* Timeline & Waveform Styles */
@@ -220,8 +269,8 @@
       height: 56px;
       top: 4px;
       border-radius: 6px;
-      background: rgba(245, 158, 11, 0.14);
-      border: 1.5px solid rgba(245, 158, 11, 0.45);
+      background: rgba(0, 210, 255, 0.12);
+      border: 1.5px solid rgba(0, 210, 255, 0.35);
       box-sizing: border-box;
       cursor: grab;
       user-select: none;
@@ -229,14 +278,23 @@
       z-index: 10;
     }
     .tl-chunk-block:hover {
-      border-color: rgba(251, 191, 36, 0.9);
-      background: rgba(245, 158, 11, 0.24);
+      border-color: rgba(0, 240, 255, 0.85);
+      background: rgba(0, 210, 255, 0.22);
     }
     .tl-chunk-block.active-block {
-      border-color: #f59e0b;
-      background: rgba(245, 158, 11, 0.36);
-      box-shadow: 0 0 16px rgba(245, 158, 11, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+      border-color: #00f0ff;
+      background: rgba(0, 210, 255, 0.28);
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
       z-index: 15;
+    }
+    .tl-chunk-block.is-muted {
+      border-color: rgba(239, 68, 68, 0.55);
+      background: rgba(239, 68, 68, 0.16);
+    }
+    .tl-chunk-block.is-muted.active-block {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.32);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
     }
     .tl-handle-left, .tl-handle-right {
       position: absolute;
@@ -261,7 +319,7 @@
       border-bottom-right-radius: 5px;
     }
     .tl-handle-left:hover, .tl-handle-right:hover {
-      background: rgba(245, 158, 11, 0.85);
+      background: rgba(0, 210, 255, 0.85);
     }
     .tl-chunk-block.compact-block .tl-handle-left,
     .tl-chunk-block.compact-block .tl-handle-right {
@@ -552,57 +610,112 @@ html[data-theme="light"] .video-timecode-box .text-slate-400 {
   height: var(--layout-timeline-height) !important;
   flex: 0 0 var(--layout-timeline-height) !important;
   min-height: 140px !important;
-  max-height: 600px !important;
+  max-height: 550px !important;
+}
+
+body.sott-resizing-v3 #inspector-card,
+body.sott-resizing-h-v3 #inspector-card,
+body.sott-resizing-h-v3 #timeline-card {
+  transition: none !important;
 }
 
 .sott-resizer-v3 {
-  flex: 0 0 6px;
-  width: 6px;
+  flex: 0 0 10px;
+  width: 10px;
+  margin: 0 -2px;
   cursor: col-resize;
-  z-index: 9999;
-  position: relative;
-}
-
-.sott-resizer-v3:hover,
-.sott-resizer-v3.dragging {
-  background: rgba(255,255,255,.08);
-}
-
-.sott-resizer-h-v3 {
-  height: 6px;
-  min-height: 6px;
-  cursor: row-resize;
-  z-index: 9999;
+  z-index: 35;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  user-select: none;
+  touch-action: none;
+}
+
+.sott-resizer-v3::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  transition: background-color 0.15s ease, width 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sott-resizer-v3:hover::before,
+.sott-resizer-v3.dragging::before {
+  background: #00f0ff;
+  width: 3px;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+}
+
+.sott-resizer-h-v3 {
+  height: 10px;
+  min-height: 10px;
+  margin: -3px 0;
+  cursor: row-resize;
+  z-index: 35;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: none;
+}
+
+.sott-resizer-h-v3::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  transition: background-color 0.15s ease, height 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sott-resizer-h-v3:hover::before,
+.sott-resizer-h-v3.dragging::before {
+  height: 3px;
+  background: #00f0ff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
 }
 
 .sott-resizer-h-v3::after {
   content: '';
-  display: block;
-  width: 100%;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.07);
-  transition: background-color 0.15s ease, height 0.15s ease;
+  position: relative;
+  width: 38px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(148, 163, 184, 0.35);
+  transition: background-color 0.15s ease, width 0.15s ease, box-shadow 0.15s ease;
+  z-index: 2;
 }
 
 .sott-resizer-h-v3:hover::after,
 .sott-resizer-h-v3.dragging::after {
-  height: 2px;
-  background: rgba(245, 158, 11, 0.6);
+  background: #00f0ff;
+  width: 50px;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
 }
 
 body.sott-resizing-v3,
-body.sott-resizing-v3 * {
-  user-select: none !important;
-}
-
+body.sott-resizing-v3 *,
 body.sott-resizing-h-v3,
 body.sott-resizing-h-v3 * {
   user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+body.sott-resizing-v3 video,
+body.sott-resizing-h-v3 video,
+body.sott-resizing-v3 canvas,
+body.sott-resizing-h-v3 canvas,
+body.sott-resizing-v3 iframe,
+body.sott-resizing-h-v3 iframe {
+  pointer-events: none !important;
 }
 
 </style>
@@ -684,26 +797,26 @@ header.h-14 > div:last-child {
 #inspector-card .inspector-section,
 #inspector-card details,
 #inspector-card .bg-dark-900\/80 {
-    border: 1px solid rgba(255, 255, 255, 0.07) !important;
-    background-color: rgba(13, 16, 23, 0.75) !important;
+    border: 1px solid rgba(56, 189, 248, 0.1) !important;
+    background-color: rgba(9, 13, 26, 0.8) !important;
     transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 #inspector-card details summary {
-    background-color: rgba(18, 22, 31, 0.6) !important;
+    background-color: rgba(14, 21, 40, 0.65) !important;
 }
 
 #inspector-card details summary:hover {
-    background-color: rgba(26, 32, 44, 0.75) !important;
+    background-color: rgba(19, 29, 56, 0.85) !important;
 }
 
 #inspector-card details[open] > summary {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.08) !important;
 }
 
 #inspector-card .inspector-section:hover,
 #inspector-card details:hover {
-    border-color: rgba(255, 255, 255, 0.13) !important;
+    border-color: rgba(0, 210, 255, 0.3) !important;
 }
 
 /* Preset Toolbar 4 pulsanti compatti e uniformi */
@@ -727,7 +840,7 @@ header.h-14 > div:last-child {
     border-radius: 7px !important;
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(56, 189, 248, 0.12) !important;
     transition: all 0.15s ease !important;
 }
 
@@ -760,19 +873,20 @@ header.h-14 > div:last-child {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background-color: #1a1f2c !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: #f59e0b !important;
+    background-color: #0e162c !important;
+    border: 1px solid rgba(0, 240, 255, 0.3) !important;
+    color: #00f0ff !important;
     cursor: pointer !important;
     transition: all 0.15s ease !important;
     padding: 0 !important;
 }
 
 #btn-toggle-play:hover {
-    background-color: #f59e0b !important;
-    border-color: #f59e0b !important;
-    color: #0b0f19 !important;
-    transform: scale(1.03);
+    background-color: #00f0ff !important;
+    border-color: #00f0ff !important;
+    color: #050711 !important;
+    transform: scale(1.05);
+    box-shadow: 0 0 14px rgba(0, 240, 255, 0.6);
 }
 
 #btn-toggle-play:active {
@@ -788,7 +902,7 @@ header.h-14 > div:last-child {
     border-radius: 9999px;
     outline: none;
     cursor: pointer;
-    background: linear-gradient(to right, #f59e0b var(--seek-pct, 0%), rgba(255, 255, 255, 0.08) var(--seek-pct, 0%));
+    background: linear-gradient(to right, #00f0ff var(--seek-pct, 0%), rgba(255, 255, 255, 0.08) var(--seek-pct, 0%));
     transition: background 0.05s ease;
 }
 
@@ -810,9 +924,9 @@ header.h-14 > div:last-child {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #f59e0b;
-    border: 2px solid #0f141f;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    background: #00f0ff;
+    border: 2px solid #050711;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
     margin-top: -3.5px;
     cursor: pointer;
     transition: transform 0.1s ease, background-color 0.1s ease;
@@ -820,23 +934,25 @@ header.h-14 > div:last-child {
 
 #video-seek-bar:hover::-webkit-slider-thumb {
     transform: scale(1.25);
-    background: #fbbf24;
+    background: #38bdf8;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.9);
 }
 
 #video-seek-bar::-moz-range-thumb {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #f59e0b;
-    border: 2px solid #0f141f;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    background: #00f0ff;
+    border: 2px solid #050711;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
     cursor: pointer;
     transition: transform 0.1s ease, background-color 0.1s ease;
 }
 
 #video-seek-bar:hover::-moz-range-thumb {
     transform: scale(1.25);
-    background: #fbbf24;
+    background: #38bdf8;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.9);
 }
 
 /* Timecode Display */
@@ -848,8 +964,8 @@ header.h-14 > div:last-child {
     font-size: 11px;
     line-height: 1;
     color: #94a3b8;
-    background: rgba(11, 15, 25, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(9, 13, 28, 0.85);
+    border: 1px solid rgba(56, 189, 248, 0.15);
     padding: 5px 8px;
     border-radius: 6px;
     white-space: nowrap;
@@ -1455,21 +1571,21 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 </style>
 
 </head>
-<body class="bg-dark-900 text-slate-100 h-screen flex flex-col antialiased overflow-hidden select-none">
+<body class="bg-dark-950 text-slate-100 h-screen flex flex-col antialiased overflow-hidden select-none">
 
   <!-- Header -->
-  <header class="h-14 flex-shrink-0 border-b border-dark-700 bg-dark-850/95 backdrop-blur px-4 sm:px-6 flex items-center justify-between z-30 relative">
+  <header class="h-14 flex-shrink-0 border-b border-dark-700/80 bg-dark-900/90 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between z-30 relative shadow-md shadow-black/20">
     <!-- Left: Studio Logo, Brand & Active Video Badge -->
     <div class="flex items-center space-x-3.5">
-      <div class="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-indigo-500/25 border border-white/10 flex-shrink-0 bg-dark-950 flex items-center justify-center">
-        <img src="/app_icon.png" alt="SubStudio Icon" class="w-full h-full object-cover select-none">
+      <div class="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/25 border border-cyan-400/30 flex-shrink-0 bg-dark-950 flex items-center justify-center p-0.5">
+        <img src="/app_icon.png" alt="Sub Studio Icon" class="w-full h-full object-cover select-none rounded-[10px]">
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-sm font-bold tracking-tight text-white leading-none">
-            SubStudio
+          <h1 class="text-sm font-extrabold tracking-tight bg-gradient-to-r from-white via-cyan-100 to-cyan-300 bg-clip-text text-transparent leading-none">
+            Sub Studio
           </h1>
-          <span class="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">PRO</span>
+          <span class="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_8px_rgba(0,210,255,0.25)]">PRO</span>
           <span id="autosave-badge" class="hidden text-[10px] items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all select-none">
             <svg class="w-3 h-3 text-emerald-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
@@ -1485,14 +1601,14 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     </div>
 
     <!-- Center: macOS Studio Segmented Pill Bar (Solo Coda e utility essenziali) -->
-    <div class="flex items-center bg-dark-950/80 border border-dark-700/80 p-1 rounded-2xl shadow-inner backdrop-blur">
+    <div class="flex items-center bg-dark-950/80 border border-dark-700/80 p-1 rounded-2xl shadow-inner backdrop-blur-xl">
       <!-- Coda Batch Pill -->
       <button id="btn-open-batch" type="button" class="group px-3.5 py-1.5 hover:bg-dark-800 text-slate-300 hover:text-white rounded-xl text-xs font-medium flex items-center gap-2 transition-all active:scale-95 cursor-pointer" title="Gestisci la coda di video in elaborazione">
-        <svg class="w-4 h-4 text-amber-400/90 group-hover:text-amber-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-4 h-4 text-cyan-400/90 group-hover:text-cyan-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
         </svg>
         <span>Coda</span>
-        <span id="header-batch-count" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono transition-transform group-hover:scale-105">0</span>
+        <span id="header-batch-count" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-mono transition-transform group-hover:scale-105 shadow-[0_0_8px_rgba(0,210,255,0.25)]">0</span>
       </button>
 
       <div class="h-4 w-px bg-dark-750 mx-1"></div>
@@ -1500,7 +1616,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       <!-- Menu Strumenti Dropdown -->
       <div class="relative" id="tools-menu-container">
         <button id="btn-tools-menu" type="button" class="group px-3 py-1.5 hover:bg-dark-800 text-slate-300 hover:text-white rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer" title="Operazioni di elaborazione del video">
-          <svg class="w-3.5 h-3.5 text-amber-400/90 group-hover:text-amber-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-3.5 h-3.5 text-cyan-400/90 group-hover:text-cyan-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a3 3 0 11-4.242-4.242L10.758 4.88a3 3 0 014.242 4.242L12.12 12z"/>
           </svg>
           <span>Strumenti</span>
@@ -1510,10 +1626,10 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         </button>
 
         <!-- Dropdown Card -->
-        <div id="tools-dropdown" class="hidden absolute left-0 mt-2 w-64 bg-dark-900 border border-dark-750 rounded-2xl shadow-2xl p-3.5 z-50 backdrop-blur space-y-3">
+        <div id="tools-dropdown" class="hidden absolute left-0 mt-2 w-64 bg-dark-900 border border-dark-750 rounded-2xl shadow-2xl p-3.5 z-50 backdrop-blur-xl space-y-3">
           <div class="flex items-center justify-between border-b border-dark-750 pb-2">
             <span class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a3 3 0 11-4.242-4.242L10.758 4.88a3 3 0 014.242 4.242L12.12 12z"/>
               </svg>
               Strumenti Video
@@ -1524,7 +1640,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           <div class="space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <div class="w-6 h-6 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a3 3 0 11-4.242-4.242L10.758 4.88a3 3 0 014.242 4.242L12.12 12z"/>
                   </svg>
@@ -1537,7 +1653,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
               <!-- Toggle OFF / ON -->
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="cfg-remove-silence" class="sr-only peer">
-                <div class="w-9 h-5 bg-dark-800 border border-dark-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-dark-950 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-dark-700 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-dark-950 peer-checked:border-amber-400"></div>
+                <div class="w-9 h-5 bg-dark-800 border border-dark-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-dark-950 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-dark-700 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500 peer-checked:after:bg-dark-950 peer-checked:border-cyan-400"></div>
               </label>
             </div>
 
@@ -1545,9 +1661,9 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             <div id="silence-threshold-container" class="hidden bg-dark-950/80 border border-dark-750 rounded-xl p-2.5 space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-[11px] font-medium text-slate-300">Soglia silenzio:</span>
-                <span id="label-silence-threshold" class="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">0.3 s</span>
+                <span id="label-silence-threshold" class="text-xs font-mono font-bold text-cyan-300 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30">0.3 s</span>
               </div>
-              <input type="range" id="cfg-silence-threshold" min="0.1" max="0.5" step="0.1" value="0.3" class="w-full accent-amber-500 cursor-pointer h-1.5 bg-dark-800 rounded-lg">
+              <input type="range" id="cfg-silence-threshold" min="0.1" max="0.5" step="0.1" value="0.3" class="w-full accent-cyan-400 cursor-pointer h-1.5 bg-dark-800 rounded-lg">
               <div class="flex justify-between text-[9px] font-mono text-slate-400 px-0.5">
                 <span>0.1 s</span>
                 <span>0.2 s</span>
@@ -1555,6 +1671,30 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                 <span>0.4 s</span>
                 <span>0.5 s</span>
               </div>
+            </div>
+          </div>
+
+          <!-- Sezione Gestione Finestre / Layout -->
+          <div class="border-t border-dark-750 pt-2.5 space-y-2">
+            <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+              Finestre & Layout
+            </span>
+            <div class="grid grid-cols-1 gap-1.5">
+              <button type="button" id="btn-reset-layout" class="w-full px-2.5 py-1.5 bg-dark-800 hover:bg-dark-750 text-slate-200 hover:text-white border border-dark-700 hover:border-cyan-500/40 rounded-xl text-xs font-medium flex items-center justify-between transition cursor-pointer" title="Reimposta le 4 finestre alle dimensioni predefinite">
+                <span class="flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  Reimposta 4 Finestre
+                </span>
+                <span class="text-[10px] text-cyan-300 font-mono bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30">Default</span>
+              </button>
+              <button type="button" id="btn-new-project" class="w-full px-2.5 py-1.5 bg-dark-800 hover:bg-rose-950/40 text-slate-200 hover:text-rose-300 border border-dark-700 hover:border-rose-500/40 rounded-xl text-xs font-medium flex items-center justify-between transition cursor-pointer" title="Chiudi il video corrente e svuota il progetto">
+                <span class="flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  Nuovo Progetto (Chiudi Video)
+                </span>
+                <span class="text-[10px] text-rose-400 font-mono bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/30">Svuota</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1589,15 +1729,15 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       </button>
 
       <div class="flex items-center bg-dark-800 border border-dark-700 rounded-xl p-0.5">
-        <select id="cfg-export-quality" class="bg-transparent text-amber-400 font-semibold focus:outline-none cursor-pointer text-xs px-2.5 py-1.5 rounded-lg">
+        <select id="cfg-export-quality" class="bg-transparent text-cyan-300 font-semibold focus:outline-none cursor-pointer text-xs px-2.5 py-1.5 rounded-lg">
           <option value="standard" class="bg-dark-900 text-slate-200">Standard</option>
           <option value="high" selected class="bg-dark-900 text-slate-200">Alta</option>
           <option value="max" class="bg-dark-900 text-slate-200">Massima</option>
         </select>
       </div>
 
-      <button id="btn-export" disabled class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-dark-950 font-bold rounded-xl shadow-lg shadow-amber-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center gap-2 text-xs cursor-pointer">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <button id="btn-export" disabled class="px-4 py-2 bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/25 hover:shadow-cyan-400/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center gap-2 text-xs cursor-pointer">
+        <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
@@ -1615,20 +1755,26 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       <!-- ================================================================= -->
       <!-- PANEL 1 (LEFT): Live 9:16 Video Player Card                       -->
       <!-- ================================================================= -->
-      <div id="player-card" class="w-[360px] xl:w-[400px] 2xl:w-[430px] flex-shrink-0 bg-dark-850 rounded-2xl p-3 border border-dark-700 shadow-xl flex flex-col min-h-0">
+      <div id="player-card" class="w-[360px] xl:w-[400px] 2xl:w-[430px] flex-shrink-0 bg-dark-900/90 rounded-2xl p-3 border border-dark-750 shadow-xl flex flex-col min-h-0 backdrop-blur-md">
         <!-- Player Top Bar -->
         <div class="flex items-center justify-between pb-2 flex-shrink-0">
           <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Anteprima 9:16
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(0,240,255,0.8)]"></span> Anteprima 9:16
           </span>
           <div class="flex items-center gap-1.5">
-            <button id="btn-preview-upload" type="button" class="px-2.5 py-1 bg-dark-800 hover:bg-dark-750 text-slate-300 hover:text-white border border-dark-700 rounded-lg text-[11px] font-medium transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Carica un video dal tuo computer">
-              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button id="btn-preview-upload" type="button" class="px-2.5 py-1 bg-dark-800 hover:bg-dark-750 text-slate-200 hover:text-white border border-dark-700 hover:border-cyan-500/40 rounded-lg text-[11px] font-medium transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Carica un video dal tuo computer">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
               </svg>
               <span id="btn-preview-upload-label">Carica video</span>
             </button>
-            <button id="btn-fullscreen" class="p-1.5 bg-dark-750 hover:bg-dark-700 rounded-lg text-slate-300 hover:text-white transition flex items-center gap-1 text-xs cursor-pointer border border-dark-700" title="Tutto Schermo">
+            <button id="btn-close-video" type="button" class="hidden px-2 py-1 bg-dark-800 hover:bg-rose-950/50 text-slate-400 hover:text-rose-400 border border-dark-700 hover:border-rose-500/40 rounded-lg text-[11px] font-medium transition flex items-center gap-1 cursor-pointer shadow-sm" title="Chiudi questo video e svuota il progetto">
+              <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              <span>Chiudi</span>
+            </button>
+            <button id="btn-fullscreen" class="p-1.5 bg-dark-750 hover:bg-dark-700 rounded-lg text-slate-300 hover:text-white transition flex items-center gap-1 text-xs cursor-pointer border border-dark-700 hover:border-cyan-500/40" title="Tutto Schermo">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
             </button>
           </div>
@@ -1636,7 +1782,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
         <!-- Video Container: 9:16 Aspect Ratio fitting available height -->
         <div class="flex-1 min-h-0 relative flex items-center justify-center overflow-hidden py-0.5">
-          <div id="video-container" class="relative aspect-[9/16] h-full max-h-full max-w-full rounded-xl overflow-hidden bg-black flex items-center justify-center border border-dark-700 select-none cursor-pointer group">
+          <div id="video-container" class="relative aspect-[9/16] h-full max-h-full max-w-full rounded-xl overflow-hidden bg-black flex items-center justify-center border border-dark-750 hover:border-cyan-500/30 transition-colors select-none cursor-pointer group">
             <video id="video-player" class="w-full h-full object-contain" playsinline preload="auto"></video>
 
             <!-- Overlay Container (Sottotitoli + Watermark + Gizmo + Calibrazione) -->
@@ -1677,12 +1823,12 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                   <span class="absolute right-0 -top-3.5 text-[8px] font-mono text-rose-400 bg-dark-950/90 px-1 rounded border border-rose-500/40">baseline</span>
                 </div>
                 <!-- Ascent (Orange dashed) -->
-                <div id="calib-metric-ascent" class="absolute left-0 right-0 h-px border-t border-dashed border-amber-400" title="Ascent">
-                  <span class="absolute right-0 -top-3.5 text-[8px] font-mono text-amber-400 bg-dark-950/90 px-1 rounded border border-amber-500/40">ascent</span>
+                <div id="calib-metric-ascent" class="absolute left-0 right-0 h-px border-t border-dashed border-cyan-400" title="Ascent">
+                  <span class="absolute right-0 -top-3.5 text-[8px] font-mono text-cyan-300 bg-dark-950/90 px-1 rounded border border-cyan-500/40">ascent</span>
                 </div>
                 <!-- Descent (Yellow dashed) -->
-                <div id="calib-metric-descent" class="absolute left-0 right-0 h-px border-t border-dashed border-yellow-400" title="Descent">
-                  <span class="absolute right-0 -top-3.5 text-[8px] font-mono text-yellow-400 bg-dark-950/90 px-1 rounded border border-yellow-500/40">descent</span>
+                <div id="calib-metric-descent" class="absolute left-0 right-0 h-px border-t border-dashed border-sky-400" title="Descent">
+                  <span class="absolute right-0 -top-3.5 text-[8px] font-mono text-sky-300 bg-dark-950/90 px-1 rounded border border-sky-500/40">descent</span>
                 </div>
                 <!-- Element Center Target (Purple) -->
                 <div id="calib-metric-center" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-purple-400 flex items-center justify-center">
@@ -1708,13 +1854,13 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             </div>
 
             <!-- Integrated Dropzone & Upload Box (visibile quando non c'è video) -->
-            <div id="upload-box" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-5 text-center bg-dark-900/95 hover:bg-dark-900 transition cursor-pointer border-2 border-dashed border-dark-700 hover:border-amber-500/80 rounded-xl group/up">
+            <div id="upload-box" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-5 text-center bg-dark-950/95 hover:bg-dark-900 transition cursor-pointer border-2 border-dashed border-dark-700 hover:border-cyan-400/80 rounded-xl group/up">
               <input type="file" id="video-input" accept="video/mp4,video/quicktime,video/mkv" multiple class="hidden">
-              <div class="w-12 h-12 mb-2 rounded-full bg-dark-800 border border-dark-700 flex items-center justify-center text-amber-400 group-hover/up:scale-110 group-hover/up:border-amber-500/50 transition shadow-inner">
+              <div class="w-12 h-12 mb-2 rounded-2xl bg-dark-800 border border-dark-700 flex items-center justify-center text-cyan-400 group-hover/up:scale-110 group-hover/up:border-cyan-400/50 transition shadow-inner">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
               </div>
-              <div class="text-sm font-semibold text-slate-200 group-hover/up:text-amber-400 transition">
-                Trascina il video qui o <span class="text-amber-400 underline underline-offset-2">sfoglia</span>
+              <div class="text-sm font-semibold text-slate-200 group-hover/up:text-cyan-300 transition">
+                Trascina il video qui o <span class="text-cyan-400 underline underline-offset-2">sfoglia</span>
               </div>
               <p class="text-[11px] text-slate-400 mt-1">MP4 · MOV · Verticale 9:16</p>
             </div>
@@ -1723,8 +1869,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             <div id="fs-controls" class="fs-inactive">
               <input type="range" id="fs-seek" min="0" max="100" step="0.1" value="0">
               <div class="flex items-center gap-3 text-white text-xs">
-                <button id="fs-play-btn" type="button" class="w-8 h-8 rounded-full bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold flex items-center justify-center transition shadow cursor-pointer text-sm" title="Play/Pausa"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-                <span id="fs-time-display" class="font-mono text-xs text-amber-400 font-semibold bg-dark-900/80 px-2.5 py-1 rounded-md border border-dark-700">0:00 / 0:00</span>
+                <button id="fs-play-btn" type="button" class="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-dark-950 font-bold flex items-center justify-center transition shadow cursor-pointer text-sm" title="Play/Pausa"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+                <span id="fs-time-display" class="font-mono text-xs text-cyan-300 font-semibold bg-dark-900/80 px-2.5 py-1 rounded-md border border-dark-700">0:00 / 0:00</span>
                 <div class="flex-1"></div>
                 <span class="text-[11px] text-slate-400 select-none hidden sm:inline">← −5s &nbsp; → +5s &nbsp; Spazio Play/Pausa</span>
                 <button id="fs-exit-btn" type="button" class="px-3 py-1 bg-dark-800/90 hover:bg-dark-700 border border-dark-700 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition cursor-pointer" title="Esci da Schermo Intero">✕ Esci</button>
@@ -1748,7 +1894,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
           <!-- Compact Single Timecode: 00:00.00 / 00:00.00 -->
           <div class="video-timecode-box">
-            <span class="text-amber-400 font-semibold" id="video-time">00:00.00</span>
+            <span class="text-cyan-400 font-semibold" id="video-time">00:00.00</span>
             <span class="text-slate-600">/</span>
             <span class="text-slate-400" id="video-duration-display">00:00.00</span>
           </div>
@@ -1758,13 +1904,13 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       <!-- ================================================================= -->
       <!-- PANEL 2 (CENTER): Subtitle Editor Column (Chunks List)            -->
       <!-- ================================================================= -->
-      <div id="editor-card" class="flex-1 bg-dark-850 rounded-2xl p-3.5 border border-dark-700 shadow-xl flex flex-col min-h-0">
+      <div id="editor-card" class="flex-1 bg-dark-900/90 rounded-2xl p-3.5 border border-dark-750 shadow-xl flex flex-col min-h-0 backdrop-blur-md">
         
         <!-- Editor Header Toolbar -->
-        <div class="flex items-center justify-between border-b border-dark-700 pb-2.5 flex-shrink-0 mb-2.5">
+        <div class="flex items-center justify-between border-b border-dark-700/80 pb-2.5 flex-shrink-0 mb-2.5">
           <div>
             <h2 class="font-bold text-sm text-white flex items-center gap-2">
-              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
               <span>Sottotitoli</span>
             </h2>
             <p class="text-[11px] text-slate-400 mt-0.5">Modifica testo e tempi — sincronizzazione automatica</p>
@@ -1788,12 +1934,18 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             </button>
 
             <!-- Translate IT -->
-            <button id="btn-translate-all" type="button" class="hidden px-2.5 py-1 bg-dark-750 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border border-dark-650 rounded-lg text-xs transition flex items-center gap-1.5 font-medium cursor-pointer" title="Traduci tutti i sottotitoli in italiano contestuale">
-              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
+            <button id="btn-translate-all" type="button" class="hidden px-2.5 py-1 bg-dark-750 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-dark-650 rounded-lg text-xs transition flex items-center gap-1.5 font-medium cursor-pointer" title="Traduci tutti i sottotitoli in italiano contestuale">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
               <span>Traduci IT</span>
             </button>
 
-            <div id="stats-badge" class="text-xs px-2.5 py-1 bg-dark-750 border border-dark-700 rounded-lg text-slate-300 font-mono">
+            <!-- Diarize Speakers Button -->
+            <button id="btn-diarize-speakers" type="button" class="hidden px-2.5 py-1 bg-dark-750 hover:bg-indigo-500/20 text-slate-300 hover:text-indigo-300 border border-dark-650 rounded-lg text-xs transition flex items-center gap-1.5 font-medium cursor-pointer" title="Diarizzazione Speaker AI: rileva chi parla (Speaker 1 vs Speaker 2)">
+              <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+              <span>Diarizza Voci</span>
+            </button>
+
+            <div id="stats-badge" class="text-xs px-2.5 py-1 bg-dark-800 border border-dark-700 rounded-lg text-cyan-300 font-mono">
               0 chunk
             </div>
           </div>
@@ -1801,7 +1953,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
         <!-- Loading Whisper Spinner -->
         <div id="transcribe-loading" class="hidden flex-1 flex flex-col items-center justify-center p-8 space-y-4">
-          <div class="w-12 h-12 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
+          <div class="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin shadow-[0_0_15px_rgba(0,240,255,0.4)]"></div>
           <div class="text-center">
             <p class="text-sm font-semibold text-slate-200">Trascrizione in corso...</p>
             <p class="text-xs text-slate-400 mt-1">Whisper AI — analisi audio</p>
@@ -1810,7 +1962,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
         <!-- Professional Empty State -->
         <div id="editor-empty" class="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-3">
-          <div class="w-12 h-12 rounded-2xl bg-dark-800 border border-dark-700 flex items-center justify-center text-amber-400 shadow-inner">
+          <div class="w-12 h-12 rounded-2xl bg-dark-800 border border-dark-700 flex items-center justify-center text-cyan-400 shadow-inner">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
           </div>
           <p class="text-sm font-semibold text-slate-300">Nessun sottotitolo presente</p>
@@ -1847,11 +1999,11 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       <!-- ================================================================= -->
       <!-- PANEL 3 (RIGHT): Persistent Inspector Card                        -->
       <!-- ================================================================= -->
-      <div id="inspector-card" class="w-[340px] xl:w-[370px] 2xl:w-[390px] flex-shrink-0 bg-dark-850 rounded-2xl p-3.5 border border-dark-700 shadow-xl flex flex-col min-h-0 relative">
+      <div id="inspector-card" class="w-[340px] xl:w-[370px] 2xl:w-[390px] flex-shrink-0 bg-dark-900/90 rounded-2xl p-3.5 border border-dark-750 shadow-xl flex flex-col min-h-0 relative backdrop-blur-md">
         
         <!-- Collapsed Mode Vertical Bar (visible when #inspector-card has .collapsed) -->
         <div class="inspector-collapsed-content">
-          <button id="btn-expand-inspector" type="button" class="w-7 h-7 mt-1 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-400 hover:text-amber-400 border border-dark-700 hover:border-amber-500/40 flex items-center justify-center transition cursor-pointer shadow-sm" title="Mostra Inspector">
+          <button id="btn-expand-inspector" type="button" class="w-7 h-7 mt-1 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-400 hover:text-cyan-400 border border-dark-700 hover:border-cyan-500/40 flex items-center justify-center transition cursor-pointer shadow-sm" title="Mostra Inspector">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -1864,9 +2016,9 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         <!-- Expanded Mode Content -->
         <div class="inspector-expanded-content flex-1 flex flex-col min-h-0">
           <!-- Inspector Header -->
-          <div class="flex items-center justify-between border-b border-dark-700 pb-2.5 flex-shrink-0">
+          <div class="flex items-center justify-between border-b border-dark-700/80 pb-2.5 flex-shrink-0">
             <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
               </svg>
               <h2 class="font-bold text-sm text-white leading-none">Inspector</h2>
@@ -1879,7 +2031,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                 <span>Sincronizzato</span>
               </div>
               <!-- Collapse Inspector Button -->
-              <button id="btn-collapse-inspector" type="button" class="w-6 h-6 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-400 hover:text-white border border-dark-700 hover:border-dark-600 flex items-center justify-center transition cursor-pointer shadow-sm" title="Nascondi Inspector">
+              <button id="btn-collapse-inspector" type="button" class="w-6 h-6 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-400 hover:text-white border border-dark-700 hover:border-cyan-500/40 flex items-center justify-center transition cursor-pointer shadow-sm" title="Nascondi Inspector">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/>
                 </svg>
@@ -1894,7 +2046,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           <div class="bg-dark-900/80 border border-dark-750 rounded-xl p-3 space-y-2.5">
             <div class="flex items-center justify-between">
               <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
                 Stile Preset
               </span>
               <span class="text-[10px] text-slate-500 font-mono">TextPreset</span>
@@ -1902,7 +2054,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
             <!-- Dropdown Selezione Preset -->
             <div>
-              <select id="select-active-preset" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-amber-400 focus:outline-none text-xs font-semibold cursor-pointer">
+              <select id="select-active-preset" class="w-full bg-dark-950 border border-dark-700/80 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-cyan-400 focus:outline-none text-xs font-semibold cursor-pointer">
               </select>
             </div>
 
@@ -1913,10 +2065,10 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                 <span>Reset</span>
               </button>
               <button id="btn-save-as-new-preset" type="button" class="preset-toolbar-btn bg-dark-800 hover:bg-dark-750 text-slate-300 hover:text-white cursor-pointer" title="Crea un nuovo preset dai valori correnti">
-                <svg class="w-3 h-3 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <svg class="w-3 h-3 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 <span>Nuovo</span>
               </button>
-              <button id="btn-save-active-preset" type="button" class="preset-toolbar-btn bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-dark-950 !border-amber-400 font-bold shadow-sm shadow-amber-500/20 cursor-pointer" title="Salva modifiche sul preset (CTA Principale)">
+              <button id="btn-save-active-preset" type="button" class="preset-toolbar-btn bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 disabled:opacity-40 disabled:cursor-not-allowed text-dark-950 !border-cyan-300 font-bold shadow-sm shadow-cyan-500/25 cursor-pointer" title="Salva modifiche sul preset (CTA Principale)">
                 <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
                 <span>Salva</span>
               </button>
@@ -1931,7 +2083,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           <details open class="group/acc inspector-section rounded-xl overflow-hidden">
             <summary class="flex items-center justify-between px-3 py-2 cursor-pointer transition list-none">
               <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
                 Tipografia
               </span>
               <svg class="w-3.5 h-3.5 text-slate-400 transition-transform group-open/acc:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -2078,6 +2230,125 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                   </div>
                 </div>
               </div>
+            </div>
+          </details>
+
+          <!-- Section 2.5: Effetto Highlighter (Box Dinamico Parola) -->
+          <details open id="highlighter-section" class="group/acc inspector-section rounded-xl overflow-hidden">
+            <summary class="flex items-center justify-between px-3 py-2 cursor-pointer transition list-none">
+              <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+                Effetto Highlighter (Box Parola)
+              </span>
+              <div class="flex items-center gap-2">
+                <label for="cfg-highlighter-enabled" class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                  <input type="checkbox" id="cfg-highlighter-enabled" class="sr-only peer">
+                  <div class="w-7 h-4 bg-dark-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-amber-400"></div>
+                </label>
+                <svg class="w-3.5 h-3.5 text-slate-400 transition-transform group-open/acc:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </summary>
+
+            <div class="p-3 space-y-3 border-t border-dark-750/70" id="highlighter-controls-container">
+              <!-- Quick Palette Presets -->
+              <div>
+                <label class="text-slate-400 block mb-1.5 text-[10.5px]">Colori Rapidi Iconici</label>
+                <div class="grid grid-cols-5 gap-1.5">
+                  <button type="button" class="hl-quick-color flex flex-col items-center justify-center p-1.5 rounded-lg border border-dark-700 bg-dark-950 hover:border-amber-400 transition cursor-pointer" data-bg="#FFE600" data-text="#000000" title="Alex Hormozi (Giallo Fluo / Nero)">
+                    <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background:#FFE600;"></span>
+                    <span class="text-[8.5px] text-slate-300 mt-1 font-semibold">Hormozi</span>
+                  </button>
+                  <button type="button" class="hl-quick-color flex flex-col items-center justify-center p-1.5 rounded-lg border border-dark-700 bg-dark-950 hover:border-emerald-400 transition cursor-pointer" data-bg="#39FF14" data-text="#000000" title="Toxic Green (Verde Fluo / Nero)">
+                    <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background:#39FF14;"></span>
+                    <span class="text-[8.5px] text-slate-300 mt-1 font-semibold">Toxic</span>
+                  </button>
+                  <button type="button" class="hl-quick-color flex flex-col items-center justify-center p-1.5 rounded-lg border border-dark-700 bg-dark-950 hover:border-cyan-400 transition cursor-pointer" data-bg="#00F0FF" data-text="#000000" title="Cyber Cyan (Cyan / Nero)">
+                    <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background:#00F0FF;"></span>
+                    <span class="text-[8.5px] text-slate-300 mt-1 font-semibold">Cyan</span>
+                  </button>
+                  <button type="button" class="hl-quick-color flex flex-col items-center justify-center p-1.5 rounded-lg border border-dark-700 bg-dark-950 hover:border-pink-400 transition cursor-pointer" data-bg="#FF007A" data-text="#FFFFFF" title="Neon Pink (Magenta / Bianco)">
+                    <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background:#FF007A;"></span>
+                    <span class="text-[8.5px] text-slate-300 mt-1 font-semibold">Pink</span>
+                  </button>
+                  <button type="button" class="hl-quick-color flex flex-col items-center justify-center p-1.5 rounded-lg border border-dark-700 bg-dark-950 hover:border-amber-200 transition cursor-pointer" data-bg="#FEF08A" data-text="#1E293B" title="Pastel Clean (Giallo Pastello / Ardesia)">
+                    <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background:#FEF08A;"></span>
+                    <span class="text-[8.5px] text-slate-300 mt-1 font-semibold">Pastel</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Color Pickers Custom -->
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-dark-750/50">
+                <div class="flex items-center justify-between gap-1.5 bg-dark-950 px-2 py-1.5 rounded-lg border border-dark-700">
+                  <label class="text-slate-400 text-[10.5px]">Colore Box</label>
+                  <input type="color" id="cfg-highlighter-box-color" value="#FFE600" class="w-6 h-5 p-0 bg-transparent border-0 rounded cursor-pointer">
+                </div>
+                <div class="flex items-center justify-between gap-1.5 bg-dark-950 px-2 py-1.5 rounded-lg border border-dark-700">
+                  <label class="text-slate-400 text-[10.5px]">Testo Attivo</label>
+                  <input type="color" id="cfg-highlighter-text-color" value="#000000" class="w-6 h-5 p-0 bg-transparent border-0 rounded cursor-pointer">
+                </div>
+              </div>
+
+              <!-- Geometria Box: Radius & Padding -->
+              <div class="grid grid-cols-3 gap-2 pt-1">
+                <div>
+                  <label class="text-slate-400 block mb-0.5 text-[10px]">Raggio Angoli</label>
+                  <input type="number" id="cfg-highlighter-radius" value="8" min="0" max="30" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+                </div>
+                <div>
+                  <label class="text-slate-400 block mb-0.5 text-[10px]">Padding X</label>
+                  <input type="number" id="cfg-highlighter-pad-x" value="10" min="0" max="40" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+                </div>
+                <div>
+                  <label class="text-slate-400 block mb-0.5 text-[10px]">Padding Y</label>
+                  <input type="number" id="cfg-highlighter-pad-y" value="4" min="0" max="30" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- Section 2.6: Diarizzazione Speaker (Multi-Interlocutore) -->
+          <details class="group/acc inspector-section rounded-xl overflow-hidden">
+            <summary class="flex items-center justify-between px-3 py-2 cursor-pointer transition list-none">
+              <span class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Stili Speaker (Multi-Voce)
+              </span>
+              <div class="flex items-center gap-2">
+                <label for="cfg-speaker-styles-enabled" class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                  <input type="checkbox" id="cfg-speaker-styles-enabled" class="sr-only peer">
+                  <div class="w-7 h-4 bg-dark-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-indigo-500"></div>
+                </label>
+                <svg class="w-3.5 h-3.5 text-slate-400 transition-transform group-open/acc:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </summary>
+
+            <div class="p-3 space-y-3 border-t border-dark-750/70">
+              <!-- Selettore Modalità Rilevamento -->
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-400 text-[11px]">Interlocutori:</span>
+                <select id="cfg-diarize-num-speakers" class="bg-dark-950 border border-dark-700 rounded-lg px-2 py-1 text-slate-200 text-xs focus:border-indigo-400 focus:outline-none">
+                  <option value="auto" selected>Automatico (AI Auto-Detect)</option>
+                  <option value="1">1 Speaker (Monologo)</option>
+                  <option value="2">2 Speaker (Dialogo / Podcast)</option>
+                  <option value="3">3 Speaker</option>
+                </select>
+              </div>
+
+              <!-- Pulsante Diarizzazione AI -->
+              <button type="button" id="btn-run-diarization" class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:border-indigo-400 transition text-xs font-semibold cursor-pointer shadow-sm">
+                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+                <span>Rileva Speaker con AI</span>
+              </button>
+
+              <!-- Box Stato / Risultato Analisi -->
+              <div id="speaker-analysis-status" class="p-2.5 rounded-lg bg-dark-950/80 border border-dark-750 text-center space-y-1">
+                <div id="speaker-status-title" class="text-xs font-semibold text-slate-300">Nessuna analisi speaker eseguita</div>
+                <div id="speaker-status-desc" class="text-[10.5px] text-slate-500 leading-tight">Clicca sul pulsante sopra per analizzare le voci con l'AI.</div>
+              </div>
+
+              <!-- Container Dinamico Card Speaker Rilevati -->
+              <div id="detected-speakers-container" class="space-y-2"></div>
             </div>
           </details>
 
@@ -2285,6 +2556,22 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                   </div>
                 </div>
 
+                <!-- Opzione Diarizzazione Speaker -->
+                <div class="pt-2 border-t border-dark-750/70 space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 cursor-pointer text-indigo-300 font-medium select-none">
+                      <input type="checkbox" id="chk-auto-diarize" class="rounded border-dark-700 text-indigo-500 focus:ring-0">
+                      <span class="text-xs">🎙️ Rileva Speaker (Diarizzazione)</span>
+                    </label>
+                    <select id="cfg-diarize-num-speakers" class="bg-dark-950 border border-dark-700 rounded-lg px-2 py-0.5 text-slate-200 focus:border-indigo-400 focus:outline-none text-[11px] cursor-pointer">
+                      <option value="2" selected>2 Voci</option>
+                      <option value="3">3 Voci</option>
+                      <option value="4">4 Voci</option>
+                    </select>
+                  </div>
+                  <p class="text-[9.5px] text-slate-500 leading-tight">Distingue automaticamente gli interlocutori (Speaker 1 vs Speaker 2).</p>
+                </div>
+
                 <div class="hidden">
                   <span id="trans-status-badge">Italiano</span>
                   <input type="checkbox" id="modal-chk-bw-filter">
@@ -2300,17 +2587,17 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     </div>
 
     <!-- Bottom Row: Docked Audio Timeline & Interactive Waveform (Full Width) -->
-    <div id="timeline-card" class="h-[205px] flex-shrink-0 bg-dark-850 rounded-2xl p-3 border border-dark-700 shadow-xl flex flex-col min-h-0">
+    <div id="timeline-card" class="h-[205px] flex-shrink-0 bg-dark-900/90 rounded-2xl p-3 border border-dark-750 shadow-xl flex flex-col min-h-0 backdrop-blur-md">
       <!-- Header Toolbar Timeline -->
-      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-dark-700 pb-2 flex-shrink-0">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-dark-700/80 pb-2 flex-shrink-0">
         <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-sm font-bold">
-            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+          <div class="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-sm font-bold shadow-[0_0_10px_rgba(0,210,255,0.15)]">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
           </div>
           <div>
             <h2 class="font-bold text-xs text-white flex items-center gap-2 leading-none">
               Timeline
-              <span class="text-[9px] bg-dark-700 text-slate-400 px-1.5 py-0.5 rounded font-mono">Live</span>
+              <span class="text-[9px] bg-dark-750 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded font-mono">Live</span>
             </h2>
             <p class="text-[10px] text-slate-400 mt-0.5 leading-none">Trascina i blocchi o i bordi per spostare e ridimensionare.</p>
           </div>
@@ -2318,7 +2605,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
         <!-- Indicatori e Controlli Zoom -->
         <div class="flex items-center gap-2.5">
-          <div class="flex items-center gap-1.5 bg-dark-900 border border-dark-700 px-2.5 py-1 rounded-xl font-mono text-xs text-amber-400">
+          <div class="flex items-center gap-1.5 bg-dark-950 border border-dark-700/80 px-2.5 py-1 rounded-xl font-mono text-xs text-cyan-300 shadow-inner">
             <span class="text-slate-500 text-[10px] uppercase">Pos:</span>
             <span id="tl-pos-time">00:00.00</span>
             <span class="text-slate-600">/</span>
@@ -2326,20 +2613,20 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           </div>
 
           <div class="flex items-center gap-1 bg-dark-800 border border-dark-700 p-0.5 rounded-xl text-xs">
-            <button id="btn-tl-zoom-out" type="button" class="w-6 h-6 flex items-center justify-center bg-dark-700 hover:bg-dark-600 text-slate-200 hover:text-white rounded-lg transition cursor-pointer" title="Riduci Zoom">
+            <button id="btn-tl-zoom-out" type="button" class="w-6 h-6 flex items-center justify-center bg-dark-700 hover:bg-dark-650 hover:text-cyan-300 text-slate-200 rounded-lg transition cursor-pointer" title="Riduci Zoom">
               −
             </button>
             <span id="tl-zoom-text" class="px-1.5 font-mono text-[10px] text-slate-300 select-none min-w-[42px] text-center">100%</span>
-            <button id="btn-tl-zoom-in" type="button" class="w-6 h-6 flex items-center justify-center bg-dark-700 hover:bg-dark-600 text-slate-200 hover:text-white rounded-lg transition cursor-pointer" title="Aumenta Zoom">
+            <button id="btn-tl-zoom-in" type="button" class="w-6 h-6 flex items-center justify-center bg-dark-700 hover:bg-dark-650 hover:text-cyan-300 text-slate-200 rounded-lg transition cursor-pointer" title="Aumenta Zoom">
               +
             </button>
-            <button id="btn-tl-zoom-fit" type="button" class="px-2 h-6 flex items-center justify-center bg-dark-700 hover:bg-dark-600 text-slate-200 hover:text-white rounded-lg transition text-[10px] font-medium cursor-pointer" title="Adatta intera durata">
+            <button id="btn-tl-zoom-fit" type="button" class="px-2 h-6 flex items-center justify-center bg-dark-700 hover:bg-dark-650 hover:text-cyan-300 text-slate-200 rounded-lg transition text-[10px] font-medium cursor-pointer" title="Adatta intera durata">
               ↔ Adatta
             </button>
           </div>
 
-          <button id="btn-tl-center" type="button" class="px-2.5 py-1 bg-dark-800 hover:bg-dark-700 border border-dark-700 text-slate-300 hover:text-white rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer" title="Centra la timeline sulla testina">
-            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+          <button id="btn-tl-center" type="button" class="px-2.5 py-1 bg-dark-800 hover:bg-dark-750 border border-dark-700 hover:border-cyan-500/40 text-slate-300 hover:text-white rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer" title="Centra la timeline sulla testina">
+            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
             <span>Centra</span>
           </button>
         </div>
@@ -2374,17 +2661,17 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           </div>
 
           <!-- Playhead Cursore di Riproduzione -->
-          <div id="tl-playhead" class="absolute top-0 bottom-0 pointer-events-none z-30" style="left: 0px; width: 2px; background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);">
-            <div class="tl-playhead-cap absolute -top-0 -left-[5px] w-3 h-3 bg-amber-400 pointer-events-auto cursor-ew-resize rounded-b-sm shadow" title="Trascina cursore"></div>
+          <div id="tl-playhead" class="absolute top-0 bottom-0 pointer-events-none z-30" style="left: 0px; width: 2px; background: #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.4);">
+            <div class="tl-playhead-cap absolute -top-0 -left-[5px] w-3 h-3 bg-cyan-400 pointer-events-auto cursor-ew-resize rounded-b-sm shadow-[0_0_8px_rgba(0,240,255,0.8)]" title="Trascina cursore"></div>
           </div>
 
           <!-- Tooltip di trascinamento tempo reale -->
-          <div id="tl-drag-tooltip" class="hidden absolute top-2 z-40 bg-dark-900 border border-amber-500/80 text-amber-400 font-mono text-[11px] px-2 py-1 rounded-md shadow-xl pointer-events-none transform -translate-x-1/2">
+          <div id="tl-drag-tooltip" class="hidden absolute top-2 z-40 bg-dark-900 border border-cyan-400 text-cyan-300 font-mono text-[11px] px-2 py-1 rounded-md shadow-xl pointer-events-none transform -translate-x-1/2">
             00:00.00
           </div>
 
           <!-- Linea Magnetica di Aggancio (Snap Line) -->
-          <div id="tl-snap-line" class="hidden absolute top-0 bottom-0 pointer-events-none z-35 w-[2px] bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.95)]"></div>
+          <div id="tl-snap-line" class="hidden absolute top-0 bottom-0 pointer-events-none z-35 w-[2px] bg-cyan-400 shadow-[0_0_10px_rgba(0,240,255,0.95)]"></div>
         </div>
       </div>
 
@@ -2398,10 +2685,10 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
   <!-- Dialog: Modifiche Non Salvate al Cambio Preset -->
   <div id="dialog-unsaved-preset" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity animate-fadeIn">
-    <div class="bg-dark-850 border border-amber-500/30 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scaleUp">
+    <div class="bg-dark-900 border border-cyan-500/30 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scaleUp">
       <div class="p-5 space-y-3">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
           </div>
           <div>
@@ -2409,18 +2696,18 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             <p class="text-xs text-slate-400 mt-0.5">Le modifiche attuali verranno sostituite dal nuovo preset.</p>
           </div>
         </div>
-        <p id="dialog-unsaved-msg" class="text-xs text-slate-300 bg-dark-900/80 p-3 rounded-xl border border-dark-750">
+        <p id="dialog-unsaved-msg" class="text-xs text-slate-300 bg-dark-950/80 p-3 rounded-xl border border-dark-750">
           Hai modificato i parametri senza salvare. Vuoi salvare le modifiche prima di passare a un altro stile?
         </p>
       </div>
-      <div class="px-5 py-3.5 bg-dark-900/90 border-t border-dark-750 flex items-center justify-end gap-2 text-xs">
+      <div class="px-5 py-3.5 bg-dark-950/90 border-t border-dark-750 flex items-center justify-end gap-2 text-xs">
         <button id="btn-unsaved-cancel" type="button" class="px-3.5 py-1.5 rounded-lg border border-dark-700 bg-dark-800 hover:bg-dark-750 text-slate-300 font-medium transition cursor-pointer">
           Annulla
         </button>
         <button id="btn-unsaved-discard" type="button" class="px-3.5 py-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 font-medium transition cursor-pointer">
           Scarta modifiche
         </button>
-        <button id="btn-unsaved-save-continue" type="button" class="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold transition shadow cursor-pointer">
+        <button id="btn-unsaved-save-continue" type="button" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-dark-950 font-bold transition shadow cursor-pointer">
           Salva e continua
         </button>
       </div>
@@ -2429,25 +2716,25 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
   <!-- Dialog: Inserimento Nome Preset (Nuovo / Duplica) -->
   <div id="dialog-preset-name" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity animate-fadeIn">
-    <div class="bg-dark-850 border border-dark-700 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-scaleUp">
+    <div class="bg-dark-900 border border-dark-750 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-scaleUp">
       <div class="p-5 space-y-3">
         <div class="flex items-center gap-2.5">
-          <span id="dialog-preset-name-icon" class="text-amber-400 flex items-center justify-center">
+          <span id="dialog-preset-name-icon" class="text-cyan-400 flex items-center justify-center">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           </span>
           <h3 id="dialog-preset-name-title" class="text-sm font-bold text-white">Nuovo preset</h3>
         </div>
         <div class="space-y-1">
           <label class="text-[11px] text-slate-400 font-medium block">Nome dello stile:</label>
-          <input type="text" id="input-preset-name" class="w-full bg-dark-950 border border-dark-700 rounded-xl px-3 py-2 text-slate-100 placeholder-slate-500 focus:border-amber-400 focus:outline-none text-xs font-semibold" placeholder="Es. Reels Minimal, YouTube Tech...">
+          <input type="text" id="input-preset-name" class="w-full bg-dark-950 border border-dark-700 rounded-xl px-3 py-2 text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none text-xs font-semibold" placeholder="Es. Reels Minimal, YouTube Tech...">
           <p id="dialog-preset-name-error" class="hidden text-[10.5px] text-rose-400 font-medium mt-1">Inserisci un nome valido.</p>
         </div>
       </div>
-      <div class="px-5 py-3.5 bg-dark-900/90 border-t border-dark-750 flex items-center justify-end gap-2 text-xs">
+      <div class="px-5 py-3.5 bg-dark-950/90 border-t border-dark-750 flex items-center justify-end gap-2 text-xs">
         <button id="btn-preset-name-cancel" type="button" class="px-3.5 py-1.5 rounded-lg border border-dark-700 bg-dark-800 hover:bg-dark-750 text-slate-300 font-medium transition cursor-pointer">
           Annulla
         </button>
-        <button id="btn-preset-name-confirm" type="button" class="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold transition shadow cursor-pointer">
+        <button id="btn-preset-name-confirm" type="button" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-dark-950 font-bold transition shadow cursor-pointer">
           Conferma
         </button>
       </div>
@@ -2456,7 +2743,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
   <!-- Dialog: Conferma Eliminazione Preset -->
   <div id="dialog-preset-delete" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity animate-fadeIn">
-    <div class="bg-dark-850 border border-rose-500/30 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-scaleUp">
+    <div class="bg-dark-900 border border-rose-500/30 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-scaleUp">
       <div class="p-5 space-y-3">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 flex-shrink-0">
@@ -2467,11 +2754,11 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             <p class="text-xs text-slate-400 mt-0.5">Questa azione non può essere annullata.</p>
           </div>
         </div>
-        <p id="dialog-preset-delete-msg" class="text-xs text-slate-300 bg-dark-900/80 p-3 rounded-xl border border-dark-750 leading-relaxed">
+        <p id="dialog-preset-delete-msg" class="text-xs text-slate-300 bg-dark-950/80 p-3 rounded-xl border border-dark-750 leading-relaxed">
           Sei sicuro di voler eliminare definitivamente questo preset?
         </p>
       </div>
-      <div class="px-5 py-3.5 bg-dark-900/90 border-t border-dark-750 flex items-center justify-end gap-2 text-xs">
+      <div class="px-5 py-3.5 bg-dark-950/90 border-t border-dark-750 flex items-center justify-end gap-2 text-xs">
         <button id="btn-preset-delete-cancel" type="button" class="px-3.5 py-1.5 rounded-lg border border-dark-700 bg-dark-800 hover:bg-dark-750 text-slate-300 font-medium transition cursor-pointer">
           Annulla
         </button>
@@ -2483,13 +2770,13 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
   </div>
 
   <!-- Modal 2: Dashboard Coda Video -->
-  <div id="modal-batch" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-    <div class="bg-dark-850 border border-dark-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[88vh] flex flex-col overflow-hidden">
+  <div id="modal-batch" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+    <div class="bg-dark-900 border border-dark-750 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[88vh] flex flex-col overflow-hidden">
       <!-- Modal Header -->
-      <div class="px-6 py-4 border-b border-dark-700 flex items-center justify-between flex-shrink-0 bg-dark-900/60">
+      <div class="px-6 py-4 border-b border-dark-700 flex items-center justify-between flex-shrink-0 bg-dark-950/60">
         <div>
           <h3 class="font-bold text-base text-white tracking-tight flex items-center gap-2">
-            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
             </svg>
             <span>Coda di Elaborazione</span>
@@ -2497,8 +2784,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           <p class="text-xs text-slate-400 mt-0.5">Gestisci i video in elaborazione e la produzione in batch</p>
         </div>
         <div class="flex items-center gap-2">
-          <button id="btn-batch-add-more" type="button" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm shadow-amber-500/20 cursor-pointer" title="Aggiungi altri file video">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
+          <button id="btn-batch-add-more" type="button" class="px-3 py-1.5 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-dark-950 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm shadow-cyan-500/25 cursor-pointer" title="Aggiungi altri file video">
+            <svg class="w-3.5 h-3.5 fill-none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
             <span>Aggiungi video</span>
           </button>
           <button id="btn-close-batch" type="button" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-dark-800 transition cursor-pointer" title="Chiudi">
@@ -2513,8 +2800,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           <span class="px-2.5 py-1 rounded-lg bg-dark-800 border border-dark-700 text-slate-300 font-mono text-[11px] flex items-center gap-1.5">
             <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> In attesa: <b id="batch-stat-idle" class="text-white">0</b>
           </span>
-          <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-[11px] flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> In elaborazione: <b id="batch-stat-processing" class="text-amber-400">0</b>
+          <span class="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-[11px] flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> In elaborazione: <b id="batch-stat-processing" class="text-cyan-300">0</b>
           </span>
           <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono text-[11px] flex items-center gap-1.5">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Completati: <b id="batch-stat-done" class="text-emerald-400">0</b>
@@ -2540,11 +2827,11 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       <!-- Batch Actions Toolbar -->
       <div class="px-6 py-3 border-b border-dark-700/60 bg-dark-900/40 flex-shrink-0 space-y-2.5">
         <div class="flex flex-wrap items-center gap-2.5">
-          <button id="btn-batch-transcribe-all" type="button" class="px-3.5 py-2 bg-dark-800 hover:bg-dark-750 text-slate-200 hover:text-white border border-dark-700 hover:border-amber-500/50 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer">
-            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+          <button id="btn-batch-transcribe-all" type="button" class="px-3.5 py-2 bg-dark-800 hover:bg-dark-750 text-slate-200 hover:text-white border border-dark-700 hover:border-cyan-500/50 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
             <span>Trascrivi in attesa</span>
           </button>
-          <button id="btn-batch-render-all" type="button" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-dark-950 font-bold rounded-xl text-xs flex items-center gap-2 shadow-md shadow-amber-500/20 transition cursor-pointer">
+          <button id="btn-batch-render-all" type="button" class="px-4 py-2 bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-dark-950 font-bold rounded-xl text-xs flex items-center gap-2 shadow-md shadow-cyan-500/25 transition cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span>Renderizza tutti (Avvia tutto)</span>
           </button>
@@ -2558,11 +2845,11 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         <!-- Batch Progress Bar Reale -->
         <div id="batch-progress-box" class="hidden bg-dark-950 border border-dark-700/90 rounded-xl p-3 space-y-1.5 shadow-inner">
           <div class="flex items-center justify-between text-xs">
-            <span id="batch-progress-text" class="text-amber-400 font-semibold">Elaborazione in corso...</span>
+            <span id="batch-progress-text" class="text-cyan-300 font-semibold">Elaborazione in corso...</span>
             <span id="batch-progress-pct" class="font-mono text-slate-300 font-bold">0%</span>
           </div>
           <div class="w-full bg-dark-800 h-2 rounded-full overflow-hidden">
-            <div id="batch-progress-bar" class="bg-gradient-to-r from-amber-500 to-amber-400 h-full w-0 transition-all duration-300"></div>
+            <div id="batch-progress-bar" class="bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 h-full w-0 transition-all duration-300"></div>
           </div>
         </div>
       </div>
@@ -2587,15 +2874,15 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
   <!-- ========================================== -->
   <!-- CAPCUT CALIBRATION MODE [DEV] HUD PANEL   -->
   <!-- ========================================== -->
-  <div id="dev-calibration-panel" class="fixed top-14 right-4 w-[470px] max-h-[calc(100vh-4.5rem)] z-50 bg-dark-900/95 backdrop-blur-xl border border-amber-500/50 rounded-2xl shadow-2xl flex flex-col text-xs text-slate-200 overflow-hidden font-sans hidden">
+  <div id="dev-calibration-panel" class="fixed top-14 right-4 w-[470px] max-h-[calc(100vh-4.5rem)] z-50 bg-dark-900/95 backdrop-blur-xl border border-cyan-500/40 rounded-2xl shadow-2xl flex flex-col text-xs text-slate-200 overflow-hidden font-sans hidden">
     <!-- Header -->
     <div class="px-4 py-3 bg-dark-950/90 border-b border-dark-700/80 flex items-center justify-between flex-shrink-0 select-none">
       <div class="flex items-center gap-2.5">
         <span class="text-lg">📐</span>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-bold text-amber-400 text-xs tracking-wider">CAPCUT CALIBRATION MODE</span>
-            <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">DEV</span>
+            <span class="font-bold text-cyan-300 text-xs tracking-wider">CAPCUT CALIBRATION MODE</span>
+            <span class="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono text-[9px] font-bold border border-cyan-500/30">DEV</span>
           </div>
           <p class="text-[10px] text-slate-400">Analizzatore matematico coordinate, delta & font metrics</p>
         </div>
@@ -2614,7 +2901,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     <div class="px-3 py-2 bg-dark-850 border-b border-dark-700/70 flex items-center justify-between flex-shrink-0">
       <div class="flex items-center gap-1.5">
         <span class="text-[11px] font-medium text-slate-400">Elemento Target:</span>
-        <span id="calib-active-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+        <span id="calib-active-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
           Sottotitoli (sub)
         </span>
       </div>
@@ -3022,6 +3309,25 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     const btnUploadFont = document.getElementById("btn-upload-font");
     const fontFileInput = document.getElementById("font-file-input");
     const fontUploadStatus = document.getElementById("font-upload-status");
+
+    // Sistema Highlighter
+    const cfgHighlighterEnabled = document.getElementById("cfg-highlighter-enabled");
+    const cfgHighlighterBoxColor = document.getElementById("cfg-highlighter-box-color");
+    const cfgHighlighterTextColor = document.getElementById("cfg-highlighter-text-color");
+    const cfgHighlighterRadius = document.getElementById("cfg-highlighter-radius");
+    const cfgHighlighterPadX = document.getElementById("cfg-highlighter-pad-x");
+    const cfgHighlighterPadY = document.getElementById("cfg-highlighter-pad-y");
+
+    // Sistema Speaker Diarization
+    const cfgSpeakerStylesEnabled = document.getElementById("cfg-speaker-styles-enabled");
+    const btnRunDiarization = document.getElementById("btn-run-diarization");
+    const btnDiarizeSpeakers = document.getElementById("btn-diarize-speakers");
+    const chkAutoDiarize = document.getElementById("chk-auto-diarize");
+    const cfgDiarizeNumSpeakers = document.getElementById("cfg-diarize-num-speakers");
+    const detectedSpeakersContainer = document.getElementById("detected-speakers-container");
+    const speakerAnalysisStatus = document.getElementById("speaker-analysis-status");
+    const speakerStatusTitle = document.getElementById("speaker-status-title");
+    const speakerStatusDesc = document.getElementById("speaker-status-desc");
 
     // ═══════════════════════════════════════════════════════════════════════════
     // LIBRERIA TIPOGRAFICA CENTRALIZZATA
@@ -3825,17 +4131,79 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             badge.classList.remove("hidden");
             badge.classList.add("flex");
           }
+          if (typeof updatePreviewUploadButton === "function") {
+            updatePreviewUploadButton();
+          }
         }
       } catch (err) {
         console.warn("Errore ripristino autosave:", err);
       }
     }
 
-    window.clearProjectAutosave = function() {
+    window.closeCurrentProject = function(askConfirm = false) {
+      if (askConfirm && currentChunks && currentChunks.length > 0) {
+        if (!confirm("Vuoi chiudere il video corrente e cancellare il progetto salvato?")) {
+          return;
+        }
+      }
       localStorage.removeItem("substudio_project_autosave");
+      localStorage.removeItem("sottotitolatore_project_autosave");
+
+      if (videoPlayer) {
+        videoPlayer.pause();
+        videoPlayer.removeAttribute("src");
+        videoPlayer.load();
+      }
+      if (videoContainer) videoContainer.classList.add("hidden");
+      if (uploadBox) {
+        uploadBox.classList.remove("hidden");
+        uploadBox.classList.remove("opacity-50", "pointer-events-none");
+      }
+
+      currentVideoPath = "";
+      currentVideoDuration = 0;
+      originalVideoDuration = 0;
+      currentChunks = [];
+      window.allOriginalWords = [];
+      currentWaveformPeaks = [];
+      currentBatchId = null;
+      batchQueue = [];
+
+      if (chunksList) {
+        chunksList.innerHTML = "";
+        chunksList.classList.add("hidden");
+      }
+      if (editorEmpty) editorEmpty.classList.remove("hidden");
+      if (statsBadge) statsBadge.innerText = "0 chunk";
+
+      if (tlBlocksContainer) tlBlocksContainer.innerHTML = "";
+      if (tlWaveformCanvas) {
+        const ctx = tlWaveformCanvas.getContext("2d");
+        ctx.clearRect(0, 0, tlWaveformCanvas.width, tlWaveformCanvas.height);
+      }
+      const tlEmpty = document.getElementById("timeline-empty");
+      if (tlEmpty) tlEmpty.classList.remove("hidden");
+      if (typeof updateTimelineLayout === "function") {
+        updateTimelineLayout();
+      }
+
+      const hpn = document.getElementById("header-project-name");
+      if (hpn) hpn.innerText = "Nessun video caricato";
+      const btnClose = document.getElementById("btn-close-video");
+      if (btnClose) btnClose.classList.add("hidden");
       const badge = document.getElementById("autosave-badge");
       if (badge) badge.classList.add("hidden");
+      if (btnExport) btnExport.disabled = true;
+
+      if (typeof updatePreviewUploadButton === "function") {
+        updatePreviewUploadButton();
+      }
+      if (typeof renderBatchQueue === "function") {
+        renderBatchQueue();
+      }
     };
+
+    window.clearProjectAutosave = window.closeCurrentProject;
 
     function pushState() {
       undoStack.push(getFullEditorSnapshot());
@@ -4290,6 +4658,21 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       const rotationSub = parseFloat(cfgSubRot ? cfgSubRot.value : 0) || 0;
       const rotationWm = parseFloat(cfgWmRot ? cfgWmRot.value : 0) || 0;
 
+      const highlighter = {
+        enabled: !!(cfgHighlighterEnabled && cfgHighlighterEnabled.checked),
+        box_color: cfgHighlighterBoxColor ? cfgHighlighterBoxColor.value : "#FFE600",
+        text_color: cfgHighlighterTextColor ? cfgHighlighterTextColor.value : "#000000",
+        box_radius: num(cfgHighlighterRadius ? cfgHighlighterRadius.value : 8, 8),
+        box_padding_x: num(cfgHighlighterPadX ? cfgHighlighterPadX.value : 10, 10),
+        box_padding_y: num(cfgHighlighterPadY ? cfgHighlighterPadY.value : 4, 4),
+      };
+
+      const speakerStyles = {
+        enabled: !!(cfgSpeakerStylesEnabled && cfgSpeakerStylesEnabled.checked),
+        speakers: JSON.parse(JSON.stringify(currentSpeakerConfigs || {})),
+        muted_speakers: Array.from(mutedSpeakers),
+      };
+
       return {
         id: activePresetId,
         name: cur.name || "Preset",
@@ -4301,6 +4684,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         pattern: pattern,
         subtitle_style: subtitleStyle,
         keywords: keywords,
+        highlighter: highlighter,
+        speaker_styles: speakerStyles,
         subtitle_layout: subtitleLayout,
         all_caps: allCaps,
         letter_spacing: letterSpacing,
@@ -4352,9 +4737,26 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       if (Math.abs(live.capcut_wm_scale - snap.capcut_wm_scale) > 0.01) return true;
       if (live.capcut_wm_x !== snap.capcut_wm_x) return true;
       if (live.capcut_wm_y !== snap.capcut_wm_y) return true;
-      if (Math.abs(live.rotation_wm - snap.rotation_wm) > 0.01) return true;
       if (live.stroke_width !== snap.stroke_width) return true;
       if (live.shadow_offset !== snap.shadow_offset) return true;
+
+      // Highlighter
+      const liveHl = live.highlighter || {};
+      const snapHl = snap.highlighter || {};
+      if (!!liveHl.enabled !== !!snapHl.enabled) return true;
+      if (liveHl.box_color !== snapHl.box_color) return true;
+      if (liveHl.text_color !== snapHl.text_color) return true;
+      if (liveHl.box_radius !== snapHl.box_radius) return true;
+      if (liveHl.box_padding_x !== snapHl.box_padding_x) return true;
+      if (liveHl.box_padding_y !== snapHl.box_padding_y) return true;
+
+      // Speaker styles
+      const liveSpk = live.speaker_styles || {};
+      const snapSpk = snap.speaker_styles || {};
+      if (!!liveSpk.enabled !== !!snapSpk.enabled) return true;
+      const liveSpkMap = liveSpk.speakers || {};
+      const snapSpkMap = snapSpk.speakers || {};
+      if (JSON.stringify(liveSpkMap) !== JSON.stringify(snapSpkMap)) return true;
 
       // Nuovo sistema tipografico / keyword
       const liveNormal = live.subtitle_style?.normal || {};
@@ -4584,6 +4986,28 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         if (cfgWmText) cfgWmText.value = p.watermark_text !== undefined ? p.watermark_text : "";
         if (cfgStroke) cfgStroke.value = p.stroke_width !== undefined ? p.stroke_width : 0;
         if (cfgShadow) cfgShadow.value = p.shadow_offset !== undefined ? p.shadow_offset : 0;
+
+        // Highlighter
+        const hl = p.highlighter || {};
+        if (cfgHighlighterEnabled) cfgHighlighterEnabled.checked = !!hl.enabled;
+        if (cfgHighlighterBoxColor) cfgHighlighterBoxColor.value = hl.box_color || "#FFE600";
+        if (cfgHighlighterTextColor) cfgHighlighterTextColor.value = hl.text_color || "#000000";
+        if (cfgHighlighterRadius) cfgHighlighterRadius.value = hl.box_radius !== undefined ? hl.box_radius : 8;
+        if (cfgHighlighterPadX) cfgHighlighterPadX.value = hl.box_padding_x !== undefined ? hl.box_padding_x : 10;
+        if (cfgHighlighterPadY) cfgHighlighterPadY.value = hl.box_padding_y !== undefined ? hl.box_padding_y : 4;
+
+        // Speaker styles
+        const spk = p.speaker_styles || {};
+        if (cfgSpeakerStylesEnabled) cfgSpeakerStylesEnabled.checked = !!spk.enabled;
+        if (spk.speakers && typeof spk.speakers === "object") {
+          currentSpeakerConfigs = JSON.parse(JSON.stringify(spk.speakers));
+        }
+        if (spk.muted_speakers && Array.isArray(spk.muted_speakers)) {
+          mutedSpeakers = new Set(spk.muted_speakers);
+        } else {
+          mutedSpeakers.clear();
+        }
+        renderSpeakerCards();
       }
 
       // Imposta lo snapshot del preset salvato
@@ -5266,6 +5690,266 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           preset = getLiveEditorState();
           updateLiveSubtitleAtCurrentTime();
           updatePresetSyncStatus();
+        });
+      }
+    });
+
+    // Event listeners per Highlighter e Speaker Styles
+    [cfgHighlighterEnabled, cfgSpeakerStylesEnabled].forEach(el => {
+      if (el) {
+        el.addEventListener("change", () => {
+          preset = getLiveEditorState();
+          updateLiveSubtitleAtCurrentTime();
+          updatePresetSyncStatus();
+        });
+      }
+    });
+
+    let currentSpeakerConfigs = {
+      "Speaker 1": { color: "#FFFFFF", highlight_color: "#00F0FF" },
+      "Speaker 2": { color: "#FFEB3B", highlight_color: "#FF007A" },
+      "Speaker 3": { color: "#39FF14", highlight_color: "#FFE600" },
+    };
+    let mutedSpeakers = new Set();
+    let autoMutedBySpeaker = false;
+
+    const SPEAKER_PALETTES = [
+      { color: "#FFFFFF", highlight_color: "#00F0FF", badge: "text-cyan-300", dot: "bg-cyan-400" },
+      { color: "#FFEB3B", highlight_color: "#FF007A", badge: "text-amber-300", dot: "bg-amber-400" },
+      { color: "#FFFFFF", highlight_color: "#39FF14", badge: "text-emerald-300", dot: "bg-emerald-400" },
+      { color: "#FFFFFF", highlight_color: "#A855F7", badge: "text-purple-300", dot: "bg-purple-400" },
+    ];
+
+    function renderSpeakerCards() {
+      if (!detectedSpeakersContainer) return;
+
+      const usedSpeakers = Array.from(new Set(
+        (currentChunks || []).map(c => c.speaker).filter(Boolean)
+      ));
+
+      const hasDiarization = (currentChunks || []).some(c => c.speaker_id !== undefined || (c.speaker && c.speaker !== "Speaker 1"));
+
+      if (!hasDiarization || usedSpeakers.length === 0) {
+        if (speakerAnalysisStatus) speakerAnalysisStatus.classList.remove("hidden");
+        if (speakerStatusTitle) speakerStatusTitle.innerText = "Nessuna analisi speaker eseguita";
+        if (speakerStatusDesc) speakerStatusDesc.innerText = "Clicca su 'Rileva Speaker con AI' per analizzare le voci con l'AI.";
+        detectedSpeakersContainer.innerHTML = "";
+        return;
+      }
+
+      if (speakerAnalysisStatus) {
+        speakerAnalysisStatus.classList.remove("hidden");
+        if (usedSpeakers.length === 1) {
+          speakerStatusTitle.innerHTML = `<span class="text-emerald-400 font-bold">✓ Rilevato 1 Speaker (Monologo)</span>`;
+          speakerStatusDesc.innerText = "Tutti i sottotitoli appartengono allo stesso interlocutore.";
+        } else {
+          speakerStatusTitle.innerHTML = `<span class="text-indigo-400 font-bold">✓ Rilevati ${usedSpeakers.length} Speaker distinti</span>`;
+          speakerStatusDesc.innerText = "Dialogo multi-voce attivo con turni di conversazione.";
+        }
+      }
+
+      detectedSpeakersContainer.innerHTML = "";
+
+      usedSpeakers.forEach((spkName, idx) => {
+        const pal = SPEAKER_PALETTES[idx % SPEAKER_PALETTES.length];
+        if (!currentSpeakerConfigs[spkName]) {
+          currentSpeakerConfigs[spkName] = {
+            color: pal.color,
+            highlight_color: pal.highlight_color,
+          };
+        }
+        const conf = currentSpeakerConfigs[spkName];
+        const isMuted = mutedSpeakers.has(spkName);
+        const spkChunkCount = (currentChunks || []).filter(c => c.speaker === spkName).length;
+
+        const card = document.createElement("div");
+        card.className = `p-2.5 rounded-lg bg-dark-950 border transition space-y-2.5 ${isMuted ? 'border-red-500/40 bg-red-950/15' : 'border-dark-700'}`;
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full ${pal.dot} ${isMuted ? 'opacity-40' : ''}"></span>
+              <span class="text-xs font-bold ${pal.badge} ${isMuted ? 'line-through opacity-70' : ''}">${spkName}</span>
+              <span class="text-[10px] text-slate-500 font-normal">(${spkChunkCount} battute)</span>
+            </div>
+            <button type="button" class="spk-card-mute-btn px-2 py-0.5 rounded text-[10px] font-semibold border transition flex items-center gap-1 cursor-pointer ${
+              isMuted
+                ? 'bg-red-500/20 text-red-300 border-red-500/40 hover:bg-red-500/30'
+                : 'bg-dark-900 text-slate-400 hover:text-slate-200 border-dark-750 hover:bg-dark-850'
+            }" title="Silenzia o riattiva la traccia audio di ${spkName}">
+              ${isMuted ? '🔇 Audio Muto' : '🔈 Muta Audio'}
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="flex items-center justify-between bg-dark-900 px-2 py-1 rounded border border-dark-750">
+              <span class="text-[10px] text-slate-400">Testo</span>
+              <input type="color" class="spk-card-color w-5 h-4 p-0 bg-transparent border-0 cursor-pointer" value="${conf.color || '#FFFFFF'}">
+            </div>
+            <div class="flex items-center justify-between bg-dark-900 px-2 py-1 rounded border border-dark-750">
+              <span class="text-[10px] text-slate-400">Box</span>
+              <input type="color" class="spk-card-hl w-5 h-4 p-0 bg-transparent border-0 cursor-pointer" value="${conf.highlight_color || pal.highlight_color}">
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 pt-1 border-t border-dark-800/80">
+            <button type="button" class="spk-remove-subs-btn flex-1 py-1 px-1.5 rounded bg-dark-900 hover:bg-red-500/15 border border-dark-750 hover:border-red-500/30 text-[10px] text-slate-400 hover:text-red-300 transition flex items-center justify-center gap-1 cursor-pointer font-medium" title="Elimina tutti i sottotitoli di ${spkName} dalla timeline">
+              <svg class="w-3 h-3 text-red-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              <span>Rimuovi Sottotitoli</span>
+            </button>
+            <button type="button" class="spk-cut-video-btn flex-1 py-1 px-1.5 rounded bg-dark-900 hover:bg-amber-500/15 border border-dark-750 hover:border-amber-500/30 text-[10px] text-slate-400 hover:text-amber-300 transition flex items-center justify-center gap-1 cursor-pointer font-medium" title="Taglia ed elimina fisicamente le parti video e audio di ${spkName} ricompattando la timeline">
+              <svg class="w-3 h-3 text-amber-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a3 3 0 11-4.242-4.242L12 12m0 0L9.121 9.121a3 3 0 10-4.242 4.242L12 12z"/></svg>
+              <span>Taglia Video</span>
+            </button>
+          </div>
+        `;
+
+        const colorInput = card.querySelector(".spk-card-color");
+        const hlInput = card.querySelector(".spk-card-hl");
+        const muteBtn = card.querySelector(".spk-card-mute-btn");
+        const removeSubsBtn = card.querySelector(".spk-remove-subs-btn");
+        const cutVideoBtn = card.querySelector(".spk-cut-video-btn");
+
+        colorInput.addEventListener("input", (e) => {
+          conf.color = e.target.value;
+          preset = getLiveEditorState();
+          updateLiveSubtitleAtCurrentTime();
+          updatePresetSyncStatus();
+        });
+
+        hlInput.addEventListener("input", (e) => {
+          conf.highlight_color = e.target.value;
+          preset = getLiveEditorState();
+          updateLiveSubtitleAtCurrentTime();
+          updatePresetSyncStatus();
+        });
+
+        muteBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (mutedSpeakers.has(spkName)) {
+            mutedSpeakers.delete(spkName);
+          } else {
+            mutedSpeakers.add(spkName);
+          }
+          renderSpeakerCards();
+          renderChunksList();
+          renderTimelineBlocks();
+          updateLiveSubtitleAtCurrentTime();
+          saveCurrentStateToBatch();
+        };
+
+        removeSubsBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (!confirm(`Sei sicuro di voler rimuovere tutti i sottotitoli di "${spkName}" dalla timeline?`)) {
+            return;
+          }
+          pushState();
+          currentChunks = currentChunks.filter(c => c.speaker !== spkName);
+          sanitizeChunks(currentChunks);
+          originalChunks = JSON.parse(JSON.stringify(currentChunks));
+          mutedSpeakers.delete(spkName);
+          saveCurrentStateToBatch();
+          renderSpeakerCards();
+          renderChunksList();
+          renderTimelineBlocks();
+          updateLiveSubtitleAtCurrentTime();
+          preset = getLiveEditorState();
+          updatePresetSyncStatus();
+        };
+
+        cutVideoBtn.onclick = async (e) => {
+          e.stopPropagation();
+          if (!confirm(`Vuoi tagliare e rimuovere fisicamente tutti i segmenti video e audio di "${spkName}" dalla timeline?\n\nIl video verrà ricompattato preservando solo gli altri interlocutori.`)) {
+            return;
+          }
+          if (!currentVideoPath) {
+            alert("Nessun video caricato.");
+            return;
+          }
+          cutVideoBtn.disabled = true;
+          const oldHtml = cutVideoBtn.innerHTML;
+          cutVideoBtn.innerHTML = `<span class="animate-spin text-[10px]">⏳</span> Taglio...`;
+
+          try {
+            const res = await fetch("/api/cut_speaker", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                video_path: currentVideoPath,
+                chunks: currentChunks,
+                speaker: spkName,
+                quality: document.getElementById("cfg-export-quality") ? document.getElementById("cfg-export-quality").value : "high"
+              })
+            });
+            const data = await res.json();
+            if (data.success && data.new_video_path) {
+              pushState();
+              currentVideoPath = data.new_video_path;
+              currentVideoDuration = data.new_duration;
+              currentChunks = sanitizeChunks(data.chunks || []);
+              originalChunks = JSON.parse(JSON.stringify(currentChunks));
+              mutedSpeakers.delete(spkName);
+
+              // Ricarica il video nel player
+              videoPlayer.src = data.download_url;
+              videoPlayer.load();
+
+              saveCurrentStateToBatch();
+              renderSpeakerCards();
+              renderChunksList();
+              renderTimelineBlocks();
+              updateTimelineLayout();
+              updateLiveSubtitleAtCurrentTime();
+              preset = getLiveEditorState();
+              updatePresetSyncStatus();
+
+              alert(`✓ Taglio completato! Eliminati ${data.cut_segments_count} segmenti di "${spkName}". Nuova durata video: ${data.new_duration.toFixed(1)}s`);
+            } else {
+              alert("Errore durante il taglio dello speaker: " + (data.error || "Operazione non riuscita"));
+            }
+          } catch (err) {
+            alert("Errore di connessione durante il taglio: " + err);
+          } finally {
+            cutVideoBtn.disabled = false;
+            cutVideoBtn.innerHTML = oldHtml;
+          }
+        };
+
+        detectedSpeakersContainer.appendChild(card);
+      });
+    }
+
+    [
+      cfgHighlighterBoxColor, cfgHighlighterTextColor, cfgHighlighterRadius,
+      cfgHighlighterPadX, cfgHighlighterPadY
+    ].forEach(el => {
+      if (el) {
+        el.addEventListener("input", () => {
+          preset = getLiveEditorState();
+          updateLiveSubtitleAtCurrentTime();
+          updatePresetSyncStatus();
+        });
+      }
+    });
+
+    // Preset rapidi colore per Highlighter
+    document.querySelectorAll(".hl-quick-color").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const bg = btn.getAttribute("data-bg");
+        const txt = btn.getAttribute("data-text");
+        if (cfgHighlighterBoxColor && bg) cfgHighlighterBoxColor.value = bg;
+        if (cfgHighlighterTextColor && txt) cfgHighlighterTextColor.value = txt;
+        if (cfgHighlighterEnabled) cfgHighlighterEnabled.checked = true;
+        preset = getLiveEditorState();
+        updateLiveSubtitleAtCurrentTime();
+        updatePresetSyncStatus();
+      });
+    });
+
+    // Pulsanti Diarizzazione Speaker
+    [btnRunDiarization, btnDiarizeSpeakers].forEach(btn => {
+      if (btn) {
+        btn.addEventListener("click", () => {
+          runSpeakerDiarization();
         });
       }
     });
@@ -7408,14 +8092,31 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     function updatePreviewUploadButton() {
       const label = document.getElementById("btn-preview-upload-label");
       const btn = document.getElementById("btn-preview-upload");
+      const btnClose = document.getElementById("btn-close-video");
       if (!label) return;
-      if (currentVideoPath || (batchQueue && batchQueue.length > 0)) {
+      const hasVideo = !!(currentVideoPath || (videoPlayer && videoPlayer.src) || (batchQueue && batchQueue.length > 0) || (currentChunks && currentChunks.length > 0));
+      if (hasVideo) {
         label.innerText = "Carica altro";
         if (btn) btn.title = "Carica un altro video dal computer";
+        if (btnClose) btnClose.classList.remove("hidden");
       } else {
         label.innerText = "Carica video";
         if (btn) btn.title = "Carica un video dal tuo computer";
+        if (btnClose) btnClose.classList.add("hidden");
       }
+    }
+
+    const btnCloseVideoEl = document.getElementById("btn-close-video");
+    if (btnCloseVideoEl) {
+      btnCloseVideoEl.onclick = () => window.closeCurrentProject(true);
+    }
+    const btnNewProjectEl = document.getElementById("btn-new-project");
+    if (btnNewProjectEl) {
+      btnNewProjectEl.onclick = () => {
+        window.closeCurrentProject(true);
+        const drop = document.getElementById("tools-dropdown");
+        if (drop) drop.classList.add("hidden");
+      };
     }
 
     // -------------------------------------------------------------
@@ -7702,6 +8403,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         btnExport.disabled = false;
         statsBadge.innerText = `${currentChunks.length} chunk`;
         if (btnTranslateAll) btnTranslateAll.classList.remove("hidden");
+        if (btnDiarizeSpeakers) btnDiarizeSpeakers.classList.remove("hidden");
         if (btnUndo) btnUndo.classList.remove("hidden");
         if (btnRedo) btnRedo.classList.remove("hidden");
         if (btnExportSrt) btnExportSrt.classList.remove("hidden");
@@ -7869,12 +8571,17 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
               translation_engine: transEngine,
               gemini_api_key: geminiKey,
               keywords: getLiveEditorState().keywords,
-              subtitle_layout: getLiveEditorState().subtitle_layout
+              subtitle_layout: getLiveEditorState().subtitle_layout,
+              diarize: !!(chkAutoDiarize && chkAutoDiarize.checked),
+              num_speakers: parseInt(cfgDiarizeNumSpeakers ? cfgDiarizeNumSpeakers.value : "2", 10) || 2
             })
           });
           const data = await res.json();
           if (data.success) {
             item.chunks = sanitizeChunks(data.chunks);
+            if (chkAutoDiarize && chkAutoDiarize.checked && cfgSpeakerStylesEnabled) {
+              cfgSpeakerStylesEnabled.checked = true;
+            }
             item.status = "ready";
             item.statusText = "Pronto";
             if (item.id === currentBatchId) {
@@ -8285,9 +8992,9 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       const stepX = videoW / numPeaks;
 
       const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, "rgba(245, 158, 11, 0.2)");
-      grad.addColorStop(0.5, "rgba(251, 191, 36, 0.9)");
-      grad.addColorStop(1, "rgba(245, 158, 11, 0.2)");
+      grad.addColorStop(0, "rgba(0, 240, 255, 0.25)");
+      grad.addColorStop(0.5, "rgba(0, 210, 255, 0.95)");
+      grad.addColorStop(1, "rgba(99, 102, 241, 0.35)");
       ctx.fillStyle = grad;
 
       const isSilActive = isSilenceRemovalActive();
@@ -8332,9 +9039,10 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         const isSelected = (cIdx === selectedChunkIndex);
         const isCompact = width < 26;
 
+        const isMuted = chunk.speaker && mutedSpeakers.has(chunk.speaker);
         const block = document.createElement("div");
         block.id = `tl-block-${cIdx}`;
-        block.className = `tl-chunk-block ${isSelected ? 'active-block' : ''} ${isCompact ? 'compact-block' : ''}`;
+        block.className = `tl-chunk-block ${isSelected ? 'active-block' : ''} ${isCompact ? 'compact-block' : ''} ${isMuted ? 'is-muted' : ''}`;
         block.style.left = `${left}px`;
         block.style.width = `${width}px`;
 
@@ -8344,7 +9052,10 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           </div>
           <div class="tl-block-body" title="${escapeHtml(chunk.text || '')}">
             <div class="flex items-center justify-between gap-1 text-[10px] font-mono text-amber-400 font-bold leading-none mb-1">
-              <span class="bg-dark-950/80 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px]">#${cIdx + 1}</span>
+              <div class="flex items-center gap-1">
+                <span class="bg-dark-950/80 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9px]">#${cIdx + 1}</span>
+                ${isMuted ? `<span class="bg-red-500/30 text-red-200 border border-red-500/40 px-1 py-0.5 rounded text-[8px] font-bold" title="Speaker silenziato">🔇</span>` : ''}
+              </div>
               <span class="tl-block-time text-slate-400 font-normal text-[9px]">${chunk.start.toFixed(2)}s - ${chunk.end.toFixed(2)}s</span>
             </div>
             <div class="text-[11px] font-semibold text-slate-100 leading-snug line-clamp-2 overflow-hidden select-none break-words" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
@@ -8821,12 +9532,17 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             translation_engine: transEngine,
             gemini_api_key: geminiKey,
             keywords: getLiveEditorState().keywords,
-            subtitle_layout: getLiveEditorState().subtitle_layout
+            subtitle_layout: getLiveEditorState().subtitle_layout,
+            diarize: !!(chkAutoDiarize && chkAutoDiarize.checked),
+            num_speakers: parseInt(cfgDiarizeNumSpeakers ? cfgDiarizeNumSpeakers.value : "2", 10) || 2
           })
         });
         const data = await res.json();
         if (data.success) {
           currentChunks = sanitizeChunks(data.chunks);
+          if (chkAutoDiarize && chkAutoDiarize.checked && cfgSpeakerStylesEnabled) {
+            cfgSpeakerStylesEnabled.checked = true;
+          }
           originalChunks = JSON.parse(JSON.stringify(currentChunks));
           window.allOriginalWords = data.chunks.flatMap((c, cI) =>
             (c.words || []).map((w, wI) => ({
@@ -8865,6 +9581,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           btnExport.disabled = false;
           statsBadge.innerText = `${currentChunks.length} chunk`;
           if (btnTranslateAll) btnTranslateAll.classList.remove("hidden");
+          if (btnDiarizeSpeakers) btnDiarizeSpeakers.classList.remove("hidden");
           if (btnUndo) btnUndo.classList.remove("hidden");
           if (btnRedo) btnRedo.classList.remove("hidden");
           if (btnExportSrt) btnExportSrt.classList.remove("hidden");
@@ -9303,6 +10020,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
     function renderChunksList() {
       chunksList.innerHTML = "";
+      renderSpeakerCards();
 
       if (currentChunks.length === 0) {
         return;
@@ -9325,11 +10043,24 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           seekVideo(chunk.start);
         };
 
+        const spkName = chunk.speaker || "Speaker 1";
+        const isSpk2 = (spkName === "Speaker 2" || chunk.speaker_id === 1);
+        const isMuted = mutedSpeakers.has(spkName);
+        const spkBadgeClass = isSpk2
+          ? "bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25"
+          : "bg-cyan-500/15 text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/25";
+        const spkDotColor = isSpk2 ? "bg-amber-400" : "bg-cyan-400";
+
         const top = document.createElement("div");
         top.className = "flex items-center justify-between text-xs text-slate-400";
         top.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="text-[10px] uppercase font-bold text-slate-500 bg-dark-800 px-1.5 py-0.5 rounded border border-dark-700">#${cIdx + 1}</span>
+            <button type="button" class="spk-toggle-btn text-[10px] font-semibold px-2 py-0.5 rounded-full border transition flex items-center gap-1.5 cursor-pointer ${spkBadgeClass}" title="Clicca per alternare Speaker (Speaker 1 ⇄ Speaker 2)">
+              <span class="w-1.5 h-1.5 rounded-full ${spkDotColor}"></span>
+              <span>${spkName}</span>
+            </button>
+            ${isMuted ? `<span class="text-[9.5px] bg-red-500/20 text-red-300 border border-red-500/30 px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5" title="Audio di questo speaker silenziato">🔇 Muto</span>` : ''}
             <div class="flex items-center gap-1 font-mono text-[11px] text-amber-400/90" onclick="event.stopPropagation()">
               <input type="number" step="0.05" min="0" value="${chunk.start.toFixed(2)}" class="chunk-start-input w-14 bg-dark-850 border border-dark-700 rounded px-1 py-0.5 text-center text-amber-400 focus:outline-none focus:border-amber-400">
               <span class="text-slate-500">→</span>
@@ -9348,6 +10079,20 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             </button>
           </div>
         `;
+
+        const spkBtn = top.querySelector(".spk-toggle-btn");
+        if (spkBtn) {
+          spkBtn.onclick = (e) => {
+            e.stopPropagation();
+            pushState();
+            chunk.speaker = isSpk2 ? "Speaker 1" : "Speaker 2";
+            chunk.speaker_id = isSpk2 ? 0 : 1;
+            saveCurrentStateToBatch();
+            renderChunksList();
+            updateLiveSubtitleAtCurrentTime();
+            updatePresetSyncStatus();
+          };
+        }
 
         const startIn = top.querySelector(".chunk-start-input");
         const endIn = top.querySelector(".chunk-end-input");
@@ -9881,6 +10626,66 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       }
     }
 
+    async function runSpeakerDiarization() {
+      if (!currentVideoPath || !currentChunks || currentChunks.length === 0) {
+        alert("Carica prima un video con sottotitoli per avviare la diarizzazione delle voci.");
+        return;
+      }
+
+      const rawVal = cfgDiarizeNumSpeakers ? cfgDiarizeNumSpeakers.value : "auto";
+      const numSpeakersParam = (rawVal === "auto" || rawVal === "0") ? "auto" : (parseInt(rawVal, 10) || "auto");
+      const targetBtns = [btnRunDiarization, btnDiarizeSpeakers].filter(Boolean);
+      const originalTexts = targetBtns.map(b => b.innerHTML);
+
+      targetBtns.forEach(b => {
+        b.disabled = true;
+        b.innerHTML = `<span class="animate-spin text-[11px]">⏳</span> Diarizzazione...`;
+      });
+
+      try {
+        const res = await fetch("/api/diarize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            video_path: currentVideoPath,
+            chunks: currentChunks,
+            num_speakers: numSpeakersParam,
+          })
+        });
+
+        const data = await res.json();
+        if (data.success && data.chunks) {
+          pushState();
+          currentChunks = sanitizeChunks(data.chunks);
+          originalChunks = JSON.parse(JSON.stringify(currentChunks));
+          if (cfgSpeakerStylesEnabled) {
+            cfgSpeakerStylesEnabled.checked = true;
+          }
+          saveCurrentStateToBatch();
+          renderSpeakerCards();
+          renderChunksList();
+          renderTimelineBlocks();
+          updateLiveSubtitleAtCurrentTime();
+          preset = getLiveEditorState();
+          updatePresetSyncStatus();
+          const detectedCount = data.num_speakers || (new Set(currentChunks.map(c => c.speaker))).size || 1;
+          const msg = (detectedCount === 1)
+            ? "✓ Analisi completata: Rilevato 1 singolo interlocutore (Monologo)."
+            : `✓ Analisi completata: Rilevati con successo ${detectedCount} interlocutori distinti!`;
+          alert(msg);
+        } else {
+          alert("Errore diarizzazione: " + (data.error || "operazione non riuscita"));
+        }
+      } catch (err) {
+        alert("Errore di connessione durante la diarizzazione: " + err);
+      } finally {
+        targetBtns.forEach((b, idx) => {
+          b.disabled = false;
+          b.innerHTML = originalTexts[idx];
+        });
+      }
+    }
+
     function selectChunk(index) {
       selectedChunkIndex = index;
       renderChunksList();
@@ -9925,6 +10730,19 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             updateTimelineSelection();
           }
           break;
+        }
+      }
+
+      // Gestione Mute Live per Speaker Silenziati
+      if (activeChunk && activeChunk.speaker && mutedSpeakers.has(activeChunk.speaker)) {
+        if (!videoPlayer.muted) {
+          videoPlayer.muted = true;
+          autoMutedBySpeaker = true;
+        }
+      } else {
+        if (autoMutedBySpeaker) {
+          videoPlayer.muted = false;
+          autoMutedBySpeaker = false;
         }
       }
 
@@ -10006,15 +10824,77 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           }
         }
 
+        // Configurazione Highlighter & Speaker Styles
+        const hlConfig = liveState.highlighter || {};
+        const hlEnabled = !!hlConfig.enabled;
+        let hlBoxColor = hlConfig.box_color || "#FFE600";
+        let hlTextColor = hlConfig.text_color || "#000000";
+        const hlRadius = (hlConfig.box_radius !== undefined ? hlConfig.box_radius : 8) + "px";
+        const hlPadX = (hlConfig.box_padding_x !== undefined ? hlConfig.box_padding_x : 10) + "px";
+        const hlPadY = (hlConfig.box_padding_y !== undefined ? hlConfig.box_padding_y : 4) + "px";
+
+        const spkConfig = liveState.speaker_styles || {};
+        const spkEnabled = !!spkConfig.enabled;
+        let effectiveNormalColor = normalColor;
+
+        if (spkEnabled && activeChunk.speaker) {
+          const spkEntry = spkConfig.speakers ? spkConfig.speakers[activeChunk.speaker] : null;
+          if (spkEntry) {
+            if (spkEntry.color) effectiveNormalColor = spkEntry.color;
+            if (spkEntry.highlight_color) hlBoxColor = spkEntry.highlight_color;
+          }
+        }
+
+        // Calcolo perfetto della parola attiva senza buchi temporali
+        let activeWordIdx = -1;
+        if (hlEnabled && words.length > 0) {
+          const nWords = words.length;
+          for (let wIdx = 0; wIdx < nWords; wIdx++) {
+            const w = words[wIdx];
+            const wStart = (wIdx === 0)
+              ? Math.min(activeChunk.start, (w.start !== undefined ? w.start : activeChunk.start))
+              : (w.start !== undefined ? w.start : activeChunk.start);
+            let wEnd;
+            if (wIdx < nWords - 1) {
+              const nextW = words[wIdx + 1];
+              const nextStart = (nextW && nextW.start !== undefined) ? nextW.start : (w.end !== undefined ? w.end : activeChunk.end);
+              wEnd = (w.end !== undefined && w.end > nextStart) ? (w.end + nextStart) / 2.0 : nextStart;
+            } else {
+              wEnd = Math.max(activeChunk.end, (w.end !== undefined ? w.end : activeChunk.end));
+            }
+
+            if (cur >= wStart && cur < wEnd) {
+              activeWordIdx = wIdx;
+              break;
+            }
+          }
+          if (activeWordIdx === -1 && cur >= activeChunk.start && cur <= activeChunk.end) {
+            activeWordIdx = nWords - 1;
+          }
+        }
+
         const lineHtml = lines.map(line => {
           const lineContent = line.map(({ w, idx }) => {
             const isWordBold = kwEnabled && boldSet.has(idx);
             const ff = isWordBold ? keywordFont : normalFont;
             const fw = isWordBold ? keywordWeight : normalWeight;
-            const fc = isWordBold ? keywordColor : normalColor;
+            const fc = isWordBold ? keywordColor : effectiveNormalColor;
             const fi = isWordBold ? keywordItalic : normalItalic;
-            const styleStr = `font-family:'${ff}',sans-serif;font-weight:${fw};color:${fc};font-style:${fi ? 'italic' : 'normal'};`;
-            return `<span class="${isWordBold ? 'podcast-word-bold' : 'podcast-word-light'}" style="${styleStr}">${w.word}</span>`;
+
+            const isWordActive = hlEnabled && (idx === activeWordIdx);
+
+            let styleStr = `font-family:'${ff}',sans-serif;font-weight:${fw};font-style:${fi ? 'italic' : 'normal'};`;
+            if (hlEnabled) {
+              if (isWordActive) {
+                styleStr += `color:${hlTextColor};background-color:${hlBoxColor};border-radius:${hlRadius};padding:2px 6px;margin:0 1px;display:inline-block;box-shadow:0 3px 12px ${hlBoxColor}45;transform:scale(1.04);transition:all 0.05s ease;`;
+              } else {
+                styleStr += `color:${fc};padding:2px 0px;display:inline;transition:color 0.05s ease;`;
+              }
+            } else {
+              styleStr += `color:${fc};display:inline;`;
+            }
+
+            return `<span class="${isWordBold ? 'podcast-word-bold' : 'podcast-word-light'} ${isWordActive ? 'is-active-highlight-word' : ''}" style="${styleStr}">${w.word}</span>`;
           }).join(" ");
 
           return `<div class="live-subtitle-line">${lineContent}</div>`;
@@ -10084,6 +10964,39 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       updateTimelinePlayhead(virtCur);
     });
 
+    // Sincronizzazione ad alta frequenza (60 FPS via requestAnimationFrame)
+    // Garantisce che ogni singola parola venga colorata esattamente nell'istante in cui viene pronunciata,
+    // eliminando la latenza del classico timeupdate del browser.
+    let highFrequencySyncId = null;
+
+    function runHighFrequencySync() {
+      if (videoPlayer && !videoPlayer.paused && !videoPlayer.ended) {
+        updateLiveSubtitleAtCurrentTime();
+        highFrequencySyncId = requestAnimationFrame(runHighFrequencySync);
+      }
+    }
+
+    videoPlayer.addEventListener("play", () => {
+      if (highFrequencySyncId) cancelAnimationFrame(highFrequencySyncId);
+      highFrequencySyncId = requestAnimationFrame(runHighFrequencySync);
+    });
+
+    videoPlayer.addEventListener("pause", () => {
+      if (highFrequencySyncId) {
+        cancelAnimationFrame(highFrequencySyncId);
+        highFrequencySyncId = null;
+      }
+      updateLiveSubtitleAtCurrentTime();
+    });
+
+    videoPlayer.addEventListener("ended", () => {
+      if (highFrequencySyncId) {
+        cancelAnimationFrame(highFrequencySyncId);
+        highFrequencySyncId = null;
+      }
+      updateLiveSubtitleAtCurrentTime();
+    });
+
     videoSeekBar.addEventListener("input", (e) => {
       const val = parseFloat(e.target.value) || 0;
       videoSeekBar.style.setProperty('--seek-pct', `${val}%`);
@@ -10143,7 +11056,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             quality: document.getElementById("cfg-export-quality") ? document.getElementById("cfg-export-quality").value : "high",
             black_and_white: isBw,
             remove_silence: remSil,
-            silence_threshold: silThresh
+            silence_threshold: silThresh,
+            muted_speakers: Array.from(mutedSpeakers)
           })
         });
         const data = await res.json();
@@ -10211,15 +11125,15 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
   const KEY = "substudio_layout_v3";
 
   const defaults = {
-    preview: 360,
+    preview: 380,
     inspector: 370,
     timeline: 205
   };
 
   const limits = {
-    preview: [280, 700],
+    preview: [280, 720],
     inspector: [280, 650],
-    timeline: [140, 600]
+    timeline: [140, 550]
   };
 
   function clamp(v, min, max) {
@@ -10260,93 +11174,176 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       apply();
     }
     save();
+    if (typeof window.updateLiveOverlayPositions === "function") {
+      window.updateLiveOverlayPositions();
+    }
   }
 
   function vertical(left, type) {
     const r = document.createElement("div");
     r.className = "sott-resizer-v3";
-    r.title = "Trascina per ridimensionare";
+    r.title = type === "preview" 
+      ? "Trascina per ridimensionare Anteprima (Doppio clic per reimpostare)"
+      : "Trascina per ridimensionare Inspector (Doppio clic per reimpostare)";
     left.after(r);
 
     let startX = 0;
-    let startValue = 0;
+    let startVal = 0;
+    let isDragging = false;
 
-    r.addEventListener("pointerdown", e => {
-      if (type === "inspector" && layout.inspectorCollapsed) return;
-      e.preventDefault();
-      startX = e.clientX;
-      startValue = type === "preview" ? layout.preview : layout.inspector;
-      r.classList.add("dragging");
-      document.body.classList.add("sott-resizing-v3");
-      r.setPointerCapture(e.pointerId);
-    });
-
-    r.addEventListener("pointermove", e => {
-      if (!r.classList.contains("dragging")) return;
-      if (type === "inspector" && layout.inspectorCollapsed) return;
-
-      const delta = e.clientX - startX;
-
-      if (type === "preview") {
-        layout.preview = clamp(
-          startValue + delta,
-          ...limits.preview
-        );
-      } else {
-        layout.inspector = clamp(
-          startValue - delta,
-          ...limits.inspector
-        );
+    const onPointerMove = (e) => {
+      if (!isDragging) return;
+      // Sicurezza assoluta: se il tasto sinistro non è premuto, interrompi immediatamente
+      if ((e.buttons & 1) === 0) {
+        onPointerUp();
+        return;
       }
-
+      e.preventDefault();
+      const delta = e.clientX - startX;
+      if (type === "preview") {
+        layout.preview = clamp(startVal + delta, ...limits.preview);
+      } else {
+        layout.inspector = clamp(startVal - delta, ...limits.inspector);
+      }
       apply();
-    });
+      if (typeof window.updateLiveOverlayPositions === "function") {
+        window.updateLiveOverlayPositions();
+      }
+    };
 
-    r.addEventListener("pointerup", e => {
+    const onPointerUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
       r.classList.remove("dragging");
       document.body.classList.remove("sott-resizing-v3");
-      try { r.releasePointerCapture(e.pointerId); } catch(_) {}
+      document.body.style.cursor = "";
+
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      window.removeEventListener("blur", onPointerUp);
+
       save();
+      if (typeof window.updateLiveOverlayPositions === "function") {
+        window.updateLiveOverlayPositions();
+      }
+    };
+
+    r.addEventListener("pointerdown", e => {
+      if (e.button !== 0) return; // Solo tasto primario sinistro
+      if (type === "inspector" && layout.inspectorCollapsed) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      isDragging = true;
+      startX = e.clientX;
+      startVal = type === "preview" ? layout.preview : layout.inspector;
+
+      r.classList.add("dragging");
+      document.body.classList.add("sott-resizing-v3");
+      document.body.style.cursor = "col-resize";
+
+      window.addEventListener("pointermove", onPointerMove, { passive: false });
+      window.addEventListener("pointerup", onPointerUp);
+      window.addEventListener("pointercancel", onPointerUp);
+      window.addEventListener("blur", onPointerUp);
+    });
+
+    // Doppio clic sul divisore per ripristinare la larghezza predefinita del pannello
+    r.addEventListener("dblclick", e => {
+      e.preventDefault();
+      if (type === "preview") {
+        layout.preview = defaults.preview;
+      } else {
+        layout.inspector = defaults.inspector;
+        setInspectorCollapsed(false);
+      }
+      apply();
+      save();
+      if (typeof window.updateLiveOverlayPositions === "function") {
+        window.updateLiveOverlayPositions();
+      }
     });
   }
 
   function horizontal(timeline) {
     const r = document.createElement("div");
     r.className = "sott-resizer-h-v3";
-    r.title = "Trascina per ridimensionare la timeline";
+    r.title = "Trascina per ridimensionare la Timeline (Doppio clic per reimpostare)";
 
     timeline.parentElement.insertBefore(r, timeline);
 
     let startY = 0;
-    let startValue = 0;
+    let startVal = 0;
+    let isDragging = false;
 
-    r.addEventListener("pointerdown", e => {
+    const onPointerMove = (e) => {
+      if (!isDragging) return;
+      // Sicurezza assoluta: se il mouse non è premuto, non spostare nulla e termina
+      if ((e.buttons & 1) === 0) {
+        onPointerUp();
+        return;
+      }
       e.preventDefault();
-      startY = e.clientY;
-      startValue = layout.timeline;
-      r.classList.add("dragging");
-      document.body.classList.add("sott-resizing-h-v3");
-      r.setPointerCapture(e.pointerId);
-    });
-
-    r.addEventListener("pointermove", e => {
-      if (!r.classList.contains("dragging")) return;
-
       const delta = startY - e.clientY;
-
-      layout.timeline = clamp(
-        startValue + delta,
-        ...limits.timeline
-      );
-
+      layout.timeline = clamp(startVal + delta, ...limits.timeline);
       apply();
-    });
+      if (typeof window.drawTimelineWaveform === "function") {
+        const sc = document.getElementById("tl-scroll-container");
+        if (sc) {
+          const w = sc.scrollWidth || sc.clientWidth || 1000;
+          window.drawTimelineWaveform(w, window.currentVideoDuration || 60);
+        }
+      }
+    };
 
-    r.addEventListener("pointerup", e => {
+    const onPointerUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
       r.classList.remove("dragging");
       document.body.classList.remove("sott-resizing-h-v3");
-      try { r.releasePointerCapture(e.pointerId); } catch(_) {}
+      document.body.style.cursor = "";
+
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      window.removeEventListener("blur", onPointerUp);
+
       save();
+    };
+
+    r.addEventListener("pointerdown", e => {
+      if (e.button !== 0) return; // Solo tasto primario sinistro
+      e.preventDefault();
+      e.stopPropagation();
+
+      isDragging = true;
+      startY = e.clientY;
+      startVal = layout.timeline;
+
+      r.classList.add("dragging");
+      document.body.classList.add("sott-resizing-h-v3");
+      document.body.style.cursor = "row-resize";
+
+      window.addEventListener("pointermove", onPointerMove, { passive: false });
+      window.addEventListener("pointerup", onPointerUp);
+      window.addEventListener("pointercancel", onPointerUp);
+      window.addEventListener("blur", onPointerUp);
+    });
+
+    // Doppio clic sul divisore per ripristinare l'altezza predefinita della Timeline
+    r.addEventListener("dblclick", e => {
+      e.preventDefault();
+      layout.timeline = defaults.timeline;
+      apply();
+      save();
+      if (typeof window.drawTimelineWaveform === "function") {
+        const sc = document.getElementById("tl-scroll-container");
+        if (sc) {
+          const w = sc.scrollWidth || sc.clientWidth || 1000;
+          window.drawTimelineWaveform(w, window.currentVideoDuration || 60);
+        }
+      }
     });
   }
 
@@ -10392,10 +11389,29 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       setInspectorCollapsed(false);
       apply();
       save();
+      if (typeof window.updateLiveOverlayPositions === "function") {
+        window.updateLiveOverlayPositions();
+      }
+      if (typeof window.drawTimelineWaveform === "function") {
+        const sc = document.getElementById("tl-scroll-container");
+        if (sc) {
+          const w = sc.scrollWidth || sc.clientWidth || 1000;
+          window.drawTimelineWaveform(w, window.currentVideoDuration || 60);
+        }
+      }
     };
     window.resetSottotitolatoreLayout = window.resetSubStudioLayout;
 
-    console.log("SubStudio Resize V3 attivo", layout);
+    const btnResetLayout = document.getElementById("btn-reset-layout");
+    if (btnResetLayout) {
+      btnResetLayout.onclick = () => {
+        window.resetSubStudioLayout();
+        const drop = document.getElementById("tools-dropdown");
+        if (drop) drop.classList.add("hidden");
+      };
+    }
+
+    console.log("Sub Studio Layout V3 attivo", layout);
   }
 
   if (document.readyState === "loading") {

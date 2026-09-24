@@ -24,6 +24,7 @@ tests/output_test/
 # Backup directories
 _backup_pre_capcut/
 _backup_presets_migration/
+UI_BASELINE_BEFORE_SUB_STUDIO_REDESIGN/
 
 # Backup files
 *.backup

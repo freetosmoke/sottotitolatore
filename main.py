@@ -90,9 +90,9 @@ def run(
     keep_temp:    bool       = typer.Option(False,   "--keep-temp"),
     hw:           bool|None  = typer.Option(None,    "--hw/--no-hw"),
 ):
-    """🎬 SubStudio — Pipeline sottotitoli verticali 9:16."""
+    """🎬 Sub Studio — Pipeline sottotitoli verticali 9:16."""
     console.print(Panel(
-        "[bold]🎬 SubStudio CLI[/] — Podcast Verticale 9:16\n"
+        "[bold]🎬 Sub Studio CLI[/] — Podcast Verticale 9:16\n"
         "[dim]Powered by faster-whisper + Pillow + ffmpeg[/]", expand=False))
 
     if batch:

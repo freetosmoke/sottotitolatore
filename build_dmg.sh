@@ -42,7 +42,7 @@ cat << "PLIST" > "$CONTENTS_DIR/Info.plist"
     <key>CFBundleName</key>
     <string>SubStudio</string>
     <key>CFBundleDisplayName</key>
-    <string>SubStudio</string>
+    <string>Sub Studio</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -69,15 +69,24 @@ PLIST
 echo -n "APPL????" > "$CONTENTS_DIR/PkgInfo"
 
 echo "🐍 [3/5] Integrazione runtime Python 3.12 standalone (arm64 Apple Silicon) e pacchetti..."
+UV_BIN="$(command -v uv 2>/dev/null || echo "$HOME/.local/bin/uv")"
+if [ ! -x "$UV_BIN" ]; then
+    if [ -x "/opt/homebrew/bin/uv" ]; then
+        UV_BIN="/opt/homebrew/bin/uv"
+    elif [ -x "/usr/local/bin/uv" ]; then
+        UV_BIN="/usr/local/bin/uv"
+    fi
+fi
+
 PY_SRC=$(find "$HOME/.local/share/uv/python" -maxdepth 1 -type d -name "cpython-3.12*" 2>/dev/null | head -n 1)
 if [ -z "$PY_SRC" ] || [ ! -d "$PY_SRC" ]; then
-    uv python install 3.12
+    "$UV_BIN" python install 3.12
     PY_SRC=$(find "$HOME/.local/share/uv/python" -maxdepth 1 -type d -name "cpython-3.12*" 2>/dev/null | head -n 1)
 fi
 
 cp -R "$PY_SRC" "$PYTHON_DIR"
 
-/opt/homebrew/bin/uv pip install -r "$PROJECT_DIR/requirements.txt" \
+"$UV_BIN" pip install -r "$PROJECT_DIR/requirements.txt" \
     --target "$PYTHON_DIR/lib/python3.12/site-packages" \
     --python "$PYTHON_DIR/bin/python3" --quiet
 
@@ -93,6 +102,7 @@ cp -f "$PROJECT_DIR"/silence_remover.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/presets.json "$APP_PAYLOAD_DIR/"
 [ -f "$PROJECT_DIR"/font_manager.py ] && cp -f "$PROJECT_DIR"/font_manager.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/translator.py "$APP_PAYLOAD_DIR/"
+cp -f "$PROJECT_DIR"/speaker_diarizer.py "$APP_PAYLOAD_DIR/"
 cp -R "$PROJECT_DIR"/fonts "$APP_PAYLOAD_DIR/"
 cp -R "$PROJECT_DIR"/web_static "$APP_PAYLOAD_DIR/"
 

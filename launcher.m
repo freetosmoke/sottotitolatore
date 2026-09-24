@@ -41,15 +41,15 @@ static int find_free_port(int start_port) {
     
     // 1. App Menu
     NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
-    NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"SubStudio"];
-    [appMenu addItemWithTitle:@"Informazioni su SubStudio" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+    NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"Sub Studio"];
+    [appMenu addItemWithTitle:@"Informazioni su Sub Studio" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
     [appMenu addItem:[NSMenuItem separatorItem]];
-    [appMenu addItemWithTitle:@"Nascondi SubStudio" action:@selector(hide:) keyEquivalent:@"h"];
+    [appMenu addItemWithTitle:@"Nascondi Sub Studio" action:@selector(hide:) keyEquivalent:@"h"];
     NSMenuItem *hideOthers = [appMenu addItemWithTitle:@"Nascondi altre" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
     [hideOthers setKeyEquivalentModifierMask:(NSEventModifierFlagCommand | NSEventModifierFlagOption)];
     [appMenu addItemWithTitle:@"Mostra tutte" action:@selector(unhideAllApplications:) keyEquivalent:@""];
     [appMenu addItem:[NSMenuItem separatorItem]];
-    [appMenu addItemWithTitle:@"Esci da SubStudio" action:@selector(terminate:) keyEquivalent:@"q"];
+    [appMenu addItemWithTitle:@"Esci da Sub Studio" action:@selector(terminate:) keyEquivalent:@"q"];
     [appMenuItem setSubmenu:appMenu];
     [mainMenu addItem:appMenuItem];
     
@@ -108,9 +108,9 @@ static int find_free_port(int start_port) {
                               
     NSWindowStyleMask style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
     self.window = [[NSWindow alloc] initWithContentRect:frame styleMask:style backing:NSBackingStoreBuffered defer:NO];
-    [self.window setTitle:@"SubStudio"];
+    [self.window setTitle:@"Sub Studio"];
     [self.window setMinSize:NSMakeSize(900, 600)];
-    self.window.backgroundColor = [NSColor colorWithCalibratedRed:0.06 green:0.09 blue:0.16 alpha:1.0]; // #0f172a
+    self.window.backgroundColor = [NSColor colorWithCalibratedRed:0.024 green:0.031 blue:0.071 alpha:1.0]; // #060812
 
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
     config.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone;
@@ -130,12 +130,12 @@ static int find_free_port(int start_port) {
     
     // Schermata di caricamento iniziale
     NSString *loadingHTML = @"<!DOCTYPE html><html><head><meta charset='utf-8'><style>"
-        "body{background:#0b0d10;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;user-select:none;}"
-        ".spinner{width:44px;height:44px;border:3.5px solid #1e293b;border-top-color:#818cf8;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:18px;}"
+        "body{background:#060812;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;user-select:none;}"
+        ".spinner{width:48px;height:48px;border:3.5px solid #141e36;border-top-color:#00f0ff;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:18px;box-shadow:0 0 16px rgba(0,240,255,0.3);}"
         "@keyframes spin{to{transform:rotate(360deg);}}"
-        "h2{font-size:18px;font-weight:600;margin:0 0 8px;letter-spacing:-0.02em;}"
+        "h2{font-size:18px;font-weight:700;margin:0 0 8px;letter-spacing:-0.02em;background:linear-gradient(135deg,#ffffff,#67e8f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}"
         "p{color:#94a3b8;font-size:13px;margin:0;}"
-        "</style></head><body><div class='spinner'></div><h2>Avvio SubStudio...</h2><p>Preparazione dell'ambiente locale in corso</p></body></html>";
+        "</style></head><body><div class='spinner'></div><h2>Avvio Sub Studio...</h2><p>Preparazione dell'ambiente locale in corso</p></body></html>";
     [self.webView loadHTMLString:loadingHTML baseURL:nil];
     
     [self startBackend];
@@ -167,7 +167,7 @@ static int find_free_port(int start_port) {
     if (!hasFfmpeg) {
         NSAlert *alert = [[NSAlert alloc] init];
         [alert setMessageText:@"FFmpeg non trovato"];
-        [alert setInformativeText:@"SubStudio richiede FFmpeg per il rendering video su Apple Silicon.\n\nPuoi installarlo aprendo il Terminale e digitando:\nbrew install ffmpeg"];
+        [alert setInformativeText:@"Sub Studio richiede FFmpeg per il rendering video su Apple Silicon.\n\nPuoi installarlo aprendo il Terminale e digitando:\nbrew install ffmpeg"];
         [alert setAlertStyle:NSAlertStyleCritical];
         [alert runModal];
         [NSApp terminate:nil];
