@@ -76,7 +76,7 @@
     },
     "keywords": {
       "enabled": true,
-      "mode": "manual"
+      "mode": "automatic"
     },
     "subtitle_layout": {
       "min_words_per_line": 2,

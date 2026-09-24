@@ -18,7 +18,9 @@
       }
     }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Alata&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Raleway:wght@300;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alata&family=Anton&family=Archivo&family=Barlow&family=Barlow+Condensed&family=Bebas+Neue&family=Cinzel&family=Cormorant+Garamond&family=DM+Sans&family=Fira+Sans&family=IBM+Plex+Sans&family=IBM+Plex+Serif&family=Inter:wght@300;400;600;700&family=Lato:wght@300;400;700&family=Libre+Baskerville&family=Lobster&family=Manrope&family=Merriweather&family=Montserrat:ital,wght@0,300..900;1,300..900&family=Nunito&family=Nunito+Sans&family=Open+Sans:wght@300;400;600;700&family=Oswald&family=Outfit&family=Pacifico&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Poppins:ital,wght@0,300..900;1,300..900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,300..900;1,300..900&family=Roboto+Condensed&family=Roboto+Slab&family=Source+Sans+3&family=Space+Grotesk&family=Ubuntu&family=Work+Sans&display=swap" rel="stylesheet">
   <style>
     @font-face {
       font-family: 'Raleway';
@@ -2017,6 +2019,16 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                   </div>
                 </div>
 
+                <!-- Caricamento Font Personalizzato -->
+                <div class="border-t border-dark-750/50 pt-2.5 flex items-center justify-between">
+                  <input type="file" id="font-file-input" accept=".ttf,.otf,.woff2" class="hidden">
+                  <button type="button" id="btn-upload-font" class="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-dark-950 hover:bg-dark-900 border border-dark-700 transition cursor-pointer font-medium" title="Carica un file di font personalizzato (.ttf o .otf)">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Carica font (.ttf/.otf)
+                  </button>
+                  <span id="font-upload-status" class="text-[10px] text-slate-400 font-mono"></span>
+                </div>
+
                 <!-- Modalità keyword -->
                 <div class="border-t border-dark-750/50 pt-3">
                   <label class="text-slate-400 block mb-1 text-[11px]">Evidenziazione parole</label>
@@ -3002,6 +3014,575 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     const cfgKeywordVariant = document.getElementById("cfg-keyword-variant");
     const cfgKeywordColor = document.getElementById("cfg-keyword-color");
     const cfgKeywordMode = document.getElementById("cfg-keyword-mode");
+    const btnUploadFont = document.getElementById("btn-upload-font");
+    const fontFileInput = document.getElementById("font-file-input");
+    const fontUploadStatus = document.getElementById("font-upload-status");
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LIBRERIA TIPOGRAFICA CENTRALIZZATA
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    const DEFAULT_FONT_CATALOG = [
+      // Font di sistema macOS
+      { family: "Arial", source: "system", variants: [
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" },
+        { name: "Bold Italic", weight: 700, style: "italic" },
+        { name: "Black", weight: 900, style: "normal" }
+      ]},
+      { family: "Helvetica", source: "system", variants: [
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" },
+        { name: "Bold Italic", weight: 700, style: "italic" }
+      ]},
+      { family: "Helvetica Neue", source: "system", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" },
+        { name: "Bold Italic", weight: 700, style: "italic" }
+      ]},
+
+      // Font locali
+      { family: "Raleway", source: "local", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Alata", source: "local", variants: [
+        { name: "Regular", weight: 400, style: "normal" }
+      ]},
+
+      // Google Fonts
+      { family: "Inter", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Roboto", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Open Sans", source: "google", variants: [
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Lato", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Montserrat", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Poppins", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Nunito", source: "google", variants: [
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Nunito Sans", source: "google", variants: [
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Oswald", source: "google", variants: [
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" }
+      ]},
+      { family: "Bebas Neue", source: "google", variants: [
+        { name: "Regular", weight: 400, style: "normal" }
+      ]},
+      { family: "Anton", source: "google", variants: [
+        { name: "Regular", weight: 400, style: "normal" }
+      ]},
+      { family: "Roboto Condensed", source: "google", variants: [
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Roboto Slab", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" }
+      ]},
+      { family: "Merriweather", source: "google", variants: [
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Playfair Display", source: "google", variants: [
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "DM Sans", source: "google", variants: [
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Manrope", source: "google", variants: [
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" }
+      ]},
+      { family: "Outfit", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" }
+      ]},
+      { family: "Plus Jakarta Sans", source: "google", variants: [
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Space Grotesk", source: "google", variants: [
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" }
+      ]},
+      { family: "Barlow", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Barlow Condensed", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Fira Sans", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Source Sans 3", source: "google", variants: [
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Ubuntu", source: "google", variants: [
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Work Sans", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Archivo", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "IBM Plex Sans", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "IBM Plex Serif", source: "google", variants: [
+        { name: "Thin", weight: 100, style: "normal" },
+        { name: "ExtraLight", weight: 200, style: "normal" },
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Libre Baskerville", source: "google", variants: [
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Cormorant Garamond", source: "google", variants: [
+        { name: "Light", weight: 300, style: "normal" },
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "Italic", weight: 400, style: "italic" }
+      ]},
+      { family: "Cinzel", source: "google", variants: [
+        { name: "Regular", weight: 400, style: "normal" },
+        { name: "Medium", weight: 500, style: "normal" },
+        { name: "SemiBold", weight: 600, style: "normal" },
+        { name: "Bold", weight: 700, style: "normal" },
+        { name: "ExtraBold", weight: 800, style: "normal" },
+        { name: "Black", weight: 900, style: "normal" }
+      ]},
+      { family: "Pacifico", source: "google", variants: [
+        { name: "Regular", weight: 400, style: "normal" }
+      ]},
+      { family: "Lobster", source: "google", variants: [
+        { name: "Regular", weight: 400, style: "normal" }
+      ]}
+    ];
+
+    let fontCatalog = [...DEFAULT_FONT_CATALOG];
+    let customFontCatalog = [];
+    const loadedGoogleFontFamilies = new Set();
+
+    function getFontDefinition(family) {
+      if (!family) return null;
+      const fLower = family.toLowerCase().trim();
+      return (
+        customFontCatalog.find(f => f.family.toLowerCase().trim() === fLower) ||
+        fontCatalog.find(f => f.family.toLowerCase().trim() === fLower) ||
+        null
+      );
+    }
+
+    function getVariantCss(family, variantName) {
+      const font = getFontDefinition(family);
+      if (font && font.variants && font.variants.length > 0) {
+        const v = font.variants.find(x => x.name.toLowerCase() === (variantName || "").toLowerCase());
+        if (v) return { weight: v.weight || 400, style: v.style || "normal" };
+      }
+      const vl = (variantName || "").toLowerCase();
+      if (vl === "thin") return { weight: 100, style: "normal" };
+      if (vl === "extralight") return { weight: 200, style: "normal" };
+      if (vl === "light") return { weight: 300, style: "normal" };
+      if (vl === "regular") return { weight: 400, style: "normal" };
+      if (vl === "medium") return { weight: 500, style: "normal" };
+      if (vl === "semibold") return { weight: 600, style: "normal" };
+      if (vl === "bold") return { weight: 700, style: "normal" };
+      if (vl === "extrabold") return { weight: 800, style: "normal" };
+      if (vl === "black") return { weight: 900, style: "normal" };
+      if (vl.includes("italic")) return { weight: vl.includes("bold") ? 700 : 400, style: "italic" };
+      return { weight: 400, style: "normal" };
+    }
+
+    function loadGoogleFontForPreview(family) {
+      if (!family || loadedGoogleFontFamilies.has(family)) return;
+      const fontDef = getFontDefinition(family);
+      if (fontDef && fontDef.source !== "google") return;
+
+      loadedGoogleFontFamilies.add(family);
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:ital,wght@0,100..900;1,100..900&display=swap`;
+      document.head.appendChild(link);
+    }
+
+    function populateFontSelect(selectEl, selectedValue) {
+      if (!selectEl) return;
+      const cur = selectedValue || selectEl.value || "Raleway";
+      selectEl.innerHTML = "";
+
+      // 1. FONT DI SISTEMA / PREINSTALLATI
+      const optGroupSys = document.createElement("optgroup");
+      optGroupSys.label = "FONT DI SISTEMA / PREINSTALLATI";
+      fontCatalog.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.family;
+        opt.textContent = f.family;
+        opt.style.fontFamily = `'${f.family}', sans-serif`;
+        if (f.family.toLowerCase() === cur.toLowerCase()) opt.selected = true;
+        optGroupSys.appendChild(opt);
+      });
+      selectEl.appendChild(optGroupSys);
+
+      // 2. FONT PERSONALIZZATI
+      if (customFontCatalog && customFontCatalog.length > 0) {
+        const optGroupCust = document.createElement("optgroup");
+        optGroupCust.label = "FONT PERSONALIZZATI";
+        customFontCatalog.forEach(f => {
+          const opt = document.createElement("option");
+          opt.value = f.family;
+          opt.textContent = f.family;
+          opt.style.fontFamily = `'${f.family}', sans-serif`;
+          if (f.family.toLowerCase() === cur.toLowerCase()) opt.selected = true;
+          optGroupCust.appendChild(opt);
+        });
+        selectEl.appendChild(optGroupCust);
+      }
+    }
+
+    function updateVariantSelect(variantSelectEl, selectedFamily, targetVariantValue) {
+      if (!variantSelectEl) return;
+      const fontDef = getFontDefinition(selectedFamily);
+      const variants = (fontDef && fontDef.variants && fontDef.variants.length > 0)
+        ? fontDef.variants
+        : [{ name: "Regular", weight: 400, style: "normal" }];
+
+      const target = (targetVariantValue !== undefined && targetVariantValue !== null)
+        ? String(targetVariantValue).trim().toLowerCase()
+        : String(variantSelectEl.value || "Regular").trim().toLowerCase();
+
+      variantSelectEl.innerHTML = "";
+      let matchedIdx = -1;
+
+      variants.forEach((v, idx) => {
+        const opt = document.createElement("option");
+        opt.value = v.name;
+        opt.textContent = v.name;
+        if (v.name.toLowerCase() === target) {
+          matchedIdx = idx;
+        }
+        variantSelectEl.appendChild(opt);
+      });
+
+      if (matchedIdx >= 0) {
+        variantSelectEl.selectedIndex = matchedIdx;
+      } else {
+        // Cerca Regular, altrimenti prima disponibile
+        const regIdx = variants.findIndex(v => v.name.toLowerCase() === "regular");
+        variantSelectEl.selectedIndex = regIdx >= 0 ? regIdx : 0;
+      }
+    }
+
+    async function loadFontsFromApi() {
+      try {
+        const res = await fetch("/api/fonts");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+          if (Array.isArray(data.fonts) && data.fonts.length > 0) {
+            fontCatalog = data.fonts;
+          }
+          if (Array.isArray(data.custom_fonts)) {
+            customFontCatalog = data.custom_fonts;
+            customFontCatalog.forEach(cf => {
+              if (cf.variants) {
+                cf.variants.forEach(v => {
+                  if (v.filename) {
+                    const style = document.createElement("style");
+                    style.textContent = `@font-face { font-family: '${cf.family}'; src: url('/fonts/${encodeURIComponent(v.filename)}'); font-weight: ${v.weight || 400}; font-style: ${v.style || 'normal'}; }`;
+                    document.head.appendChild(style);
+                  }
+                });
+              }
+            });
+          }
+
+          const curNorm = cfgNormalFont ? cfgNormalFont.value : "Raleway";
+          const curNormVar = cfgNormalVariant ? cfgNormalVariant.value : "Light";
+          const curKw = cfgKeywordFont ? cfgKeywordFont.value : "Raleway";
+          const curKwVar = cfgKeywordVariant ? cfgKeywordVariant.value : "SemiBold";
+
+          if (cfgNormalFont) {
+            populateFontSelect(cfgNormalFont, curNorm);
+            updateVariantSelect(cfgNormalVariant, cfgNormalFont.value, curNormVar);
+          }
+          if (cfgKeywordFont) {
+            populateFontSelect(cfgKeywordFont, curKw);
+            updateVariantSelect(cfgKeywordVariant, cfgKeywordFont.value, curKwVar);
+          }
+        }
+      } catch (err) {
+        console.warn("Impossibile caricare catalogo font da API:", err);
+      }
+    }
+
+    // Inizializzazione immediata select tipografiche (prima della chiamata di rete)
+    if (cfgNormalFont) {
+      populateFontSelect(cfgNormalFont, "Raleway");
+      updateVariantSelect(cfgNormalVariant, "Raleway", "Light");
+    }
+    if (cfgKeywordFont) {
+      populateFontSelect(cfgKeywordFont, "Raleway");
+      updateVariantSelect(cfgKeywordVariant, "Raleway", "SemiBold");
+    }
+
+    // Gestione caricamento font personalizzato
+    if (btnUploadFont && fontFileInput) {
+      btnUploadFont.addEventListener("click", () => fontFileInput.click());
+      fontFileInput.addEventListener("change", async (e) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+          formData.append("files", files[i]);
+        }
+        if (fontUploadStatus) fontUploadStatus.textContent = "Caricamento...";
+        try {
+          const resp = await fetch("/api/upload_font", {
+            method: "POST",
+            body: formData,
+          });
+          const result = await resp.json();
+          if (result.success) {
+            if (fontUploadStatus) {
+              fontUploadStatus.textContent = "Font caricato!";
+              setTimeout(() => { if (fontUploadStatus) fontUploadStatus.textContent = ""; }, 3000);
+            }
+            await loadFontsFromApi();
+            if (result.custom_fonts && result.custom_fonts.length > 0) {
+              const lastFont = result.custom_fonts[result.custom_fonts.length - 1];
+              if (cfgNormalFont) {
+                cfgNormalFont.value = lastFont.family;
+                updateVariantSelect(cfgNormalVariant, lastFont.family, "Regular");
+              }
+              preset = getLiveEditorState();
+              updateLiveSubtitleAtCurrentTime();
+              updatePresetSyncStatus();
+            }
+          } else {
+            if (fontUploadStatus) fontUploadStatus.textContent = "Errore upload";
+          }
+        } catch (err) {
+          if (fontUploadStatus) fontUploadStatus.textContent = "Errore";
+          console.error(err);
+        }
+        fontFileInput.value = "";
+      });
+    }
 
     const cfgSubRot = document.getElementById("cfg-sub-rot");
     const cfgWmRot = document.getElementById("cfg-wm-rot");
@@ -3733,6 +4314,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
     async function loadPresetsFromApi(openModalOnStartup = false) {
       try {
+        await loadFontsFromApi();
         const res = await fetch("/api/presets");
         const data = await res.json();
         if (data.presets && Array.isArray(data.presets)) {
@@ -3826,12 +4408,18 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           keywordMode = "automatic";
         }
 
-        if (cfgNormalFont) cfgNormalFont.value = normalFont;
-        if (cfgNormalVariant) cfgNormalVariant.value = normalVariant;
+        if (cfgNormalFont) {
+          cfgNormalFont.value = normalFont;
+          updateVariantSelect(cfgNormalVariant, normalFont, normalVariant);
+          loadGoogleFontForPreview(normalFont);
+        }
         if (cfgNormalColor) cfgNormalColor.value = normalColor;
 
-        if (cfgKeywordFont) cfgKeywordFont.value = keywordFont;
-        if (cfgKeywordVariant) cfgKeywordVariant.value = keywordVariant;
+        if (cfgKeywordFont) {
+          cfgKeywordFont.value = keywordFont;
+          updateVariantSelect(cfgKeywordVariant, keywordFont, keywordVariant);
+          loadGoogleFontForPreview(keywordFont);
+        }
         if (cfgKeywordColor) cfgKeywordColor.value = keywordColor;
 
         if (cfgKeywordMode) cfgKeywordMode.value = keywordMode;
@@ -3852,6 +4440,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         if (cfgMinWords) cfgMinWords.value = minWordsPerLine;
         if (cfgMaxWords) cfgMaxWords.value = maxWordsPerLine;
         if (cfgNumLines) cfgNumLines.value = numLines;
+        syncLayoutControlLimits();
 
         const pCapcutSize = p.capcut_size !== undefined ? p.capcut_size : 8;
         const pSubScale = p.capcut_sub_scale !== undefined ? p.capcut_sub_scale : 100;
@@ -3899,7 +4488,11 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
       updatePresetSyncStatus();
       updateLiveOverlayPositions();
-      updateLiveSubtitleAtCurrentTime();
+      if (currentChunks && currentChunks.length > 0) {
+        resegmentCurrentSubtitles();
+      } else {
+        updateLiveSubtitleAtCurrentTime();
+      }
       renderModalPresetsList();
     }
 
@@ -4468,7 +5061,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       });
     }
 
-    [cfgFsSub, cfgCapcutSize, cfgSubScale, cfgSubX, cfgSubY, cfgAllCaps, cfgLetterSpacing, cfgMinWords, cfgMaxWords, cfgNumLines, cfgCapcutWmSize, cfgWmScale, cfgFsWm, cfgWmX, cfgWmY, cfgWmText, cfgStroke, cfgShadow, cfgSubRot, cfgWmRot].forEach(input => {
+    [cfgFsSub, cfgCapcutSize, cfgSubScale, cfgSubX, cfgSubY, cfgAllCaps, cfgLetterSpacing, cfgCapcutWmSize, cfgWmScale, cfgFsWm, cfgWmX, cfgWmY, cfgWmText, cfgStroke, cfgShadow, cfgSubRot, cfgWmRot].forEach(input => {
       if (input) {
         input.addEventListener("input", () => {
           updateLiveOverlayPositions();
@@ -4484,6 +5077,20 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         }
       }
     });
+
+    // Listener dedicati e accoppiati per il Layout sottotitoli (Min/Max Parole & Righe)
+    if (cfgMinWords) {
+      cfgMinWords.addEventListener("input", () => onLayoutParamChange("min"));
+      cfgMinWords.addEventListener("change", () => onLayoutParamChange("min"));
+    }
+    if (cfgMaxWords) {
+      cfgMaxWords.addEventListener("input", () => onLayoutParamChange("max"));
+      cfgMaxWords.addEventListener("change", () => onLayoutParamChange("max"));
+    }
+    if (cfgNumLines) {
+      cfgNumLines.addEventListener("input", () => onLayoutParamChange("lines"));
+      cfgNumLines.addEventListener("change", () => onLayoutParamChange("lines"));
+    }
 
     if (cfgFontName) {
       cfgFontName.addEventListener("change", (e) => {
@@ -4513,9 +5120,27 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       });
     }
 
-    // Listener per i nuovi controlli tipografici (subtitle_style.normal/keyword + keywords.mode)
-    // Aggiornano immediatamente la live preview e il dirty-check quando l'utente modifica font/variante/colore/modalità
-    [cfgNormalFont, cfgNormalVariant, cfgKeywordFont, cfgKeywordVariant, cfgKeywordMode].forEach(input => {
+    // Listener per i controlli tipografici con aggiornamento dinamico delle varianti
+    if (cfgNormalFont) {
+      cfgNormalFont.addEventListener("change", () => {
+        updateVariantSelect(cfgNormalVariant, cfgNormalFont.value, cfgNormalVariant.value);
+        loadGoogleFontForPreview(cfgNormalFont.value);
+        preset = getLiveEditorState();
+        updateLiveSubtitleAtCurrentTime();
+        updatePresetSyncStatus();
+      });
+    }
+    if (cfgKeywordFont) {
+      cfgKeywordFont.addEventListener("change", () => {
+        updateVariantSelect(cfgKeywordVariant, cfgKeywordFont.value, cfgKeywordVariant.value);
+        loadGoogleFontForPreview(cfgKeywordFont.value);
+        preset = getLiveEditorState();
+        updateLiveSubtitleAtCurrentTime();
+        updatePresetSyncStatus();
+      });
+    }
+
+    [cfgNormalVariant, cfgKeywordVariant, cfgKeywordMode].forEach(input => {
       if (input) {
         input.addEventListener("change", () => {
           preset = getLiveEditorState();
@@ -4533,6 +5158,311 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         });
       }
     });
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // GESTIONE DINAMICA LAYOUT SOTTOTITOLI (Min/Max Parole & Numero Righe)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function syncLayoutControlLimits(changedInput) {
+      if (!cfgMinWords || !cfgMaxWords || !cfgNumLines) return;
+
+      let minW = parseInt(cfgMinWords.value, 10);
+      let maxW = parseInt(cfgMaxWords.value, 10);
+      let numL = parseInt(cfgNumLines.value, 10);
+
+      if (isNaN(minW) || minW < 1) minW = 1;
+      if (minW > 30) minW = 30;
+
+      if (isNaN(maxW) || maxW < 1) maxW = 1;
+      if (maxW > 30) maxW = 30;
+
+      if (isNaN(numL) || numL < 1) numL = 1;
+      if (numL > 5) numL = 5;
+
+      if (changedInput === "min") {
+        if (maxW < minW) {
+          maxW = minW;
+        }
+      } else if (changedInput === "max") {
+        if (minW > maxW) {
+          minW = maxW;
+        }
+      }
+
+      cfgMinWords.min = "1";
+      cfgMinWords.max = String(maxW);
+      cfgMaxWords.min = String(minW);
+      cfgMaxWords.max = "30";
+      cfgNumLines.min = "1";
+      cfgNumLines.max = "5";
+
+      cfgMinWords.value = minW;
+      cfgMaxWords.value = maxW;
+      cfgNumLines.value = numL;
+    }
+
+    const DANGLING_WORDS_SET = new Set([
+      "il", "lo", "la", "l'", "i", "gli", "le", "un", "uno", "una", "un'",
+      "di", "a", "da", "in", "con", "su", "per", "tra", "fra",
+      "del", "dello", "della", "dei", "degli", "delle",
+      "al", "allo", "alla", "ai", "agli", "alle",
+      "dal", "dallo", "dalla", "dai", "dagli", "dalle",
+      "nel", "nello", "nella", "nei", "negli", "nelle",
+      "sul", "sullo", "sulla", "sui", "sugli", "sulle",
+      "col", "coi",
+      "e", "ed", "o", "od", "ma", "se", "perche", "perché", "poiche", "poiché",
+      "che", "cui", "mentre", "quando", "come", "quindi", "pero", "però", "pure",
+      "ci", "vi", "ti", "mi", "si", "li",
+      "the", "a", "an", "of", "to", "in", "for", "on", "with", "at", "by", "from",
+      "and", "but", "or", "that", "which", "my", "your", "his", "her", "our", "their"
+    ]);
+
+    function scoreSplitBoundaryJS(words, cutIdx) {
+      if (cutIdx <= 0 || cutIdx >= words.length) return 0;
+      const wPrev = words[cutIdx - 1];
+      const wNext = words[cutIdx];
+      const prevTxt = (wPrev.word || "").trim();
+
+      let score = 0;
+      // 1. Punteggiatura finale forte (+120) o di clausola (+65)
+      if (/[.?!]+["')]*$/.test(prevTxt)) {
+        score += 120;
+      } else if (/[,;:\u2014\-]+["')]*$/.test(prevTxt)) {
+        score += 65;
+      }
+
+      // 2. Silenzio vocale / gap audio
+      const gap = Number(wNext.start || 0) - Number(wPrev.end || 0);
+      if (gap > 0.04) {
+        score += Math.min(100, (gap - 0.04) * 150);
+      }
+
+      // 3. Anti-dangling
+      if (!/[.?!,;:\u2014\-]+$/.test(prevTxt)) {
+        const cleanW = prevTxt.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "").toLowerCase();
+        if (DANGLING_WORDS_SET.has(cleanW)) {
+          score -= 80;
+        }
+      }
+
+      return score;
+    }
+
+    function clientResegmentWords(allWords, minW, maxW, numL, gapThreshold = 0.8) {
+      if (!allWords || allWords.length === 0) return [];
+
+      // 1. Raggruppa per pause naturali lunghe (preserva silenzi audio)
+      const macroChunks = [];
+      let currentMacro = [];
+
+      for (let i = 0; i < allWords.length; i++) {
+        const w = allWords[i];
+        if (currentMacro.length === 0) {
+          currentMacro.push(w);
+          continue;
+        }
+        const prevW = currentMacro[currentMacro.length - 1];
+        const gap = Number(w.start) - Number(prevW.end);
+        if (gap >= gapThreshold) {
+          macroChunks.push(currentMacro);
+          currentMacro = [w];
+        } else {
+          currentMacro.push(w);
+        }
+      }
+      if (currentMacro.length > 0) {
+        macroChunks.push(currentMacro);
+      }
+
+      // 2. Suddividi ogni macro in chunk ottimizzati semanticamente e acusticamente
+      const finalChunks = [];
+
+      macroChunks.forEach((macro) => {
+        if (!macro || macro.length === 0) return;
+        const n = macro.length;
+
+        // Caso 1: min == max (modalità rigida a parole fisse)
+        if (minW === maxW) {
+          const target = numL * maxW;
+          const chunkCount = Math.ceil(n / target);
+          let pos = 0;
+          for (let k = 0; k < chunkCount; k++) {
+            const size = Math.min(target, n - pos);
+            const chunkWords = macro.slice(pos, pos + size);
+            const boldIndices = chunkWords.map((w, idx) => w.is_bold ? idx : -1).filter(idx => idx >= 0);
+            finalChunks.push({
+              id: Date.now() + Math.random(),
+              start: +Number(chunkWords[0].start).toFixed(2),
+              end: +Number(chunkWords[chunkWords.length - 1].end).toFixed(2),
+              words: chunkWords.map(w => ({ word: w.word, start: +Number(w.start).toFixed(2), end: +Number(w.end).toFixed(2) })),
+              bold_indices: boldIndices,
+              text: chunkWords.map(w => w.word).join(" ")
+            });
+            pos += size;
+          }
+          return;
+        }
+
+        const sMax = numL * maxW;
+        const sMin = Math.max(1, minW);
+        const idealMin = numL > 1 ? (numL * minW) : minW;
+        const mid = (idealMin + sMax) / 2.0;
+
+        // Se tutte le parole entrano comodamente nella capacità massima
+        if (n <= sMax) {
+          const boldIndices = macro.map((w, idx) => w.is_bold ? idx : -1).filter(idx => idx >= 0);
+          finalChunks.push({
+            id: Date.now() + Math.random(),
+            start: +Number(macro[0].start).toFixed(2),
+            end: +Number(macro[macro.length - 1].end).toFixed(2),
+            words: macro.map(w => ({ word: w.word, start: +Number(w.start).toFixed(2), end: +Number(w.end).toFixed(2) })),
+            bold_indices: boldIndices,
+            text: macro.map(w => w.word).join(" ")
+          });
+          return;
+        }
+
+        // Programmazione dinamica per trovare il partizionamento ottimale
+        const dp = new Array(n + 1).fill(-Infinity);
+        const parent = new Array(n + 1).fill(-1);
+        dp[0] = 0;
+
+        for (let i = 1; i <= n; i++) {
+          for (let s = 1; s <= sMax; s++) {
+            const j = i - s;
+            if (j < 0) break;
+            if (dp[j] === -Infinity) continue;
+
+            let remPenalty = 0;
+            if (i < n) {
+              if (s < sMin) continue;
+              const rem = n - i;
+              if (rem < sMin) remPenalty = -100;
+            } else {
+              if (s < sMin) remPenalty = -50 * (sMin - s);
+            }
+
+            const cutS = i < n ? scoreSplitBoundaryJS(macro, i) : 0;
+            const lenS = -Math.abs(s - mid) * 2.5;
+            const total = dp[j] + cutS + lenS + remPenalty;
+
+            if (total > dp[i]) {
+              dp[i] = total;
+              parent[i] = j;
+            }
+          }
+        }
+
+        let cuts = [];
+        if (dp[n] !== -Infinity) {
+          let curr = n;
+          while (curr > 0) {
+            cuts.push(curr);
+            curr = parent[curr];
+          }
+          cuts.push(0);
+          cuts.reverse();
+        } else {
+          // Fallback bilanciato
+          const chunkCount = Math.ceil(n / sMax);
+          const baseSize = Math.floor(n / chunkCount);
+          const rem = n % chunkCount;
+          cuts = [0];
+          let acc = 0;
+          for (let k = 0; k < chunkCount; k++) {
+            acc += baseSize + (k < rem ? 1 : 0);
+            cuts.push(acc);
+          }
+        }
+
+        for (let k = 0; k < cuts.length - 1; k++) {
+          const chunkWords = macro.slice(cuts[k], cuts[k + 1]);
+          if (!chunkWords || chunkWords.length === 0) continue;
+          const boldIndices = chunkWords.map((w, idx) => w.is_bold ? idx : -1).filter(idx => idx >= 0);
+          finalChunks.push({
+            id: Date.now() + Math.random(),
+            start: +Number(chunkWords[0].start).toFixed(2),
+            end: +Number(chunkWords[chunkWords.length - 1].end).toFixed(2),
+            words: chunkWords.map(w => ({ word: w.word, start: +Number(w.start).toFixed(2), end: +Number(w.end).toFixed(2) })),
+            bold_indices: boldIndices,
+            text: chunkWords.map(w => w.word).join(" ")
+          });
+        }
+      });
+
+      return finalChunks;
+    }
+
+    let layoutDebounceTimer = null;
+
+    function resegmentCurrentSubtitles() {
+      if (!currentChunks || currentChunks.length === 0) return;
+
+      const minW = Math.max(1, parseInt(cfgMinWords.value, 10) || 2);
+      const maxW = Math.max(minW, parseInt(cfgMaxWords.value, 10) || 7);
+      const numL = Math.max(1, parseInt(cfgNumLines.value, 10) || 2);
+
+      // Estrai tutte le parole dallo stato corrente conservando modifiche testo e bold status
+      const allWords = [];
+      currentChunks.forEach(c => {
+        const boldSet = new Set(c.bold_indices || []);
+        (c.words || []).forEach((w, wIdx) => {
+          allWords.push({
+            word: w.word,
+            start: Number(w.start),
+            end: Number(w.end),
+            is_bold: boldSet.has(wIdx)
+          });
+        });
+      });
+
+      if (allWords.length === 0) return;
+
+      // Salva posizione di riproduzione / selezione attuale
+      const curPlayTime = (videoPlayer && !isNaN(videoPlayer.currentTime)) ? videoPlayer.currentTime : 0;
+      const targetTime = (selectedChunkIndex >= 0 && currentChunks[selectedChunkIndex])
+        ? (currentChunks[selectedChunkIndex].start + currentChunks[selectedChunkIndex].end) / 2
+        : curPlayTime;
+
+      pushState();
+
+      const newChunks = clientResegmentWords(allWords, minW, maxW, numL, 0.8);
+      currentChunks = sanitizeChunks(newChunks);
+
+      // Riposiziona selectedChunkIndex in base a targetTime
+      let newIdx = currentChunks.findIndex(c => targetTime >= c.start && targetTime <= c.end);
+      if (newIdx < 0) {
+        let minDist = Infinity;
+        currentChunks.forEach((c, idx) => {
+          const mid = (c.start + c.end) / 2;
+          const d = Math.abs(mid - targetTime);
+          if (d < minDist) {
+            minDist = d;
+            newIdx = idx;
+          }
+        });
+      }
+      selectedChunkIndex = Math.max(0, newIdx);
+
+      if (statsBadge) statsBadge.innerText = `${currentChunks.length} chunk`;
+      renderChunksList();
+      renderTimelineBlocks();
+      updateTimelineSelection();
+      updateLiveSubtitleAtCurrentTime();
+      saveCurrentStateToBatch();
+    }
+
+    function onLayoutParamChange(source) {
+      syncLayoutControlLimits(source);
+      preset = getLiveEditorState();
+      updatePresetSyncStatus();
+      updateLiveSubtitleAtCurrentTime();
+
+      clearTimeout(layoutDebounceTimer);
+      layoutDebounceTimer = setTimeout(() => {
+        resegmentCurrentSubtitles();
+      }, 120);
+    }
 
     function getVideoRenderedRect(video) {
       const container = videoContainer || document.getElementById("video-container");
@@ -8903,61 +9833,64 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         const numLines = Math.max(1, parseInt(layout.num_lines) || 2);
 
         const normalFont = normalStyle.font_family || "Raleway";
-        const normalVariant = (normalStyle.font_variant || "Light").toLowerCase();
+        const normalVariant = normalStyle.font_variant || "Light";
         const normalColor = normalStyle.color || "#FFFFFF";
 
         const keywordFont = keywordStyle.font_family || "Raleway";
-        const keywordVariant = (keywordStyle.font_variant || "SemiBold").toLowerCase();
+        const keywordVariant = keywordStyle.font_variant || "SemiBold";
         const keywordColor = keywordStyle.color || "#FFFFFF";
 
-        // Mappa variante → font-weight CSS approssimativo per la preview HTML
-        function _variantToWeight(v) {
-          const vl = (v || "").toLowerCase();
-          if (vl === "thin" || vl === "extralight") return "100";
-          if (vl === "light") return "300";
-          if (vl === "medium") return "500";
-          if (vl === "semibold") return "600";
-          if (vl === "bold" || vl === "extrabold" || vl === "black") return "700";
-          return "400"; // regular/italic/default
-        }
+        const normalCss = getVariantCss(normalFont, normalVariant);
+        const keywordCss = getVariantCss(keywordFont, keywordVariant);
 
-        const normalWeight = _variantToWeight(normalVariant);
-        const keywordWeight = _variantToWeight(keywordVariant);
-        const normalItalic = normalVariant === "italic";
-        const keywordItalic = keywordVariant === "italic";
+        const normalWeight = normalCss.weight;
+        const keywordWeight = keywordCss.weight;
+        const normalItalic = normalCss.style === "italic";
+        const keywordItalic = keywordCss.style === "italic";
 
         const boldSet = new Set(activeChunk.bold_indices || []);
 
         const words = activeChunk.words || [];
+        const n = words.length;
         let lines = [];
-        let currentLine = [];
 
-        // Prima rispettiamo il massimo di parole per riga.
-        words.forEach((w, idx) => {
-          currentLine.push({ w, idx });
-
-          if (currentLine.length >= maxWordsPerLine) {
-            lines.push(currentLine);
-            currentLine = [];
+        const targetLines = Math.min(numLines, n);
+        if (targetLines <= 1 || n <= 1) {
+          lines = [words.map((w, idx) => ({ w, idx }))];
+        } else if (n >= targetLines * minWordsPerLine) {
+          const counts = Array(targetLines).fill(minWordsPerLine);
+          let remaining = n - (targetLines * minWordsPerLine);
+          while (remaining > 0) {
+            let moved = false;
+            for (let i = 0; i < targetLines; i++) {
+              if (remaining <= 0) break;
+              if (counts[i] < maxWordsPerLine) {
+                counts[i]++;
+                remaining--;
+                moved = true;
+              }
+            }
+            if (!moved) {
+              for (let i = 0; i < targetLines; i++) {
+                if (remaining <= 0) break;
+                counts[i]++;
+                remaining--;
+              }
+            }
           }
-        });
-
-        if (currentLine.length > 0) {
-          lines.push(currentLine);
-        }
-
-        // Riduciamo il numero di righe quando possibile.
-        // Non eliminiamo MAI parole: se max_words e num_lines
-        // sono incompatibili, num_lines ha priorità.
-        if (lines.length > numLines && words.length > 0) {
-          const wordsPerLine = Math.ceil(words.length / numLines);
-          lines = [];
-
-          for (let i = 0; i < words.length; i += wordsPerLine) {
-            lines.push(words.slice(i, i + wordsPerLine).map((w, idx) => ({
-              w,
-              idx: i + idx
-            })));
+          let pos = 0;
+          counts.forEach(count => {
+            lines.push(words.slice(pos, pos + count).map((w, idx) => ({ w, idx: pos + idx })));
+            pos += count;
+          });
+        } else {
+          const base = Math.floor(n / targetLines);
+          const rem = n % targetLines;
+          let pos = 0;
+          for (let i = 0; i < targetLines; i++) {
+            const count = base + (i < rem ? 1 : 0);
+            lines.push(words.slice(pos, pos + count).map((w, idx) => ({ w, idx: pos + idx })));
+            pos += count;
           }
         }
 

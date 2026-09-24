@@ -10,11 +10,32 @@ Preset: "La Voce del Successo"
 """
 from __future__ import annotations
 
+import os
+import sys
+
+# Auto-recovery: if launched with an interpreter missing faster_whisper,
+# switch automatically to the bundled standalone Python 3.12 environment.
+try:
+    import faster_whisper  # noqa: F401
+except ImportError:
+    _script_dir = os.path.dirname(os.path.abspath(__file__))
+    _candidates = [
+        os.path.join(_script_dir, "dist", "Sottotitolatore.app", "Contents", "Resources", "python", "bin", "python3"),
+        os.path.join(_script_dir, "..", "python", "bin", "python3"),
+        os.path.join(_script_dir, ".venv", "bin", "python3"),
+    ]
+    for _cand in _candidates:
+        if os.path.exists(_cand) and os.path.realpath(_cand) != os.path.realpath(sys.executable):
+            print(f"[web_app] Switching Python interpreter to: {_cand}", file=sys.stderr)
+            _argv = sys.argv[:]
+            if not _argv or _argv[0] == "-c":
+                _argv = [os.path.abspath(__file__)]
+            os.execv(_cand, [_cand] + _argv)
+
 import base64
 import io
 import json
 import mimetypes
-import os
 import re
 import shutil
 import struct
@@ -526,6 +547,16 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 self.send_error_json("Nessun video di default disponibile", 404)
             return
 
+        if path == "/api/fonts":
+            import font_manager
+            data = font_manager.get_all_fonts_catalog()
+            self.send_json({
+                "success": True,
+                "fonts": data["system_preinstalled"],
+                "custom_fonts": data["custom"],
+            })
+            return
+
         if path.startswith("/fonts/"):
             font_filename = urllib.parse.unquote(path[len("/fonts/"):])
             target = (WORKSPACE / "fonts" / font_filename).resolve()
@@ -533,9 +564,15 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 target = (Path(__file__).parent / "fonts" / font_filename).resolve()
             if target.exists() and target.is_file():
                 content = target.read_bytes()
+                mime = "font/ttf"
+                if target.suffix.lower() == ".otf":
+                    mime = "font/otf"
+                elif target.suffix.lower() == ".woff2":
+                    mime = "font/woff2"
                 self.send_response(200)
-                self.send_header("Content-Type", "font/ttf")
+                self.send_header("Content-Type", mime)
                 self.send_header("Content-Length", str(len(content)))
+                self.send_header("Cache-Control", "public, max-age=86400")
                 self.end_headers()
                 self.wfile.write(content)
                 return
@@ -575,13 +612,54 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 mime, _ = mimetypes.guess_type(str(target))
                 mime = mime or "application/octet-stream"
                 size = target.stat().st_size
+
+                range_header = self.headers.get("Range")
+                if range_header and range_header.startswith("bytes="):
+                    try:
+                        range_str = range_header[6:].strip()
+                        parts = range_str.split("-")
+                        start = int(parts[0]) if parts[0] else 0
+                        end = int(parts[1]) if len(parts) > 1 and parts[1] else size - 1
+                        if start >= size:
+                            self.send_response(416)
+                            self.send_header("Content-Range", f"bytes */{size}")
+                            self.end_headers()
+                            return
+                        end = min(end, size - 1)
+                        length = end - start + 1
+
+                        self.send_response(206)
+                        self.send_header("Content-Type", mime)
+                        self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+                        self.send_header("Content-Length", str(length))
+                        self.send_header("Accept-Ranges", "bytes")
+                        self.end_headers()
+
+                        with open(target, "rb") as f:
+                            f.seek(start)
+                            remaining = length
+                            chunk_size = 64 * 1024
+                            while remaining > 0:
+                                read_len = min(chunk_size, remaining)
+                                buf = f.read(read_len)
+                                if not buf:
+                                    break
+                                self.wfile.write(buf)
+                                remaining -= len(buf)
+                    except (BrokenPipeError, ConnectionResetError):
+                        pass
+                    return
+
                 self.send_response(200)
                 self.send_header("Content-Type", mime)
                 self.send_header("Content-Length", str(size))
                 self.send_header("Accept-Ranges", "bytes")
                 self.end_headers()
-                with open(target, "rb") as f:
-                    shutil.copyfileobj(f, self.wfile)
+                try:
+                    with open(target, "rb") as f:
+                        shutil.copyfileobj(f, self.wfile)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
                 return
             else:
                 self.send_error_json("Media file not found", 404)
@@ -647,6 +725,46 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             })
             return
 
+        if path == "/api/upload_font":
+            content_type = self.headers.get("content-type", "")
+            if "multipart/form-data" not in content_type:
+                self.send_error_json("Richiesta non valida: multipart/form-data atteso")
+                return
+
+            content_len = int(self.headers.get("content-length", 0))
+            if content_len <= 0:
+                self.send_error_json("Contenuto vuoto o Content-Length mancante")
+                return
+
+            post_data = self.rfile.read(content_len)
+            raw_msg = f"Content-Type: {content_type}\r\n\r\n".encode("utf-8") + post_data
+
+            saved_fonts = []
+            try:
+                msg = BytesParser(policy=default).parsebytes(raw_msg)
+                for part in msg.iter_parts():
+                    file_bytes = part.get_payload(decode=True)
+                    if file_bytes:
+                        raw_filename = part.get_filename() or "custom_font.ttf"
+                        # Sanitizza nome file
+                        clean_filename = Path(raw_filename).name
+                        dest_file = WORKSPACE / "fonts" / clean_filename
+                        dest_file.write_bytes(file_bytes)
+                        saved_fonts.append(clean_filename)
+            except Exception as exc:
+                self.send_error_json(f"Errore caricamento font: {str(exc)}", 500)
+                return
+
+            import font_manager
+            catalog = font_manager.get_all_fonts_catalog()
+            self.send_json({
+                "success": True,
+                "saved_fonts": saved_fonts,
+                "fonts": catalog["system_preinstalled"],
+                "custom_fonts": catalog["custom"],
+            })
+            return
+
         content_len = int(self.headers.get("content-length", 0))
         post_data = self.rfile.read(content_len) if content_len > 0 else b"{}"
         try:
@@ -697,7 +815,17 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         translation_engine=translation_engine,
                         api_key=gemini_api_key,
                     )
-                    chunks = group_into_chunks(words)
+                    subtitle_layout = payload.get("subtitle_layout") or {}
+                    min_w = subtitle_layout.get("min_words_per_line")
+                    max_w = subtitle_layout.get("max_words_per_line")
+                    num_l = subtitle_layout.get("num_lines")
+                    if min_w is not None and max_w is not None and num_l is not None:
+                        min_w = max(1, int(min_w))
+                        max_w = max(min_w, int(max_w))
+                        num_l = max(1, int(num_l))
+                        chunks = group_into_chunks(words, min_words_per_line=min_w, max_words_per_line=max_w, num_lines=num_l)
+                    else:
+                        chunks = group_into_chunks(words)
                 except Exception as e:
                     self.send_error_json(f"Errore trascrizione: {str(e)}", 500)
                     return
@@ -746,6 +874,74 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 })
             except Exception as exc:
                 self.send_error_json(f"Errore traduzione sottotitoli: {str(exc)}", 500)
+            return
+
+        if path == "/api/resegment":
+            chunks_data = payload.get("chunks", [])
+            words_data = payload.get("words", [])
+            subtitle_layout = payload.get("subtitle_layout") or {}
+            keyword_mode = str(payload.get("keyword_mode") or "automatic").strip().lower()
+
+            min_w = max(1, int(subtitle_layout.get("min_words_per_line", 2)))
+            max_w = max(min_w, int(subtitle_layout.get("max_words_per_line", 7)))
+            num_l = max(1, int(subtitle_layout.get("num_lines", 2)))
+
+            all_words = []
+            if words_data:
+                for w in words_data:
+                    all_words.append({
+                        "word": str(w.get("word", "")),
+                        "start": float(w.get("start", 0.0)),
+                        "end": float(w.get("end", 0.0)),
+                        "is_bold": bool(w.get("is_bold", False)),
+                    })
+            elif chunks_data:
+                for c in chunks_data:
+                    b_set = set(c.get("bold_indices", []))
+                    for idx, w in enumerate(c.get("words", [])):
+                        all_words.append({
+                            "word": str(w.get("word", "")),
+                            "start": float(w.get("start", 0.0)),
+                            "end": float(w.get("end", 0.0)),
+                            "is_bold": idx in b_set,
+                        })
+
+            if not all_words:
+                self.send_error_json("Nessuna parola o chunk fornito per la ri-segmentazione")
+                return
+
+            try:
+                resegmented = resegment_subtitles(
+                    all_words,
+                    min_words_per_line=min_w,
+                    max_words_per_line=max_w,
+                    num_lines=num_l,
+                )
+                output_chunks = []
+                for i, c in enumerate(resegmented):
+                    w_list = [w.word for w in c.words]
+                    c_bolds = [idx for idx, w in enumerate(c.words) if getattr(w, "is_bold", False)]
+                    if not c_bolds and keyword_mode == "automatic":
+                        kw_idx = select_keyword(w_list)
+                        if kw_idx is not None and kw_idx >= 0:
+                            c_bolds = [kw_idx]
+
+                    output_chunks.append({
+                        "id": i,
+                        "start": round(c.start, 2),
+                        "end": round(c.end, 2),
+                        "words": [{"word": w.word, "start": round(w.start, 2), "end": round(w.end, 2)} for w in c.words],
+                        "bold_indices": c_bolds,
+                        "text": c.text,
+                    })
+
+                self.send_json({
+                    "success": True,
+                    "chunks": output_chunks,
+                    "count": len(output_chunks),
+                })
+            except Exception as e:
+                self.send_error_json(f"Errore ri-segmentazione: {str(e)}", 500)
             return
 
         if path == "/api/preview_chunk":
@@ -1019,42 +1215,43 @@ class AppRequestHandler(BaseHTTPRequestHandler):
 
                     canvas_w, canvas_h = get_video_dimensions(render_video_source)
 
-                    # Ri-segmentazione dinamica basata sui parametri layout del preset
-                    # Estrae tutte le parole dai chunk (preservando timestamp word-level)
-                    all_words = []
-                    for chunk in render_chunks:
-                        for w in chunk.get("words", []):
-                            all_words.append({
-                                "word": w.get("word", ""),
-                                "start": float(w.get("start", 0.0)),
-                                "end": float(w.get("end", 0.0)),
-                            })
-
-                    # Legge parametri layout dal preset
                     subtitle_layout = preset.get("subtitle_layout") or {}
                     min_words_per_line = max(1, int(subtitle_layout.get("min_words_per_line", 2)))
                     max_words_per_line = max(min_words_per_line, int(subtitle_layout.get("max_words_per_line", 7)))
                     num_lines = max(1, int(subtitle_layout.get("num_lines", 2)))
 
-                    # Ri-segmentazione: usa le WordToken originali (con modifiche utente preservate)
-                    resegmented = resegment_subtitles(
-                        all_words,
-                        min_words_per_line=min_words_per_line,
-                        max_words_per_line=max_words_per_line,
-                        num_lines=num_lines,
-                    )
+                    # Se richiesto explicitamente force_resegment dal client
+                    force_resegment = bool(payload.get("force_resegment", False))
+                    if force_resegment:
+                        all_words = []
+                        for chunk in render_chunks:
+                            b_set = set(chunk.get("bold_indices", []))
+                            for w_i, w in enumerate(chunk.get("words", [])):
+                                all_words.append({
+                                    "word": w.get("word", ""),
+                                    "start": float(w.get("start", 0.0)),
+                                    "end": float(w.get("end", 0.0)),
+                                    "is_bold": w_i in b_set,
+                                })
 
-                    # Converte SubtitleChunk in formato dict per render_all
-                    render_chunks = []
-                    for i, chunk in enumerate(resegmented):
-                        render_chunks.append({
-                            "id": i,
-                            "start": round(chunk.start, 2),
-                            "end": round(chunk.end, 2),
-                            "words": [{"word": w.word, "start": round(w.start, 2), "end": round(w.end, 2)} for w in chunk.words],
-                            "bold_indices": [],
-                            "text": " ".join(w.word for w in chunk.words),
-                        })
+                        resegmented = resegment_subtitles(
+                            all_words,
+                            min_words_per_line=min_words_per_line,
+                            max_words_per_line=max_words_per_line,
+                            num_lines=num_lines,
+                        )
+
+                        render_chunks = []
+                        for i, chunk in enumerate(resegmented):
+                            c_bolds = [idx for idx, w in enumerate(chunk.words) if getattr(w, "is_bold", False)]
+                            render_chunks.append({
+                                "id": i,
+                                "start": round(chunk.start, 2),
+                                "end": round(chunk.end, 2),
+                                "words": [{"word": w.word, "start": round(w.start, 2), "end": round(w.end, 2)} for w in chunk.words],
+                                "bold_indices": c_bolds,
+                                "text": " ".join(w.word for w in chunk.words),
+                            })
 
                     _, ffconcat_path, wm_path = render_all(
                         chunks=render_chunks,

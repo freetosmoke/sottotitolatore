@@ -165,170 +165,32 @@ def load_font_variant(
 ) -> ImageFont.FreeTypeFont:
     """
     Carica una specifica variante del font.
-
-    Se la variante non esiste, utilizza un fallback compatibile.
+    Utilizza il gestore centralizzato font_manager.
     """
-    family = str(font_name or "Raleway").strip()
-    requested = _normalize_font_variant(variant)
+    try:
+        from font_manager import resolve_font
+        return resolve_font(font_name=font_name, variant=variant, size=size)
+    except Exception as e:
+        logger.warning(f"Errore caricamento font con font_manager ({font_name}, {variant}): {e}")
 
-    # Raleway: utilizziamo i font già presenti nel progetto.
-    if family.lower() == "raleway":
-        explicit = {
-            "thin": _RALEWAY_LIGHT,
-            "extralight": _RALEWAY_LIGHT,
-            "light": _RALEWAY_LIGHT,
-            "regular": _RALEWAY_LIGHT,
-            "medium": _RALEWAY_BOLD,
-            "semibold": _RALEWAY_BOLD,
-            "bold": _RALEWAY_BOLD,
-            "extrabold": _RALEWAY_BOLD,
-            "black": _RALEWAY_BOLD,
-            "italic": _RALEWAY_LIGHT,
-        }
-
-        candidates = explicit.get(requested)
-
-        if candidates:
-            path = _find(candidates)
-            if path:
-                return ImageFont.truetype(path, size)
-
-    # Alata: attualmente il progetto contiene una sola variante.
-    if family.lower() == "alata":
-        path = _find(_ALATA_REGULAR)
-        if path:
-            return ImageFont.truetype(path, size)
-
-    # Ricerca generica nei font disponibili.
-    font_dirs = []
-
-    # Recupera eventuali directory già definite dal renderer.
-    for name in ("_FONT_DIRS", "_FONT_DIR"):
-        value = globals().get(name)
-
-        if value:
-            if isinstance(value, (list, tuple)):
-                font_dirs.extend(Path(x) for x in value)
-            else:
-                font_dirs.append(Path(value))
-
-    # Aggiunge la cartella fonts del progetto se non già presente.
-    project_fonts = Path(__file__).resolve().parent / "fonts"
-
-    if project_fonts.exists() and project_fonts not in font_dirs:
-        font_dirs.append(project_fonts)
-
-    matches = []
-
-    family_key = family.lower().replace("-", "").replace("_", "").replace(" ", "")
-
-    for root in font_dirs:
-        if not root.exists():
-            continue
-
-        for path in root.rglob("*"):
-            if path.suffix.lower() not in {".ttf", ".otf", ".ttc"}:
-                continue
-
-            stem_key = (
-                path.stem.lower()
-                .replace("-", "")
-                .replace("_", "")
-                .replace(" ", "")
-            )
-
-            if family_key not in stem_key:
-                continue
-
-            score = _font_variant_score(path, requested)
-
-            if score > 0:
-                matches.append((score, path))
-
-    if matches:
-        matches.sort(key=lambda item: (-item[0], str(item[1])))
-        return ImageFont.truetype(str(matches[0][1]), size)
-
-    # Fallback definitivo: comportamento precedente.
-    light, semibold = load_pair(size, font_name=family)
-
-    if requested in {
-        "medium",
-        "semibold",
-        "bold",
-        "extrabold",
-        "black",
-    }:
-        return semibold
-
-    return light
+    # Fallback di emergenza
+    safe_size = max(int(size or 1), 1)
+    d = ImageFont.load_default(size=max(safe_size, 10))
+    return d
 
 
 def load_pair(size: int, font_name: str = "Raleway") -> tuple[ImageFont.FreeTypeFont, ImageFont.FreeTypeFont]:
+    """
+    Carica coppia (Regular, Bold) del font per watermark e compatibilità legacy.
+    Utilizza il gestore centralizzato font_manager.
+    """
+    try:
+        from font_manager import resolve_font_pair
+        return resolve_font_pair(font_name=font_name, size=size)
+    except Exception as e:
+        logger.warning(f"Errore caricamento font pair con font_manager ({font_name}): {e}")
+
     safe_size = max(int(size or 1), 1)
-    fn = (font_name or "").strip().lower()
-
-    # 1. Raleway (Light + Grassetto Bold)
-    if fn in ["raleway", ""]:
-        lp = _find(_RALEWAY_LIGHT)
-        bp = _find(_RALEWAY_BOLD)
-        if lp and bp:
-            return _load(lp, safe_size), _load(bp, safe_size)
-
-    # 2. Alata
-    if fn == "alata":
-        ap = _find(_ALATA_REGULAR)
-        if ap:
-            af = _load(ap, safe_size)
-            return af, af
-
-    # 3. Custom font caricato dall'utente in fonts/
-    fonts_dirs = [
-        Path(__file__).parent / "fonts",
-        Path("./fonts")
-    ]
-    for fdir in fonts_dirs:
-        if fdir.exists():
-            matching = []
-            for f in fdir.iterdir():
-                if f.is_file() and f.suffix.lower() in [".ttf", ".otf"]:
-                    if fn in f.stem.lower():
-                        matching.append(f)
-                    else:
-                        try:
-                            f_obj = ImageFont.truetype(str(f), 20)
-                            gn = f_obj.getname()
-                            if gn and gn[0] and fn in gn[0].lower():
-                                matching.append(f)
-                        except Exception:
-                            pass
-            if matching:
-                bold_file = None
-                regular_file = None
-                for mf in matching:
-                    stem_lower = mf.stem.lower()
-                    if any(k in stem_lower for k in ["bold", "black", "heavy", "700", "800"]):
-                        bold_file = mf
-                    elif any(k in stem_lower for k in ["regular", "light", "medium", "300", "400"]):
-                        regular_file = mf
-                if regular_file and bold_file:
-                    return _load(str(regular_file), safe_size), _load(str(bold_file), safe_size)
-                elif regular_file:
-                    rf = _load(str(regular_file), safe_size)
-                    return rf, rf
-                elif bold_file:
-                    bf = _load(str(bold_file), safe_size)
-                    return bf, bf
-                else:
-                    f_single = _load(str(matching[0]), safe_size)
-                    return f_single, f_single
-
-    # 4. Fallback di sistema
-    rp = _find(_FALLBACK_REG)
-    bp = _find(_FALLBACK_BOLD)
-    if rp and bp:
-        bold_idx = 1 if bp.endswith(".ttc") else 0
-        return _load(rp, safe_size, 0), _load(bp, safe_size, bold_idx)
     d = ImageFont.load_default(size=max(safe_size, 10))
     return d, d
 

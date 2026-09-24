@@ -23,6 +23,7 @@ class WordToken:
     word: str
     start: float
     end: float
+    is_bold: bool = False
 
 
 @dataclasses.dataclass
@@ -30,6 +31,7 @@ class SubtitleChunk:
     words: list[WordToken]
     start: float
     end: float
+    bold_indices: list[int] = dataclasses.field(default_factory=list)
 
     @property
     def text(self) -> str:
@@ -228,19 +230,36 @@ def _chunk_is_full(current_words: list[WordToken], candidate: WordToken) -> bool
     return False
 
 
-def group_into_chunks(words: list[WordToken]) -> list[SubtitleChunk]:
+def group_into_chunks(
+    words: list[WordToken],
+    min_words_per_line: int | None = None,
+    max_words_per_line: int | None = None,
+    num_lines: int | None = None,
+) -> list[SubtitleChunk]:
     """
-    Raggruppa i WordToken in SubtitleChunk a singola riga, senza
-    sovrapposizioni temporali.
+    Raggruppa i WordToken in SubtitleChunk, senza sovrapposizioni temporali.
+    Se specificati parametri di layout (min_words_per_line, max_words_per_line, num_lines),
+    applica direttamente la ri-segmentazione secondo layout.
 
     Args:
         words: Lista di WordToken in ordine cronologico.
+        min_words_per_line: Minimo parole per riga (opzionale).
+        max_words_per_line: Massimo parole per riga (opzionale).
+        num_lines: Numero massimo di righe per chunk (opzionale).
 
     Returns:
         Lista di SubtitleChunk ordinata.
     """
     if not words:
         return []
+
+    if min_words_per_line is not None and max_words_per_line is not None and num_lines is not None:
+        return resegment_subtitles(
+            words,
+            min_words_per_line=min_words_per_line,
+            max_words_per_line=max_words_per_line,
+            num_lines=num_lines,
+        )
 
     chunks: list[SubtitleChunk] = []
     current: list[WordToken] = []
@@ -338,6 +357,7 @@ def resegment_subtitles(
                 word=str(w.get("word", "")),
                 start=float(w.get("start", 0.0)),
                 end=float(w.get("end", 0.0)),
+                is_bold=bool(w.get("is_bold", False)),
             ))
 
     # Prima passa: raggruppa per pause lunghe (GAP_SPLIT_THRESHOLD)
@@ -396,6 +416,69 @@ def resegment_subtitles(
     return final_chunks
 
 
+DANGLING_WORDS: set[str] = {
+    # Italian articles
+    "il", "lo", "la", "l'", "i", "gli", "le", "un", "uno", "una", "un'",
+    # Italian prepositions (simple & articulated)
+    "di", "a", "da", "in", "con", "su", "per", "tra", "fra",
+    "del", "dello", "della", "dei", "degli", "delle",
+    "al", "allo", "alla", "ai", "agli", "alle",
+    "dal", "dallo", "dalla", "dai", "dagli", "dalle",
+    "nel", "nello", "nella", "nei", "negli", "nelle",
+    "sul", "sullo", "sulla", "sui", "sugli", "sulle",
+    "col", "coi",
+    # Italian conjunctions & connectors
+    "e", "ed", "o", "od", "ma", "se", "perche", "perché", "poiche", "poiché",
+    "che", "cui", "mentre", "quando", "come", "quindi", "pero", "però", "pure",
+    # Italian clitic pronouns
+    "ci", "vi", "ti", "mi", "si", "li",
+    # English common equivalents
+    "the", "a", "an", "of", "to", "in", "for", "on", "with", "at", "by", "from",
+    "and", "but", "or", "that", "which", "my", "your", "his", "her", "our", "their",
+}
+
+
+def _clean_word_for_dangling(w: str) -> str:
+    import re
+    return re.sub(r"^[^\w]+|[^\w]+$", "", w).lower()
+
+
+def _score_split_boundary(words: list[WordToken], cut_idx: int) -> float:
+    """
+    Calcola il punteggio di appetibilità per effettuare un taglio tra words[cut_idx-1] e words[cut_idx].
+    Considera punteggiatura, silenzi audio (gap temporale) e regole sintattiche (anti-dangling).
+    """
+    import re
+    n = len(words)
+    if cut_idx <= 0 or cut_idx >= n:
+        return 0.0
+
+    w_prev = words[cut_idx - 1]
+    w_next = words[cut_idx]
+    prev_txt = w_prev.word.strip()
+
+    score = 0.0
+
+    # 1. Punteggiatura finale forte (+120) o debole (+65)
+    if re.search(r"[.?!]+[\"'\)]*$", prev_txt):
+        score += 120.0
+    elif re.search(r"[,;:\u2014\-]+[\"'\)]*$", prev_txt):
+        score += 65.0
+
+    # 2. Pausa naturale nel parlato (silence gap tra parole)
+    gap = getattr(w_next, "start", 0.0) - getattr(w_prev, "end", 0.0)
+    if gap > 0.04:
+        score += min(100.0, (gap - 0.04) * 150.0)
+
+    # 3. Penalità anti-dangling (non spezzare dopo articoli, preposizioni, congiunzioni)
+    if not re.search(r"[.?!,;:\u2014\-]+$", prev_txt):
+        cw = _clean_word_for_dangling(prev_txt)
+        if cw in DANGLING_WORDS:
+            score -= 80.0
+
+    return score
+
+
 def _split_macro_by_layout(
     words: list[WordToken],
     min_words_per_line: int,
@@ -404,10 +487,8 @@ def _split_macro_by_layout(
 ) -> list[SubtitleChunk]:
     """
     Divide un macro-chunk in sottotitoli rispettando i vincoli di layout.
-    Priorità (come _layout_lines):
-    1. num_lines (hard constraint)
-    2. min_words_per_line
-    3. max_words_per_line
+    Utilizza programmazione dinamica e scoring multi-criterio (punteggiatura,
+    gap audio, coerenza sintattica e rispetto rigoroso di min/max parole).
     """
     if not words:
         return []
@@ -415,46 +496,107 @@ def _split_macro_by_layout(
     min_w = max(1, int(min_words_per_line))
     max_w = max(min_w, int(max_words_per_line))
     n_lines = max(1, int(num_lines))
-
     n = len(words)
 
-    # Massimo parole per chunk basato su layout: n_lines * max_w
-    layout_max_words = n_lines * max_w
+    # Caso 1: min == max (modalità rigida a parole fisse)
+    if min_w == max_w:
+        target = n_lines * max_w
+        chunk_count = (n + target - 1) // target
+        chunks: list[SubtitleChunk] = []
+        pos = 0
+        for _ in range(chunk_count):
+            size = min(target, n - pos)
+            chunk_words = words[pos : pos + size]
+            b_indices = [i for i, w in enumerate(chunk_words) if getattr(w, "is_bold", False)]
+            chunks.append(SubtitleChunk(
+                words=list(chunk_words),
+                start=chunk_words[0].start,
+                end=chunk_words[-1].end,
+                bold_indices=b_indices,
+            ))
+            pos += size
+        return chunks
 
-    # Se tutte le parole stanno in un chunk rispettando i vincoli, restituisci chunk singolo
-    if n <= layout_max_words:
+    s_max = n_lines * max_w
+    s_min = max(1, min_w)
+    ideal_min = n_lines * min_w if n_lines > 1 else min_w
+    mid = (ideal_min + s_max) / 2.0
+
+    # Se tutte le parole entrano comodamente nella capacità massima del chunk
+    if n <= s_max:
         return [SubtitleChunk(
             words=list(words),
             start=words[0].start,
             end=words[-1].end,
+            bold_indices=[i for i, w in enumerate(words) if getattr(w, "is_bold", False)],
         )]
 
-    # Altrimenti, dobbiamo dividere in più chunk
-    # Ogni chunk può contenere al massimo layout_max_words parole
-    chunks: list[SubtitleChunk] = []
-    pos = 0
+    # Programmazione dinamica per trovare il partizionamento ottimale globale
+    # dp[i] = miglior punteggio per il prefisso words[:i]
+    dp = [-float("inf")] * (n + 1)
+    parent = [-1] * (n + 1)
+    dp[0] = 0.0
 
-    while pos < n:
-        # Quante parole possiamo mettere in questo chunk?
-        remaining = n - pos
-        chunk_size = min(layout_max_words, remaining)
+    for i in range(1, n + 1):
+        for s in range(1, s_max + 1):
+            j = i - s
+            if j < 0:
+                break
+            if dp[j] == -float("inf"):
+                continue
 
-        # Ma se le parole rimanenti dopo questo chunk sarebbero troppo poche
-        # (meno di min_w * num_lines ma > 0), aggiustiamo
-        remaining_after = remaining - chunk_size
-        if 0 < remaining_after < min_w * n_lines:
-            # Ridistribuiamo per evitare chunk finale troppo piccolo
-            chunk_size = remaining - (min_w * n_lines)
-            if chunk_size < min_w:
-                chunk_size = min(layout_max_words, remaining)
+            if i < n:
+                if s < s_min:
+                    continue
+                rem = n - i
+                rem_penalty = 0.0
+                if rem < s_min:
+                    rem_penalty = -100.0
+            else:
+                rem_penalty = 0.0
+                if s < s_min:
+                    rem_penalty = -50.0 * (s_min - s)
 
-        chunk_words = words[pos:pos + chunk_size]
+            cut_s = _score_split_boundary(words, i) if i < n else 0.0
+            len_s = -abs(s - mid) * 2.5
+            total = dp[j] + cut_s + len_s + rem_penalty
+            if total > dp[i]:
+                dp[i] = total
+                parent[i] = j
+
+    # Ricostruzione dei tagli
+    if dp[n] != -float("inf"):
+        cuts = []
+        curr = n
+        while curr > 0:
+            cuts.append(curr)
+            curr = parent[curr]
+        cuts.append(0)
+        cuts.reverse()
+    else:
+        # Fallback di sicurezza in caso di impossibilità teorica di partizionamento
+        import math
+        chunk_count = math.ceil(n / s_max)
+        base_size = n // chunk_count
+        rem = n % chunk_count
+        chunk_sizes = [base_size + (1 if k < rem else 0) for k in range(chunk_count)]
+        cuts = [0]
+        acc = 0
+        for sz in chunk_sizes:
+            acc += sz
+            cuts.append(acc)
+
+    chunks = []
+    for k in range(len(cuts) - 1):
+        chunk_words = words[cuts[k] : cuts[k + 1]]
+        if not chunk_words:
+            continue
+        b_indices = [idx for idx, w in enumerate(chunk_words) if getattr(w, "is_bold", False)]
         chunks.append(SubtitleChunk(
             words=list(chunk_words),
             start=chunk_words[0].start,
             end=chunk_words[-1].end,
+            bold_indices=b_indices,
         ))
-
-        pos += chunk_size
 
     return chunks

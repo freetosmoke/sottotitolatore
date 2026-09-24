@@ -111,7 +111,8 @@ sottotitolatore/
 ├── main.py                     # CLI pipeline
 ├── web_app.py                  # Local HTTP backend & API
 │
-├── transcriber.py              # faster-whisper transcription & dynamic resegmentation
+├── font_manager.py             # Typography library (39+ fonts, variants, caching & metrics)
+├── transcriber.py              # faster-whisper transcription & intelligent DP layout resegmentation
 ├── silence_remover.py          # FFmpeg silence detection & timeline compaction
 ├── translator.py               # Subtitle translation (Gemini API & Web)
 ├── audio_extractor.py          # Audio extraction to 16kHz WAV
@@ -132,7 +133,12 @@ sottotitolatore/
 │   ├── Alata-Regular.ttf
 │   ├── Raleway-Light.ttf
 │   ├── Raleway-SemiBold.ttf
-│   └── Raleway-Bold.ttf
+│   ├── Raleway-Bold.ttf
+│   └── google/                 # On-demand offline cache for Google Fonts
+│
+├── tests/
+│   ├── test_layout_segmentation.py  # 14 automated tests for DP layout segmentation & API
+│   └── test_typography.py           # Verification of 39 fonts, variants and Pillow rendering
 │
 ├── build_app.sh                # macOS application bundle builder
 ├── build_dmg.sh                # Compressed DMG disk image creator
@@ -147,17 +153,49 @@ sottotitolatore/
 
 ---
 
+## Typography & Font Management System
+
+Sottotitolatore includes a comprehensive typography engine managed by `font_manager.py`:
+
+- **Complete Font Catalog (39+ Families)**:
+  - **macOS System Fonts**: `Arial`, `Helvetica`, `Helvetica Neue` (mapped to local system fonts and `.ttc` collection indices).
+  - **Bundled Core Fonts**: `Raleway`, `Alata`.
+  - **Google Fonts (34+)**: `Inter`, `Roboto`, `Open Sans`, `Lato`, `Montserrat`, `Poppins`, `Nunito`, `Nunito Sans`, `Oswald`, `Bebas Neue`, `Anton`, `Roboto Condensed`, `Roboto Slab`, `Merriweather`, `Playfair Display`, `DM Sans`, `Manrope`, `Outfit`, `Plus Jakarta Sans`, `Space Grotesk`, `Barlow`, `Barlow Condensed`, `Fira Sans`, `Source Sans 3`, `Ubuntu`, `Work Sans`, `Archivo`, `IBM Plex Sans`, `IBM Plex Serif`, `Libre Baskerville`, `Cormorant Garamond`, `Cinzel`, `Pacifico`, `Lobster`.
+- **Dynamic Variant Resolution**: Real variant mapping for each family (e.g. `Montserrat` supports 10 variants from Thin to Black & Italic; `Bebas Neue` only Regular; `Oswald` from ExtraLight to Bold).
+- **Custom Font Uploads**: Drag-and-drop or upload custom `.ttf`/`.otf` files via `/api/upload_font`.
+- **Offline Caching**: Automatically downloads and caches requested fonts in `fonts/google/` for zero-latency offline rendering.
+- **Dynamic Font Metrics**: FreeType/Pillow typographical metrics computed via `GET /api/font_metrics` for pixel-perfect vertical alignment and CapCut parity.
+
+---
+
+## Intelligent Subtitle Layout & Dynamic Segmentation
+
+The subtitle segmentation engine in `transcriber.py` and `web_static/index.html` uses **Dynamic Programming (DP)** and multi-criteria scoring to partition transcription into optimal subtitle chunks:
+
+- **Strict Fixed-Word Mode ($W_{min} == W_{max}$)**:
+  When minimum and maximum words per line are equal (e.g. Min: 2, Max: 2, Lines: 1), phrases are divided strictly into blocks of exact size (with remainder only on the final chunk), perfect for fast-paced viral reels and shorts.
+- **Multi-Criteria Optimization ($W_{min} < W_{max}$)**:
+  - **Terminal Punctuation (`.`, `?`, `!`):** High-priority bonus (`+120`) to favor natural sentence endings.
+  - **Clause Punctuation (`,`, `;`, `:`, `—`):** Clause-break bonus (`+65`) to split coordinate and subordinate clauses naturally.
+  - **Speech Silence / Acoustic Gaps:** Uses word-level timestamps from Whisper to award up to `+100` points for speech pauses, naturally aligning subtitle cuts with speaker breathing.
+  - **Anti-Dangling Syntactic Rules (`-80`):** Severely penalizes cuts that leave weak grammatical particles dangling at the end of a line (Italian articles `il`, `la`, `un`, prepositions `di`, `a`, `da`, `in`, `con`, `su`, `per`, `tra`, `fra`, `del`, `al`, and conjunctions `e`, `o`, `ma`, `se`, `perché`, `che`).
+  - **Reading Cadence:** Smooths line length within $[W_{min} \times L, W_{max} \times L]$ for maximum legibility.
+- **Client-Server Parity**: The exact same algorithm is implemented in Python and JavaScript, guaranteeing 100% fidelity between the live interactive timeline preview and the final exported MP4 video.
+- **Automated Validation**: Covered by 14 automated unit tests in `tests/test_layout_segmentation.py`.
+
+---
+
 ## Web UI Development & Lovable Integration
 
 When customizing or redesigning the frontend with tools like **Lovable**:
 
-1. **Keep Backend Intact**: The Python backend (`web_app.py`) and processing engines (`transcriber.py`, `silence_remover.py`, `subtitle_renderer.py`, `video_renderer.py`) manage speech recognition and FFmpeg encoding. Do not replace or modify them unless changing core processing logic.
+1. **Keep Backend Intact**: The Python backend (`web_app.py`) and processing engines (`transcriber.py`, `silence_remover.py`, `subtitle_renderer.py`, `video_renderer.py`, `font_manager.py`) manage speech recognition and FFmpeg encoding. Do not replace or modify them unless changing core processing logic.
 2. **Preserve API Contracts**: All interactive frontend features communicate via pure JSON REST endpoints:
    - `GET /api/presets`, `GET /api/preset?id=<id>`, `POST /api/presets`, `POST /api/delete_preset`, `POST /api/duplicate_preset`
    - `GET /api/default_video`, `POST /api/upload`
-   - `POST /api/transcribe`, `POST /api/translate_chunks`, `POST /api/analyze_silences`
+   - `POST /api/transcribe`, `POST /api/translate_chunks`, `POST /api/analyze_silences`, `POST /api/resegment`
    - `POST /api/preview_chunk`, `POST /api/render`, `POST /api/rename_output`, `POST /api/batch_zip`
-   - `GET /api/font_metrics?font=&size=`
+   - `GET /api/fonts`, `POST /api/upload_font`, `GET /api/font_metrics?font=&size=`
    - `GET /fonts/<filename>`, `GET /vendor/<filename>`, `GET /media/<filename>`
 3. **Offline Assets**: The macOS standalone application runs completely offline; vendor assets such as `/vendor/tailwindcss.js` and local fonts must be served locally without relying on external CDNs.
 
