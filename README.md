@@ -140,14 +140,14 @@ substudio/
 │   ├── test_layout_segmentation.py  # 14 automated tests for DP layout segmentation & API
 │   └── test_typography.py           # Verification of 39 fonts, variants and Pillow rendering
 │
-├── build_app.sh                # macOS application bundle builder
-├── build_dmg.sh                # Compressed DMG disk image creator
-├── build_silicon_dmg.sh        # Standalone Apple Silicon DMG installer builder
-├── package_dmg.py              # Python packaging script
-├── create_icon.py              # App icon generator
+├── build_dmg.sh                # Unified, fast Apple Silicon DMG installer builder
 ├── launcher.m                  # Native Cocoa/WebKit app launcher
 │
+├── tools/                      # Utilities & icon generators
+│   └── create_icon.py          # App icon generator (icns, png, favicon)
+│
 ├── AppIcon.icns
+├── AppIcon.png
 └── LICENSE
 ```
 
@@ -507,21 +507,18 @@ is also supported.
 
 The repository includes scripts for building the macOS application and DMG packages.
 
-Available scripts include:
+To build the standalone, fully offline Apple Silicon installer DMG in seconds:
 
-```text
-build_app.sh
-build_dmg.sh
-build_silicon_dmg.sh
+```bash
+./build_dmg.sh
 ```
 
-The project also includes:
-
-```text
-package_dmg.py
-create_icon.py
-launcher.m
-```
+The script automatically packages:
+- Native Cocoa/WebKit arm64 launcher (`launcher.m`)
+- Standalone Python 3.12 runtime and dependencies
+- Offline `faster-whisper-small` AI model
+- Static Apple Silicon FFmpeg binary
+- SubStudio Web UI and typography assets
 
 for the application packaging workflow.
 

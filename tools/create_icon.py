@@ -9,7 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 def generate_icon():
-    base_dir = Path(__file__).resolve().parent
+    base_dir = Path(__file__).resolve().parent.parent
     iconset_dir = base_dir / "AppIcon.iconset"
     if iconset_dir.exists():
         shutil.rmtree(iconset_dir)
