@@ -70,10 +70,12 @@ if [ -z "$PYTHON_STANDALONE" ] || [ ! -d "$PYTHON_STANDALONE" ]; then
     PYTHON_STANDALONE=$(find "$HOME/.local/share/uv/python" -maxdepth 1 -type d -name "cpython-3.12*" 2>/dev/null | head -n 1)
 fi
 
-rsync -a "$PYTHON_STANDALONE/" "$PYTHON_TARGET_DIR/"
+mkdir -p "$PYTHON_TARGET_DIR"
+(cd "$PYTHON_STANDALONE" && tar --exclude='*/__pycache__*' --exclude='*.pyc' -cf - .) | (cd "$PYTHON_TARGET_DIR" && tar -xf -)
 
 echo "📦 5. Copia pacchetti Python (faster-whisper, Pillow, ctranslate2, ecc.)..."
-rsync -a "$DIR/.venv/lib/python3.12/site-packages/" "$PYTHON_TARGET_DIR/lib/python3.12/site-packages/"
+mkdir -p "$PYTHON_TARGET_DIR/lib/python3.12/site-packages"
+(cd "$DIR/.venv/lib/python3.12/site-packages" && tar --exclude='*/__pycache__*' --exclude='*.pyc' --exclude='*.dist-info*' -cf - .) | (cd "$PYTHON_TARGET_DIR/lib/python3.12/site-packages" && tar -xf -)
 
 echo "📂 6. Copia codice applicazione e asset..."
 cp -f "$DIR"/web_app.py "$APP_PAYLOAD_DIR/"
@@ -87,8 +89,12 @@ cp -f "$DIR"/silence_remover.py "$APP_PAYLOAD_DIR/"
 cp -f "$DIR"/presets.json "$APP_PAYLOAD_DIR/"
 [ -f "$DIR"/font_manager.py ] && cp -f "$DIR"/font_manager.py "$APP_PAYLOAD_DIR/"
 [ -f "$DIR"/translator.py ] && cp -f "$DIR"/translator.py "$APP_PAYLOAD_DIR/"
-rsync -a "$DIR/fonts" "$APP_PAYLOAD_DIR/"
-rsync -a "$DIR/web_static" "$APP_PAYLOAD_DIR/"
+
+mkdir -p "$APP_PAYLOAD_DIR/fonts"
+(cd "$DIR/fonts" && tar -cf - .) | (cd "$APP_PAYLOAD_DIR/fonts" && tar -xf -)
+
+mkdir -p "$APP_PAYLOAD_DIR/web_static"
+(cd "$DIR/web_static" && tar -cf - .) | (cd "$APP_PAYLOAD_DIR/web_static" && tar -xf -)
 
 mkdir -p "$RESOURCES_DIR/bin"
 [ -f "$DIR/bin/ffmpeg" ] && cp -f "$DIR/bin/ffmpeg" "$RESOURCES_DIR/bin/ffmpeg" && chmod +x "$RESOURCES_DIR/bin/ffmpeg"
@@ -98,7 +104,7 @@ echo "🤖 7. Inclusione modello Whisper small locale (offline)..."
 WHISPER_CACHE_SNAPSHOT=$(find "$HOME/.cache/huggingface/hub/models--Systran--faster-whisper-small/snapshots" -mindepth 1 -maxdepth 1 -type d | head -n 1)
 if [ -n "$WHISPER_CACHE_SNAPSHOT" ] && [ -d "$WHISPER_CACHE_SNAPSHOT" ]; then
     mkdir -p "$APP_PAYLOAD_DIR/models/small"
-    rsync -aL "$WHISPER_CACHE_SNAPSHOT/" "$APP_PAYLOAD_DIR/models/small/"
+    (cd "$WHISPER_CACHE_SNAPSHOT" && tar -chf - .) | (cd "$APP_PAYLOAD_DIR/models/small" && tar -xf -)
     echo "✓ Modello Whisper small integrato con successo"
 else
     echo "⚠ Snapshot Whisper non trovato in cache, il modello verrà scaricato al primo avvio"

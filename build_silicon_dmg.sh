@@ -91,6 +91,7 @@ cp -f "$PROJECT_DIR"/audio_extractor.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/ass_generator.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/silence_remover.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/presets.json "$APP_PAYLOAD_DIR/"
+[ -f "$PROJECT_DIR"/font_manager.py ] && cp -f "$PROJECT_DIR"/font_manager.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/translator.py "$APP_PAYLOAD_DIR/"
 cp -R "$PROJECT_DIR"/fonts "$APP_PAYLOAD_DIR/"
 cp -R "$PROJECT_DIR"/web_static "$APP_PAYLOAD_DIR/"
@@ -115,7 +116,7 @@ echo "✓ Binari statici FFmpeg/ffprobe (Apple Silicon arm64) integrati nel bund
 
 # Launcher nativo Cocoa (arm64)
 echo "🔨 Compilazione launcher nativo Cocoa Apple Silicon (arm64)..."
-clang -O2 -arch arm64 -framework Cocoa -o "$MACOS_DIR/Sottotitolatore" "$PROJECT_DIR/launcher.m"
+clang -O2 -fobjc-arc -arch arm64 -framework Cocoa -framework WebKit -o "$MACOS_DIR/Sottotitolatore" "$PROJECT_DIR/launcher.m"
 chmod +x "$MACOS_DIR/Sottotitolatore"
 
 echo "✍️ Firma ad-hoc del bundle e di tutte le librerie interne..."

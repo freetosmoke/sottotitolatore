@@ -14,7 +14,8 @@ echo "📂 2/3 Preparazione staging DMG con symlink /Applications..."
 rm -rf "$STAGING_DIR"
 mkdir -p "$STAGING_DIR"
 
-rsync -a "$APP_BUNDLE" "$STAGING_DIR/"
+mkdir -p "$STAGING_DIR/Sottotitolatore.app"
+(cd "$APP_BUNDLE" && tar -cf - .) | (cd "$STAGING_DIR/Sottotitolatore.app" && tar -xf -)
 ln -s /Applications "$STAGING_DIR/Applicazioni"
 
 echo "💿 3/3 Creazione immagine disco DMG compressa (UDZO)..."

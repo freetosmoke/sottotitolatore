@@ -89,18 +89,29 @@ def build():
         candidates = list(uv_python_dir.glob("cpython-3.12*"))
         if candidates:
             py_standalone = candidates[0]
-    shutil.copytree(py_standalone, python_target_dir, symlinks=True)
+    shutil.copytree(
+        py_standalone,
+        python_target_dir,
+        symlinks=True,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc")
+    )
 
     venv_packages = base_dir / ".venv/lib/python3.12/site-packages"
     target_packages = python_target_dir / "lib/python3.12/site-packages"
-    shutil.copytree(venv_packages, target_packages, dirs_exist_ok=True, symlinks=True)
+    shutil.copytree(
+        venv_packages,
+        target_packages,
+        dirs_exist_ok=True,
+        symlinks=True,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.dist-info")
+    )
 
     # 4. Codice sorgente e asset
     print("📂 4/6 Copia sorgenti, font e Web UI...")
     py_files = [
         "web_app.py", "transcriber.py", "subtitle_renderer.py",
         "video_renderer.py", "keyword_selector.py", "audio_extractor.py",
-        "ass_generator.py", "silence_remover.py", "translator.py", "presets.json"
+        "ass_generator.py", "silence_remover.py", "translator.py", "font_manager.py", "presets.json"
     ]
     for pf in py_files:
         src_file = base_dir / pf
@@ -109,6 +120,14 @@ def build():
 
     shutil.copytree(base_dir / "fonts", app_payload_dir / "fonts", dirs_exist_ok=True)
     shutil.copytree(base_dir / "web_static", app_payload_dir / "web_static", dirs_exist_ok=True)
+
+    bin_dir = resources_dir / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    for b_name in ["ffmpeg", "ffprobe"]:
+        b_src = base_dir / "bin" / b_name
+        if b_src.exists():
+            shutil.copy2(b_src, bin_dir / b_name)
+            (bin_dir / b_name).chmod(0o755)
 
     # Inclusione modello Whisper
     hf_snapshots = Path.home() / ".cache/huggingface/hub/models--Systran--faster-whisper-small/snapshots"
