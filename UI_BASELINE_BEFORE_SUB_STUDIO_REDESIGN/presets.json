@@ -1,0 +1,110 @@
+[
+  {
+    "id": "voce_del_successo",
+    "name": "La Voce del Successo New",
+    "description": "Preset ufficiale predefinito con font Raleway, Dimensione 8 (Ridim. 105%), Posizione Y: 0, Watermark Raleway Grassetto Dim. 5 (Ridim. 114%), Posizione Y: -197",
+    "is_system": true,
+    "is_default": true,
+    "font_family": "Raleway",
+    "font_name": "Raleway",
+    "pattern": "Normal",
+    "subtitle_style": {
+      "normal": {
+        "font_family": "Raleway",
+        "font_variant": "Light",
+        "color": "#FFFFFF"
+      },
+      "keyword": {
+        "font_family": "Raleway",
+        "font_variant": "SemiBold",
+        "color": "#FFFFFF"
+      }
+    },
+    "keywords": {
+      "enabled": true,
+      "mode": "automatic"
+    },
+    "subtitle_layout": {
+      "min_words_per_line": 2,
+      "max_words_per_line": 7,
+      "num_lines": 2
+    },
+    "all_caps": false,
+    "letter_spacing": 0,
+    "capcut_size": 8.0,
+    "capcut_sub_scale": 105.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "@lavocedelsuccesso",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 114.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 0,
+    "shadow_offset": 0,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 45,
+    "font_size_wm": 30
+  },
+  {
+    "id": "preset_test_1790083883",
+    "name": "test",
+    "description": "Preset personalizzato creato dall'editor",
+    "is_system": false,
+    "is_default": false,
+    "font_family": "Helvetica",
+    "font_name": "Helvetica",
+    "pattern": "Normal",
+    "subtitle_style": {
+      "normal": {
+        "font_family": "Raleway",
+        "font_variant": "Light",
+        "color": "#ff0000"
+      },
+      "keyword": {
+        "font_family": "Raleway",
+        "font_variant": "Italic",
+        "color": "#ff0000"
+      }
+    },
+    "keywords": {
+      "enabled": true,
+      "mode": "automatic"
+    },
+    "subtitle_layout": {
+      "min_words_per_line": 2,
+      "max_words_per_line": 2,
+      "num_lines": 1
+    },
+    "all_caps": false,
+    "letter_spacing": 0,
+    "capcut_size": 8.0,
+    "capcut_sub_scale": 105.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "@lavocedelsuccesso",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 114.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 0,
+    "shadow_offset": 0,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 45,
+    "font_size_wm": 30
+  }
+]
