@@ -48,6 +48,92 @@ MIN_CHUNK_DURATION = 0.6   # durata minima di un chunk in secondi
 GAP_SPLIT_THRESHOLD = 0.5  # pausa > 500ms → forza nuovo chunk
 
 
+def is_apostrophe_bound(prev_txt: str, next_txt: str) -> bool:
+    """Verifica se due token consecutivi sono legati da elisione/apostrofo."""
+    import re
+    p = str(prev_txt).strip()
+    n = str(next_txt).strip()
+    if not p or not n:
+        return False
+    if re.search(r"['’`´]$", p):
+        return True
+    if re.search(r"^['’`´]", n):
+        return True
+    clean_p = re.sub(r"^[^\w]+|[^\w]+$", "", p).lower()
+    elision_particles = {
+        "l", "d", "c", "s", "m", "t", "v", "un", "all", "dell",
+        "nell", "sull", "dall", "quest", "quell", "tutt", "qualch",
+        "mezz", "poc", "sant", "com"
+    }
+    if clean_p in elision_particles and (re.search(r"['’`´]", n) or re.search(r"^[aeiouàèéìòù]", n.lower())):
+        if "'" in n or "’" in n or "'" in p or "’" in p:
+            return True
+    return False
+
+
+def merge_apostrophe_tokens(words: list[WordToken]) -> list[WordToken]:
+    """
+    Unisce i token spezzati da apostrofi (es. 'l' + ''energia.' -> 'l'energia.', 'l'' + 'energia' -> 'l'energia')
+    in un unico WordToken per evitare che vengano separati o spezzati su righe diverse.
+    """
+    if not words or len(words) < 2:
+        return words
+
+    import re
+    elision_particles = {
+        "l", "d", "c", "s", "m", "t", "v", "un", "all", "dell",
+        "nell", "sull", "dall", "quest", "quell", "tutt", "qualch",
+        "mezz", "poc", "sant", "com"
+    }
+
+    result: list[WordToken] = []
+    i = 0
+    n = len(words)
+
+    while i < n:
+        cur = words[i]
+        while i + 1 < n:
+            nxt = words[i + 1]
+            cur_txt = cur.word.strip()
+            nxt_txt = nxt.word.strip()
+
+            ends_with_apos = bool(re.search(r"['’`´]$", cur_txt))
+            starts_with_apos = bool(re.search(r"^['’`´]", nxt_txt))
+            is_just_apos = bool(re.match(r"^['’`´]+$", cur_txt) or re.match(r"^['’`´]+$", nxt_txt))
+
+            clean_cur = re.sub(r"^[^\w]+|[^\w]+$", "", cur_txt).lower()
+            is_particle = clean_cur in elision_particles or len(cur_txt) <= 4
+
+            should_merge = False
+            merged_txt = ""
+
+            if ends_with_apos:
+                should_merge = True
+                merged_txt = cur_txt + re.sub(r"^['’`´]+", "", nxt_txt)
+            elif starts_with_apos and is_particle:
+                should_merge = True
+                merged_txt = cur_txt + nxt_txt
+            elif is_just_apos:
+                should_merge = True
+                merged_txt = cur_txt + nxt_txt
+
+            if should_merge:
+                cur = dataclasses.replace(
+                    cur,
+                    word=merged_txt,
+                    end=nxt.end,
+                    is_bold=cur.is_bold or nxt.is_bold,
+                )
+                i += 1
+            else:
+                break
+
+        result.append(cur)
+        i += 1
+
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Caricamento modello
 # ---------------------------------------------------------------------------
@@ -205,6 +291,7 @@ def transcribe(
                                 start=w.start,
                                 end=w.end,
                             ))
+        words = merge_apostrophe_tokens(words)
         progress.update(task, completed=1)
 
     console.log(
@@ -252,6 +339,8 @@ def group_into_chunks(
     """
     if not words:
         return []
+
+    words = merge_apostrophe_tokens(words)
 
     if min_words_per_line is not None and max_words_per_line is not None and num_lines is not None:
         return resegment_subtitles(
@@ -347,7 +436,7 @@ def resegment_subtitles(
     if not words:
         return []
 
-    # Normalizza input a WordToken
+    # Normalizza input a WordToken e unifica token con apostrofi
     normalized: list[WordToken] = []
     for w in words:
         if isinstance(w, WordToken):
@@ -359,6 +448,7 @@ def resegment_subtitles(
                 end=float(w.get("end", 0.0)),
                 is_bold=bool(w.get("is_bold", False)),
             ))
+    normalized = merge_apostrophe_tokens(normalized)
 
     # Prima passa: raggruppa per pause lunghe (GAP_SPLIT_THRESHOLD)
     # Questo preserva le pause naturali dell'audio
@@ -456,6 +546,11 @@ def _score_split_boundary(words: list[WordToken], cut_idx: int) -> float:
     w_prev = words[cut_idx - 1]
     w_next = words[cut_idx]
     prev_txt = w_prev.word.strip()
+    next_txt = w_next.word.strip()
+
+    # 0. Penalità assoluta: mai spezzare parole legate da apostrofo
+    if is_apostrophe_bound(prev_txt, next_txt):
+        return -10000.0
 
     score = 0.0
 
@@ -495,7 +590,7 @@ def _split_macro_by_layout(
 
     min_w = max(1, int(min_words_per_line))
     max_w = max(min_w, int(max_words_per_line))
-    n_lines = max(1, int(num_lines))
+    n_lines = min(2, max(1, int(num_lines)))
     n = len(words)
 
     # Caso 1: min == max (modalità rigida a parole fisse)

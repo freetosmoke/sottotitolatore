@@ -181,8 +181,74 @@ def test_single_speaker_monologue():
         print("✓ Test Single Speaker Monologue Detection superato con successo!")
 
 
+def test_apostrophe_handling():
+    print("--- Test Apostrophe Handling & Non-Splitting Intelligence ---")
+    from transcriber import WordToken, merge_apostrophe_tokens
+    from subtitle_renderer import _layout_lines, load_font_variant
+
+    # 1. Test unione token Whisper con apostrofo
+    tokens = [
+        WordToken(word="l", start=2.23, end=2.35),
+        WordToken(word="'energia.", start=2.35, end=2.75, is_bold=True),
+        WordToken(word="c'", start=2.8, end=2.9),
+        WordToken(word="è", start=2.9, end=3.1),
+    ]
+    merged = merge_apostrophe_tokens(tokens)
+    assert len(merged) == 2, f"Attesi 2 token dopo l'unione apostrofi, ottenuti: {len(merged)}"
+    assert merged[0].word == "l'energia.", f"Atteso 'l'energia.', ottenuto: {merged[0].word}"
+    assert merged[0].is_bold is True, "Il grassetto doveva essere ereditato"
+    assert merged[1].word == "c'è", f"Atteso 'c'è', ottenuto: {merged[1].word}"
+    print("  ✓ merge_apostrophe_tokens ha unificato 'l' + ''energia.' e 'c'' + 'è'")
+
+    # 2. Test layout con token legati da apostrofo (non devono mai essere spezzati su 2 righe)
+    font_reg = load_font_variant(size=36, font_name="Montserrat", variant="Regular")
+    font_bold = load_font_variant(size=36, font_name="Montserrat", variant="Bold")
+
+    # Caso A: solo ["l", "'energia."] con num_lines=2
+    # L'algoritmo non deve separare 'l' da ''energia.' -> deve produrre 1 riga
+    lines_a = _layout_lines(
+        words=["l", "'energia."],
+        is_bold_fn=lambda idx: idx == 1,
+        light_font=font_reg,
+        semibold_font=font_bold,
+        letter_spacing=0,
+        space_w=10,
+        max_width=500,
+        min_words_per_line=2,
+        max_words_per_line=3,
+        num_lines=2,
+    )
+    assert len(lines_a) == 1, f"Attesa 1 riga per token indivisibili con apostrofo, ottenute: {len(lines_a)}"
+    assert [t[1] for t in lines_a[0]] == ["l", "'energia."]
+    print("  ✓ _layout_lines non separa 'l' e ''energia.' su due righe")
+
+    # Caso B: frase con apostrofo in mezzo: ["QUESTO", "È", "L'", "ENERGIA"]
+    # Taglio k=2 (QUESTO È / L' ENERGIA) deve essere scelto; k=3 (QUESTO È L' / ENERGIA) vietato
+    lines_b = _layout_lines(
+        words=["QUESTO", "È", "L'", "ENERGIA"],
+        is_bold_fn=lambda idx: False,
+        light_font=font_reg,
+        semibold_font=font_bold,
+        letter_spacing=0,
+        space_w=10,
+        max_width=500,
+        min_words_per_line=2,
+        max_words_per_line=3,
+        num_lines=2,
+    )
+    assert len(lines_b) == 2, f"Attese 2 righe, ottenute: {len(lines_b)}"
+    r1 = [t[1] for t in lines_b[0]]
+    r2 = [t[1] for t in lines_b[1]]
+    assert r1 == ["QUESTO", "È"], f"Riga 1 errata: {r1}"
+    assert r2 == ["L'", "ENERGIA"], f"Riga 2 errata: {r2}"
+    print("  ✓ _layout_lines mantiene 'L'' ed 'ENERGIA' sulla stessa riga (Riga 2)")
+
+    print("✓ Test Apostrophe Handling superato con successo!")
+
+
 if __name__ == "__main__":
     test_highlighter_rendering()
     test_speaker_diarizer()
     test_single_speaker_monologue()
+    test_apostrophe_handling()
     print("\n🎉 TUTTI I TEST DI HIGHLIGHTER E DIARIZZAZIONE COMPLETATI CON SUCCESSO!")

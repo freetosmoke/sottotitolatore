@@ -223,6 +223,29 @@ def _word_w(text: str, font: ImageFont.FreeTypeFont, letter_spacing: int = 0) ->
         return _w(text, font)
     return sum(_w(ch, font) + letter_spacing for ch in text) - letter_spacing
 
+def is_apostrophe_bound(prev_txt: str, next_txt: str) -> bool:
+    """Verifica se due token consecutivi sono legati da elisione/apostrofo."""
+    import re
+    p = str(prev_txt).strip()
+    n = str(next_txt).strip()
+    if not p or not n:
+        return False
+    if re.search(r"['’`´]$", p):
+        return True
+    if re.search(r"^['’`´]", n):
+        return True
+    clean_p = re.sub(r"^[^\w]+|[^\w]+$", "", p).lower()
+    elision_particles = {
+        "l", "d", "c", "s", "m", "t", "v", "un", "all", "dell",
+        "nell", "sull", "dall", "quest", "quell", "tutt", "qualch",
+        "mezz", "poc", "sant", "com"
+    }
+    if clean_p in elision_particles and (re.search(r"['’`´]", n) or re.search(r"^[aeiouàèéìòù]", n.lower())):
+        if "'" in n or "’" in n or "'" in p or "’" in p:
+            return True
+    return False
+
+
 def _layout_lines(
     words: list[str],
     is_bold_fn,
@@ -234,12 +257,13 @@ def _layout_lines(
     min_words_per_line: int = 2,
     max_words_per_line: int = 7,
     num_lines: int = 2,
+    line_breaks: list[int] | None = None,
 ) -> list[list[tuple[int, str]]]:
     """Lay out subtitle words into lines without ever dropping tokens.
 
     Priority:
     1. Never lose words.
-    2. Respect explicit newlines.
+    2. Respect explicit line breaks or newlines.
     3. Respect max_width whenever possible.
     4. Respect max_words_per_line whenever possible.
     5. Keep the number of lines <= num_lines whenever possible.
@@ -255,18 +279,41 @@ def _layout_lines(
 
     # Expand explicit newlines while preserving the original word indices.
     tokens: list[tuple[int, str]] = []
-    newline_breaks: set[int] = set()
+    explicit_split_indices: set[int] = set()
 
     for i, word in enumerate(words):
         parts = str(word).split("\n")
         for p_idx, part in enumerate(parts):
             if p_idx > 0 and tokens:
-                newline_breaks.add(len(tokens) - 1)
+                explicit_split_indices.add(len(tokens))
             if part:
                 tokens.append((i, part))
 
+    if line_breaks:
+        for lb in line_breaks:
+            try:
+                lb_int = int(lb)
+                if 0 < lb_int < len(tokens):
+                    explicit_split_indices.add(lb_int)
+            except (ValueError, TypeError):
+                pass
+
     if not tokens:
         return [[]]
+
+    # Se sono definiti spezzamenti manuali o newlines esplicite, rispettali rigorosamente
+    if explicit_split_indices:
+        sorted_splits = sorted(explicit_split_indices)
+        manual_lines: list[list[tuple[int, str]]] = []
+        cur_start = 0
+        for s in sorted_splits:
+            if s > cur_start and s < len(tokens):
+                manual_lines.append(tokens[cur_start:s])
+                cur_start = s
+        if cur_start < len(tokens):
+            manual_lines.append(tokens[cur_start:])
+        if manual_lines:
+            return manual_lines
 
     def token_width(token: tuple[int, str]) -> int:
         idx, text = token
@@ -289,38 +336,101 @@ def _layout_lines(
     all_tokens = tokens
     n = len(all_tokens)
 
-    # Se ci sono meno parole delle righe richieste, una parola per riga.
-    target_lines = min(num_lines, n)
+    # Se ci sono meno parole delle righe richieste, una parola per riga (massimo 2 righe).
+    target_lines = min(min(2, max(1, num_lines)), n)
 
     if target_lines <= 1:
         return [all_tokens]
 
-    # Distribuzione:
-    # 1. numero di righe esatto
-    # 2. minimo parole/riga
-    # 3. massimo parole/riga
-    #
-    # Se il minimo è compatibile con il numero di righe,
-    # partiamo dal minimo e distribuiamo le parole rimanenti.
+    # Se abbiamo 2 righe, ottimizziamo la divisione per un perfetto bilanciamento visivo
+    # (evitando che una riga sia enorme e l'altra minuscola).
+    if target_lines == 2:
+        best_k = None
+        best_score = float("inf")
+
+        dangling_articles = {
+            "il", "lo", "la", "l'", "i", "gli", "le", "un", "uno", "una", "un'",
+            "di", "a", "da", "in", "con", "su", "per", "tra", "fra",
+            "del", "dello", "della", "dei", "degli", "delle",
+            "al", "allo", "alla", "ai", "agli", "alle",
+            "dal", "dallo", "dalla", "dai", "dagli", "dalle",
+            "nel", "nello", "nella", "nei", "negli", "nelle",
+            "sul", "sullo", "sulla", "sui", "sugli", "sulle",
+            "col", "coi"
+        }
+
+        can_satisfy_min = (n >= 2 * min_words_per_line)
+        can_satisfy_max = (n <= 2 * max_words_per_line)
+
+        for k in range(1, n):
+            c1 = k
+            c2 = n - k
+            w1 = line_width(all_tokens[:k])
+            w2 = line_width(all_tokens[k:])
+
+            score = 0.0
+
+            # 1. Rispetto vincoli min/max parole
+            if can_satisfy_min:
+                if c1 < min_words_per_line:
+                    score += (min_words_per_line - c1) * 3000.0
+                if c2 < min_words_per_line:
+                    score += (min_words_per_line - c2) * 3000.0
+
+            if can_satisfy_max:
+                if c1 > max_words_per_line:
+                    score += (c1 - max_words_per_line) * 3000.0
+                if c2 > max_words_per_line:
+                    score += (c2 - max_words_per_line) * 3000.0
+
+            # 2. Rispetto della larghezza massima del canvas
+            if w1 > max_width:
+                score += 15000.0 + (w1 - max_width) * 10.0
+            if w2 > max_width:
+                score += 15000.0 + (w2 - max_width) * 10.0
+
+            # 3. Bilanciamento visivo simmetrico: minimizza la differenza di larghezza in pixel
+            width_diff = abs(w1 - w2)
+            score += width_diff
+
+            # 4. Leggera preferenza per riga superiore bilanciata o lievemente piramidale (w1 >= w2)
+            if w1 > w2:
+                score += (w1 - w2) * 0.15
+
+            # 5. Evita articoli o preposizioni isolate alla fine della riga 1
+            last_word = all_tokens[k - 1][1].lower().strip(".,!?:;\"'()[]{}")
+            if last_word in dangling_articles:
+                score += 120.0
+
+            # 6. PENALITÀ INVIOLABILE: Mai spezzare parole legate da apostrofo (es. "l'", "'energia", "d'", "un'")
+            prev_token_text = all_tokens[k - 1][1]
+            next_token_text = all_tokens[k][1]
+            if is_apostrophe_bound(prev_token_text, next_token_text):
+                score += 5_000_000.0
+
+            if score < best_score:
+                best_score = score
+                best_k = k
+
+        if best_k is not None and best_score < 1_000_000.0:
+            return [all_tokens[:best_k], all_tokens[best_k:]]
+        else:
+            return [all_tokens]
+
+    # Distribuzione fallback per > 2 righe:
     if n >= target_lines * min_words_per_line:
         counts = [min_words_per_line] * target_lines
         remaining = n - sum(counts)
 
-        # Prima rispettiamo il massimo parole/riga.
         while remaining > 0:
             moved = False
-
             for i in range(target_lines):
                 if remaining <= 0:
                     break
-
                 if counts[i] < max_words_per_line:
                     counts[i] += 1
                     remaining -= 1
                     moved = True
-
-            # Se abbiamo ancora parole, il numero di righe
-            # ha priorità sul massimo parole/riga.
             if not moved:
                 for i in range(target_lines):
                     if remaining <= 0:
@@ -328,8 +438,6 @@ def _layout_lines(
                     counts[i] += 1
                     remaining -= 1
     else:
-        # Il minimo parole/riga non è possibile.
-        # Manteniamo comunque il numero esatto di righe.
         base = n // target_lines
         remainder = n % target_lines
         counts = [
@@ -344,7 +452,6 @@ def _layout_lines(
         candidates.append(all_tokens[pos:pos + count])
         pos += count
 
-    # Sicurezza assoluta: nessuna parola può essere persa.
     if pos < n:
         candidates[-1].extend(all_tokens[pos:])
 
@@ -491,6 +598,9 @@ def render_subtitle(
     highlighter_radius: int = 8,
     highlighter_padding_x: int = 10,
     highlighter_padding_y: int = 4,
+    highlighter_stroke: int = 0,
+    highlighter_shadow: int = 0,
+    line_breaks: list[int] | None = None,
 ) -> Path:
     scale = canvas_height / BASE_HEIGHT
     center_x = canvas_width / 2.0
@@ -545,6 +655,7 @@ def render_subtitle(
         min_words_per_line=min_words_per_line,
         max_words_per_line=max_words_per_line,
         num_lines=num_lines,
+        line_breaks=line_breaks,
     )
 
     num_lines = len(lines)
@@ -584,16 +695,12 @@ def render_subtitle(
 
             if is_active_word:
                 # Disegna rettangolo arrotondato evidenziatore dietro alla parola attiva
-                # Padding orizzontale sicuro che non invade la parola adiacente
-                safe_pad_x = min(
-                    max(2, round(highlighter_padding_x * scale)),
-                    max(2, int(space_w * 0.45))
-                )
-                pad_y = max(1, round(highlighter_padding_y * scale))
-                rad = max(2, round(highlighter_radius * scale))
-                box_x0 = cur_x - safe_pad_x
+                pad_x = max(0, round(highlighter_padding_x * scale))
+                pad_y = max(0, round(highlighter_padding_y * scale))
+                rad = max(0, round(highlighter_radius * scale))
+                box_x0 = cur_x - pad_x
                 box_y0 = start_y - pad_y
-                box_x1 = cur_x + word_w_px + safe_pad_x
+                box_x1 = cur_x + word_w_px + pad_x
                 box_y1 = start_y + (asc + desc) + pad_y
                 draw.rounded_rectangle(
                     [box_x0, box_y0, box_x1, box_y1],
@@ -601,14 +708,16 @@ def render_subtitle(
                     fill=highlighter_box_color
                 )
 
-                # Testo con colore ad alto contrasto per la parola attiva
+                # Testo con colore per la parola attiva, con eventuale contorno e ombra dedicati
+                eff_hl_stroke = highlighter_stroke if highlighter_stroke > 0 else stroke_width
+                eff_hl_shadow = highlighter_shadow if highlighter_shadow > 0 else shadow_offset
                 _draw_text(
                     draw, cur_x, start_y, tok, font,
                     fill_color=highlighter_text_color,
-                    stroke_width=0,
-                    stroke_color=(0, 0, 0, 0),
-                    shadow_offset=0,
-                    shadow_color=(0, 0, 0, 0),
+                    stroke_width=eff_hl_stroke,
+                    stroke_color=(0, 0, 0, 220) if eff_hl_stroke > 0 else (0, 0, 0, 0),
+                    shadow_offset=eff_hl_shadow,
+                    shadow_color=(0, 0, 0, 160) if eff_hl_shadow > 0 else (0, 0, 0, 0),
                     faux_bold=use_faux,
                     letter_spacing=letter_spacing
                 )
@@ -971,6 +1080,10 @@ def render_all(
         hl_radius = int(highlighter_config.get("box_radius", 8))
         hl_pad_x = int(highlighter_config.get("box_padding_x", 10))
         hl_pad_y = int(highlighter_config.get("box_padding_y", 4))
+        raw_hl_stroke = highlighter_config.get("stroke_width", highlighter_config.get("stroke", 0))
+        raw_hl_shadow = highlighter_config.get("shadow_offset", highlighter_config.get("shadow", 0))
+        hl_stroke = int(round(float(raw_hl_stroke or 0) * scale))
+        hl_shadow = int(round(float(raw_hl_shadow or 0) * scale))
 
         # Configurazione Stili Speaker
         speaker_styles_config = settings.get("speaker_styles") or (preset.get("speaker_styles") if preset else {}) or {}
@@ -996,6 +1109,8 @@ def render_all(
             and all(isinstance(w, dict) and "start" in w and "end" in w for w in word_objs)
             and len(word_objs) > 0
         )
+
+        chunk_line_breaks = chunk.get("line_breaks") if isinstance(chunk, dict) else getattr(chunk, "line_breaks", None)
 
         if has_word_timings:
             n_w = len(word_objs)
@@ -1027,6 +1142,7 @@ def render_all(
                     num_lines=num_lines,
                     active_word_index=None,
                     highlighter_enabled=False,
+                    line_breaks=chunk_line_breaks,
                 )
                 rendered.append(RenderedChunk(image_path=out_neutral, start=c_start, end=w0_start))
                 current_word_t = w0_start
@@ -1074,6 +1190,9 @@ def render_all(
                     highlighter_radius=hl_radius,
                     highlighter_padding_x=hl_pad_x,
                     highlighter_padding_y=hl_pad_y,
+                    highlighter_stroke=hl_stroke,
+                    highlighter_shadow=hl_shadow,
+                    line_breaks=chunk_line_breaks,
                 )
                 rendered.append(RenderedChunk(image_path=out_w, start=current_word_t, end=frame_end))
                 current_word_t = frame_end
@@ -1101,6 +1220,7 @@ def render_all(
                 num_lines=num_lines,
                 active_word_index=None,
                 highlighter_enabled=False,
+                line_breaks=chunk_line_breaks,
             )
             rendered.append(RenderedChunk(image_path=out, start=c_start, end=c_end))
 

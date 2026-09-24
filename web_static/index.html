@@ -116,9 +116,45 @@
       display: inline-block;
     }
 
+    .podcast-word-hl {
+      display: inline-block;
+      position: relative;
+      margin: 0 1px;
+      padding: 0;
+      line-height: 1.1;
+      vertical-align: baseline;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      transition: color 0.16s ease, -webkit-text-stroke 0.16s ease, text-shadow 0.16s ease;
+      z-index: 1;
+    }
+
+    .podcast-word-hl::before {
+      content: "";
+      position: absolute;
+      top: calc(-1 * var(--hl-pad-y, 2px));
+      bottom: calc(-1 * var(--hl-pad-y, 2px));
+      left: calc(-1 * var(--hl-pad-x, 4px));
+      right: calc(-1 * var(--hl-pad-x, 4px));
+      background-color: var(--hl-box-color, #FFE600);
+      border-radius: var(--hl-radius, 6px);
+      box-shadow: 0 3px 12px var(--hl-shadow-color, rgba(255, 230, 0, 0.45));
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.20s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .podcast-word-hl.is-active-highlight-word {
+      z-index: 2;
+    }
+
+    .podcast-word-hl.is-active-highlight-word::before {
+      opacity: 1;
+    }
+
     .is-active-highlight-word {
       display: inline-block;
-      will-change: transform, background-color, color;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
       z-index: 2;
@@ -2225,7 +2261,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                   </div>
                   <div>
                     <label class="text-slate-500 block mb-1 text-[10px]">Numero righe</label>
-                    <input type="number" id="cfg-num-lines" value="2" min="1" max="10"
+                    <input type="number" id="cfg-num-lines" value="2" min="1" max="2"
                       class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
                   </div>
                 </div>
@@ -2304,6 +2340,18 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                   <input type="number" id="cfg-highlighter-pad-y" value="4" min="0" max="30" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
                 </div>
               </div>
+
+              <!-- Effetti Testo Parola Attiva: Contorno Nero & Ombra -->
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-dark-750/50">
+                <div>
+                  <label class="text-slate-400 block mb-0.5 text-[10px]">Contorno Nero (px)</label>
+                  <input type="number" id="cfg-highlighter-stroke" value="0" min="0" max="10" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+                </div>
+                <div>
+                  <label class="text-slate-400 block mb-0.5 text-[10px]">Ombra Testo (px)</label>
+                  <input type="number" id="cfg-highlighter-shadow" value="0" min="0" max="10" class="w-full bg-dark-950 border border-dark-700 rounded-lg px-2 py-1 text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-xs">
+                </div>
+              </div>
             </div>
           </details>
 
@@ -2324,15 +2372,10 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             </summary>
 
             <div class="p-3 space-y-3 border-t border-dark-750/70">
-              <!-- Selettore Modalità Rilevamento -->
+              <!-- Modalità Rilevamento Automatico -->
               <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-400 text-[11px]">Interlocutori:</span>
-                <select id="cfg-diarize-num-speakers" class="bg-dark-950 border border-dark-700 rounded-lg px-2 py-1 text-slate-200 text-xs focus:border-indigo-400 focus:outline-none">
-                  <option value="auto" selected>Automatico (AI Auto-Detect)</option>
-                  <option value="1">1 Speaker (Monologo)</option>
-                  <option value="2">2 Speaker (Dialogo / Podcast)</option>
-                  <option value="3">3 Speaker</option>
-                </select>
+                <span class="text-slate-400 text-[11px]">Rilevamento:</span>
+                <span class="text-indigo-400 font-semibold text-[11px] bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">Automatico (AI)</span>
               </div>
 
               <!-- Pulsante Diarizzazione AI -->
@@ -2561,15 +2604,11 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
                   <div class="flex items-center justify-between">
                     <label class="flex items-center gap-2 cursor-pointer text-indigo-300 font-medium select-none">
                       <input type="checkbox" id="chk-auto-diarize" class="rounded border-dark-700 text-indigo-500 focus:ring-0">
-                      <span class="text-xs">🎙️ Rileva Speaker (Diarizzazione)</span>
+                      <span class="text-xs">🎙️ Rileva Speaker (Diarizzazione Automatica)</span>
                     </label>
-                    <select id="cfg-diarize-num-speakers" class="bg-dark-950 border border-dark-700 rounded-lg px-2 py-0.5 text-slate-200 focus:border-indigo-400 focus:outline-none text-[11px] cursor-pointer">
-                      <option value="2" selected>2 Voci</option>
-                      <option value="3">3 Voci</option>
-                      <option value="4">4 Voci</option>
-                    </select>
+                    <span class="text-[10px] text-indigo-400 font-semibold bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">Auto AI</span>
                   </div>
-                  <p class="text-[9.5px] text-slate-500 leading-tight">Distingue automaticamente gli interlocutori (Speaker 1 vs Speaker 2).</p>
+                  <p class="text-[9.5px] text-slate-500 leading-tight">Distingue automaticamente gli interlocutori (Speaker 1 vs Speaker 2) con intelligenza artificiale.</p>
                 </div>
 
                 <div class="hidden">
@@ -3317,6 +3356,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     const cfgHighlighterRadius = document.getElementById("cfg-highlighter-radius");
     const cfgHighlighterPadX = document.getElementById("cfg-highlighter-pad-x");
     const cfgHighlighterPadY = document.getElementById("cfg-highlighter-pad-y");
+    const cfgHighlighterStroke = document.getElementById("cfg-highlighter-stroke");
+    const cfgHighlighterShadow = document.getElementById("cfg-highlighter-shadow");
 
     // Sistema Speaker Diarization
     const cfgSpeakerStylesEnabled = document.getElementById("cfg-speaker-styles-enabled");
@@ -4636,7 +4677,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         minWordsPerLine,
         num(cfgMaxWords ? cfgMaxWords.value : 7, 7)
       );
-      const numLines = num(cfgNumLines ? cfgNumLines.value : 2, 2);
+      const numLines = Math.min(2, Math.max(1, num(cfgNumLines ? cfgNumLines.value : 2, 2)));
 
       const subtitleLayout = {
         min_words_per_line: Math.max(1, minWordsPerLine),
@@ -4665,6 +4706,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         box_radius: num(cfgHighlighterRadius ? cfgHighlighterRadius.value : 8, 8),
         box_padding_x: num(cfgHighlighterPadX ? cfgHighlighterPadX.value : 10, 10),
         box_padding_y: num(cfgHighlighterPadY ? cfgHighlighterPadY.value : 4, 4),
+        stroke_width: num(cfgHighlighterStroke ? cfgHighlighterStroke.value : 0, 0),
+        shadow_offset: num(cfgHighlighterShadow ? cfgHighlighterShadow.value : 0, 0),
       };
 
       const speakerStyles = {
@@ -4749,6 +4792,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       if (liveHl.box_radius !== snapHl.box_radius) return true;
       if (liveHl.box_padding_x !== snapHl.box_padding_x) return true;
       if (liveHl.box_padding_y !== snapHl.box_padding_y) return true;
+      if (liveHl.stroke_width !== snapHl.stroke_width) return true;
+      if (liveHl.shadow_offset !== snapHl.shadow_offset) return true;
 
       // Speaker styles
       const liveSpk = live.speaker_styles || {};
@@ -4995,6 +5040,8 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         if (cfgHighlighterRadius) cfgHighlighterRadius.value = hl.box_radius !== undefined ? hl.box_radius : 8;
         if (cfgHighlighterPadX) cfgHighlighterPadX.value = hl.box_padding_x !== undefined ? hl.box_padding_x : 10;
         if (cfgHighlighterPadY) cfgHighlighterPadY.value = hl.box_padding_y !== undefined ? hl.box_padding_y : 4;
+        if (cfgHighlighterStroke) cfgHighlighterStroke.value = hl.stroke_width !== undefined ? hl.stroke_width : (hl.stroke !== undefined ? hl.stroke : 0);
+        if (cfgHighlighterShadow) cfgHighlighterShadow.value = hl.shadow_offset !== undefined ? hl.shadow_offset : (hl.shadow !== undefined ? hl.shadow : 0);
 
         // Speaker styles
         const spk = p.speaker_styles || {};
@@ -5012,6 +5059,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
       // Imposta lo snapshot del preset salvato
       activePresetSavedSnapshot = JSON.parse(JSON.stringify(p));
+      invalidateLiveSubtitleCache();
       preset = getLiveEditorState();
 
       const selSettings = document.getElementById("select-active-preset");
@@ -5920,10 +5968,11 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
     [
       cfgHighlighterBoxColor, cfgHighlighterTextColor, cfgHighlighterRadius,
-      cfgHighlighterPadX, cfgHighlighterPadY
+      cfgHighlighterPadX, cfgHighlighterPadY, cfgHighlighterStroke, cfgHighlighterShadow
     ].forEach(el => {
       if (el) {
         el.addEventListener("input", () => {
+          invalidateLiveSubtitleCache();
           preset = getLiveEditorState();
           updateLiveSubtitleAtCurrentTime();
           updatePresetSyncStatus();
@@ -5939,6 +5988,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         if (cfgHighlighterBoxColor && bg) cfgHighlighterBoxColor.value = bg;
         if (cfgHighlighterTextColor && txt) cfgHighlighterTextColor.value = txt;
         if (cfgHighlighterEnabled) cfgHighlighterEnabled.checked = true;
+        invalidateLiveSubtitleCache();
         preset = getLiveEditorState();
         updateLiveSubtitleAtCurrentTime();
         updatePresetSyncStatus();
@@ -5972,7 +6022,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       if (maxW > 30) maxW = 30;
 
       if (isNaN(numL) || numL < 1) numL = 1;
-      if (numL > 5) numL = 5;
+      if (numL > 2) numL = 2;
 
       if (changedInput === "min") {
         if (maxW < minW) {
@@ -5989,7 +6039,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       cfgMaxWords.min = String(minW);
       cfgMaxWords.max = "30";
       cfgNumLines.min = "1";
-      cfgNumLines.max = "5";
+      cfgNumLines.max = "2";
 
       cfgMinWords.value = minW;
       cfgMaxWords.value = maxW;
@@ -6012,11 +6062,40 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       "and", "but", "or", "that", "which", "my", "your", "his", "her", "our", "their"
     ]);
 
+    function isApostropheBound(w1, w2) {
+      if (!w1 || !w2) return false;
+      const s1 = (typeof w1 === "string" ? w1 : (w1.word || "")).trim();
+      const s2 = (typeof w2 === "string" ? w2 : (w2.word || "")).trim();
+      if (!s1 || !s2) return false;
+
+      // 1. w1 termina con apostrofo (es. "l'", "dell'", "un'")
+      if (/['’`´]$/.test(s1)) return true;
+      // 2. w2 inizia con apostrofo (es. "'energia", "'altro")
+      if (/^['’`´]/.test(s2)) return true;
+
+      // 3. w1 è particella di elisione e w2 ha apostrofo
+      const clean1 = s1.toLowerCase().replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
+      const ELISIONS = new Set([
+        "l", "d", "c", "s", "m", "t", "v", "un", "all", "dell",
+        "nell", "sull", "dall", "quest", "quell", "tutt", "qualch",
+        "mezz", "poc", "sant", "com"
+      ]);
+      if (clean1 && (ELISIONS.has(clean1) || clean1.length <= 2) && (/['’`´]/.test(s2) || /['’`´]/.test(s1))) {
+        return true;
+      }
+      return false;
+    }
+
     function scoreSplitBoundaryJS(words, cutIdx) {
       if (cutIdx <= 0 || cutIdx >= words.length) return 0;
       const wPrev = words[cutIdx - 1];
       const wNext = words[cutIdx];
       const prevTxt = (wPrev.word || "").trim();
+
+      // 0. Regola assoluta: mai spezzare parole legate da apostrofo
+      if (isApostropheBound(wPrev, wNext)) {
+        return -10000;
+      }
 
       let score = 0;
       // 1. Punteggiatura finale forte (+120) o di clausola (+65)
@@ -6041,6 +6120,78 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       }
 
       return score;
+    }
+
+    // ── Algoritmo di Bilanciamento Visivo Intelligente a 2 Righe ───────────────
+    function findBalancedTwoLineSplit(words, minWords = 2, maxWords = 7) {
+      if (!words || words.length <= 1) return 1;
+      const n = words.length;
+
+      let bestK = Math.ceil(n / 2);
+      let bestScore = Infinity;
+
+      const canSatisfyMin = (n >= 2 * minWords);
+      const canSatisfyMax = (n <= 2 * maxWords);
+
+      for (let k = 1; k < n; k++) {
+        const c1 = k;
+        const c2 = n - k;
+
+        let score = 0;
+
+        // 1. Rispetto vincoli min/max parole (con penalità graduata)
+        if (canSatisfyMin) {
+          if (c1 < minWords) score += (minWords - c1) * 3000;
+          if (c2 < minWords) score += (minWords - c2) * 3000;
+        }
+        if (canSatisfyMax) {
+          if (c1 > maxWords) score += (c1 - maxWords) * 3000;
+          if (c2 > maxWords) score += (c2 - maxWords) * 3000;
+        }
+
+        // 2. Calcolo larghezza caratteri riga 1 e riga 2
+        let len1 = 0;
+        for (let i = 0; i < k; i++) {
+          const wStr = typeof words[i] === "string" ? words[i] : (words[i].word || "");
+          len1 += wStr.length + (i > 0 ? 1 : 0);
+        }
+        let len2 = 0;
+        for (let i = k; i < n; i++) {
+          const wStr = typeof words[i] === "string" ? words[i] : (words[i].word || "");
+          len2 += wStr.length + (i > k ? 1 : 0);
+        }
+
+        const widthDiff = Math.abs(len1 - len2);
+        score += widthDiff * 15;
+
+        // 3. Leggera preferenza armonica per riga 1 <= riga 2
+        if (len1 > len2) {
+          score += (len1 - len2) * 3;
+        }
+
+        // 4. Penalità per parole deboli/sospese a fine riga 1 (es. "il", "un", "di")
+        const lastWordObj = words[k - 1];
+        const lastWordStr = (typeof lastWordObj === "string" ? lastWordObj : (lastWordObj.word || "")).toLowerCase().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
+        if (DANGLING_WORDS_SET.has(lastWordStr)) {
+          score += 150;
+        }
+
+        // 5. REGOLA INVIOLABILE: Mai spezzare parole legate da apostrofo (es. "l'", "'energia", "d'", "un'")
+        if (isApostropheBound(words[k - 1], words[k])) {
+          score += 5000000;
+        }
+
+        if (score < bestScore) {
+          bestScore = score;
+          bestK = k;
+        }
+      }
+
+      if (bestScore >= 1000000) {
+        return n; // Impossibile spezzare senza violare apostrofi o vincoli critici: resta riga unica
+      }
+
+      return bestK;
     }
 
     function clientResegmentWords(allWords, minW, maxW, numL, gapThreshold = 0.8) {
@@ -6195,7 +6346,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
       const minW = Math.max(1, parseInt(cfgMinWords.value, 10) || 2);
       const maxW = Math.max(minW, parseInt(cfgMaxWords.value, 10) || 7);
-      const numL = Math.max(1, parseInt(cfgNumLines.value, 10) || 2);
+      const numL = Math.min(2, Math.max(1, parseInt(cfgNumLines.value, 10) || 2));
 
       // Estrai tutte le parole dallo stato corrente conservando modifiche testo e bold status
       const allWords = [];
@@ -8573,7 +8724,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
               keywords: getLiveEditorState().keywords,
               subtitle_layout: getLiveEditorState().subtitle_layout,
               diarize: !!(chkAutoDiarize && chkAutoDiarize.checked),
-              num_speakers: parseInt(cfgDiarizeNumSpeakers ? cfgDiarizeNumSpeakers.value : "2", 10) || 2
+              num_speakers: "auto"
             })
           });
           const data = await res.json();
@@ -9540,7 +9691,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             keywords: getLiveEditorState().keywords,
             subtitle_layout: getLiveEditorState().subtitle_layout,
             diarize: !!(chkAutoDiarize && chkAutoDiarize.checked),
-            num_speakers: parseInt(cfgDiarizeNumSpeakers ? cfgDiarizeNumSpeakers.value : "2", 10) || 2
+            num_speakers: "auto"
           })
         });
         const data = await res.json();
@@ -9648,6 +9799,79 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       if (chunk.words[n - 1]) chunk.words[n - 1].end = chunkEnd;
     }
 
+    function mergeChunkApostrophes(chunk) {
+      if (!chunk || !chunk.words || chunk.words.length < 2) return;
+      const words = chunk.words;
+      const boldSet = new Set(chunk.bold_indices || []);
+      const newWords = [];
+      const newBoldIndices = [];
+      const elisionParticles = new Set([
+        "l", "d", "c", "s", "m", "t", "v", "un", "all", "dell",
+        "nell", "sull", "dall", "quest", "quell", "tutt", "qualch",
+        "mezz", "poc", "sant", "com"
+      ]);
+
+      let i = 0;
+      while (i < words.length) {
+        let cur = words[i];
+        let isBold = boldSet.has(i);
+
+        while (i + 1 < words.length) {
+          const nxt = words[i + 1];
+          const curTxt = (cur.word || "").trim();
+          const nxtTxt = (nxt.word || "").trim();
+
+          const endsWithApos = /['’`´]$/.test(curTxt);
+          const startsWithApos = /^['’`´]/.test(nxtTxt);
+          const isJustApos = /^['’`´]+$/.test(curTxt) || /^['’`´]+$/.test(nxtTxt);
+
+          const cleanCur = curTxt.toLowerCase().replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
+          const isParticle = elisionParticles.has(cleanCur) || cleanCur.length <= 4;
+
+          let shouldMerge = false;
+          let mergedTxt = "";
+
+          if (endsWithApos) {
+            shouldMerge = true;
+            mergedTxt = curTxt + nxtTxt.replace(/^['’`´]+/, "");
+          } else if (startsWithApos && isParticle) {
+            shouldMerge = true;
+            mergedTxt = curTxt + nxtTxt;
+          } else if (isJustApos) {
+            shouldMerge = true;
+            mergedTxt = curTxt + nxtTxt;
+          }
+
+          if (shouldMerge) {
+            if (boldSet.has(i + 1)) isBold = true;
+            cur = {
+              word: mergedTxt,
+              start: cur.start,
+              end: nxt.end
+            };
+            i++;
+          } else {
+            break;
+          }
+        }
+
+        const newIdx = newWords.length;
+        if (isBold) newBoldIndices.push(newIdx);
+        newWords.push(cur);
+        i++;
+      }
+
+      chunk.words = newWords;
+      chunk.bold_indices = newBoldIndices;
+      chunk.text = newWords.map(w => w.word).join(" ");
+      if (chunk.line_breaks && Array.isArray(chunk.line_breaks)) {
+        chunk.line_breaks = chunk.line_breaks
+          .map(b => parseInt(b, 10))
+          .filter(b => !isNaN(b) && b > 0 && b < newWords.length);
+        if (chunk.line_breaks.length === 0) delete chunk.line_breaks;
+      }
+    }
+
     function sanitizeChunks(chunks) {
       if (!chunks || chunks.length === 0) return chunks;
       const MIN_CHUNK_DUR = 0.15;
@@ -9702,10 +9926,17 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       // 4. Risincronizza i token e testi per ciascun chunk
       chunks.forEach((chunk) => {
         if (chunk.words && chunk.words.length > 0) {
+          mergeChunkApostrophes(chunk);
           recalcChunkInternalWords(chunk);
           chunk.text = chunk.words.map(w => w.word).join(" ");
           if (chunk.bold_indices) {
             chunk.bold_indices = chunk.bold_indices.filter(idx => idx >= 0 && idx < chunk.words.length);
+          }
+          if (chunk.line_breaks && Array.isArray(chunk.line_breaks)) {
+            chunk.line_breaks = chunk.line_breaks
+              .map(b => parseInt(b, 10))
+              .filter(b => !isNaN(b) && b > 0 && b < chunk.words.length);
+            if (chunk.line_breaks.length === 0) delete chunk.line_breaks;
           }
         }
       });
@@ -9717,7 +9948,11 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       const currentChunk = currentChunks[cIdx];
       if (!currentChunk) return;
 
-      const newWordsList = newText.trim().split(/\s+/).filter(Boolean);
+      const normalizedText = (newText || "")
+        .replace(/\b([a-zA-Z]+)\s+(['’`´][a-zA-Z]+)/g, "$1$2")
+        .replace(/\b([a-zA-Z]+['’`´])\s+([a-zA-Z]+)/g, "$1$2");
+
+      const newWordsList = normalizedText.trim().split(/\s+/).filter(Boolean);
       if (newWordsList.length === 0) return;
 
       pushState();
@@ -10025,6 +10260,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     }
 
     function renderChunksList() {
+      invalidateLiveSubtitleCache();
       chunksList.innerHTML = "";
       renderSpeakerCards();
 
@@ -10132,27 +10368,56 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
 
         row.appendChild(top);
 
-        const wordsContainer = document.createElement("div");
-        wordsContainer.className = "flex flex-wrap gap-1.5 items-center py-1";
+        const currentLiveState = getLiveEditorState();
+        const currentLayout = currentLiveState.subtitle_layout || {};
+        const maxLines = Math.max(1, parseInt(currentLayout.num_lines || 2, 10));
+        const minWordsPerLine = Math.max(1, parseInt(currentLayout.min_words_per_line || 2, 10));
+        const maxWordsPerLine = Math.max(minWordsPerLine, parseInt(currentLayout.max_words_per_line || 7, 10));
+        const numWords = chunk.words ? chunk.words.length : 0;
+        let splitIdx = findBalancedTwoLineSplit(chunk.words || [], minWordsPerLine, maxWordsPerLine);
+        if (chunk.line_breaks && Array.isArray(chunk.line_breaks) && chunk.line_breaks.length > 0) {
+          const mb = parseInt(chunk.line_breaks[0], 10);
+          if (!isNaN(mb) && mb > 0 && mb < numWords) {
+            splitIdx = mb;
+          }
+        }
+        const isMultiLine = maxLines >= 2 && numWords >= 2 && splitIdx > 0 && splitIdx < numWords;
 
-        chunk.words.forEach((wObj, wIdx) => {
+        function createWordElement(wObj, wIdx, linePos) {
           const boldSet = new Set(chunk.bold_indices || []);
           const isBold = boldSet.has(wIdx);
 
           const wordWrap = document.createElement("div");
-          wordWrap.className = "inline-flex items-center rounded-lg bg-dark-800 border border-dark-700 p-0.5 gap-0.5";
+          wordWrap.className = "inline-flex items-center rounded-lg bg-dark-800 border border-dark-700 p-0.5 gap-0.5 shadow-sm";
 
           if (wIdx === 0 && cIdx > 0) {
             const btnPrev = document.createElement("button");
             btnPrev.type = "button";
             btnPrev.className = "px-1 py-0.5 text-slate-500 hover:text-amber-400 transition flex items-center";
-            btnPrev.title = "Sposta questa parola nella riga precedente";
+            btnPrev.title = "Sposta questa parola nel sottotitolo precedente";
             btnPrev.innerHTML = `<svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`;
             btnPrev.onclick = (e) => {
               e.stopPropagation();
               moveWordToPrev(cIdx, wIdx);
             };
             wordWrap.appendChild(btnPrev);
+          }
+
+          if (isMultiLine && linePos === 1) {
+            const btnMoveUp = document.createElement("button");
+            btnMoveUp.type = "button";
+            btnMoveUp.className = "px-1 py-0.5 text-cyan-400/80 hover:text-cyan-200 hover:bg-cyan-500/20 rounded transition flex items-center";
+            btnMoveUp.title = "Sposta sopra (porta questa parola sulla riga superiore)";
+            btnMoveUp.innerHTML = `<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>`;
+            btnMoveUp.onclick = (e) => {
+              e.stopPropagation();
+              pushState();
+              chunk.line_breaks = [wIdx + 1];
+              saveCurrentStateToBatch();
+              renderChunksList();
+              updateLiveSubtitleAtCurrentTime();
+            };
+            wordWrap.appendChild(btnMoveUp);
           }
 
           const btn = document.createElement("button");
@@ -10177,11 +10442,28 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           };
           wordWrap.appendChild(btn);
 
+          if (isMultiLine && linePos === 0) {
+            const btnMoveDown = document.createElement("button");
+            btnMoveDown.type = "button";
+            btnMoveDown.className = "px-1 py-0.5 text-amber-400/80 hover:text-amber-200 hover:bg-amber-500/20 rounded transition flex items-center";
+            btnMoveDown.title = "Sposta sotto (manda questa parola sulla riga inferiore)";
+            btnMoveDown.innerHTML = `<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>`;
+            btnMoveDown.onclick = (e) => {
+              e.stopPropagation();
+              pushState();
+              chunk.line_breaks = [wIdx];
+              saveCurrentStateToBatch();
+              renderChunksList();
+              updateLiveSubtitleAtCurrentTime();
+            };
+            wordWrap.appendChild(btnMoveDown);
+          }
+
           if (wIdx === chunk.words.length - 1 && cIdx < currentChunks.length - 1) {
             const btnNext = document.createElement("button");
             btnNext.type = "button";
             btnNext.className = "px-1 py-0.5 text-slate-500 hover:text-amber-400 transition flex items-center";
-            btnNext.title = "Sposta questa parola nella riga successiva";
+            btnNext.title = "Sposta questa parola nel sottotitolo successivo";
             btnNext.innerHTML = `<svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>`;
             btnNext.onclick = (e) => {
               e.stopPropagation();
@@ -10190,9 +10472,60 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
             wordWrap.appendChild(btnNext);
           }
 
-          wordsContainer.appendChild(wordWrap);
-        });
-        row.appendChild(wordsContainer);
+          return wordWrap;
+        }
+
+        if (isMultiLine) {
+          const linesContainer = document.createElement("div");
+          linesContainer.className = "space-y-1.5 py-1";
+
+          // Riga 1: Sopra
+          const line1 = document.createElement("div");
+          line1.className = "flex items-center gap-1.5 flex-wrap p-1.5 rounded-lg bg-dark-850/80 border border-dark-750/70";
+          const badge1 = document.createElement("div");
+          badge1.className = "flex items-center gap-1 mr-1";
+          badge1.innerHTML = `
+            <span class="text-[9px] font-bold text-amber-400/90 uppercase px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 select-none">Sopra</span>
+            ${chunk.line_breaks && chunk.line_breaks.length > 0 ? `<button type="button" class="btn-auto-split text-[9px] text-slate-500 hover:text-amber-400 font-mono underline ml-1 cursor-pointer" title="Ripristina a capo automatico">auto</button>` : ''}
+          `;
+          const btnAuto = badge1.querySelector(".btn-auto-split");
+          if (btnAuto) {
+            btnAuto.onclick = (e) => {
+              e.stopPropagation();
+              pushState();
+              delete chunk.line_breaks;
+              saveCurrentStateToBatch();
+              renderChunksList();
+              updateLiveSubtitleAtCurrentTime();
+            };
+          }
+          line1.appendChild(badge1);
+          for (let wIdx = 0; wIdx < splitIdx; wIdx++) {
+            line1.appendChild(createWordElement(chunk.words[wIdx], wIdx, 0));
+          }
+          linesContainer.appendChild(line1);
+
+          // Riga 2: Sotto
+          const line2 = document.createElement("div");
+          line2.className = "flex items-center gap-1.5 flex-wrap p-1.5 rounded-lg bg-dark-850/80 border border-dark-750/70";
+          const badge2 = document.createElement("div");
+          badge2.className = "flex items-center gap-1 mr-1";
+          badge2.innerHTML = `<span class="text-[9px] font-bold text-cyan-400/90 uppercase px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20 select-none">Sotto</span>`;
+          line2.appendChild(badge2);
+          for (let wIdx = splitIdx; wIdx < numWords; wIdx++) {
+            line2.appendChild(createWordElement(chunk.words[wIdx], wIdx, 1));
+          }
+          linesContainer.appendChild(line2);
+
+          row.appendChild(linesContainer);
+        } else {
+          const wordsContainer = document.createElement("div");
+          wordsContainer.className = "flex flex-wrap gap-1.5 items-center py-1";
+          chunk.words.forEach((wObj, wIdx) => {
+            wordsContainer.appendChild(createWordElement(wObj, wIdx, 0));
+          });
+          row.appendChild(wordsContainer);
+        }
 
         const inputWrap = document.createElement("div");
         inputWrap.className = "pt-1";
@@ -10205,11 +10538,23 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           selectedChunkIndex = cIdx;
         };
         input.onkeydown = (e) => {
-          if (e.key === "Enter") {
+          if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             const cursorPos = e.target.selectionStart;
             const fullVal = e.target.value;
             splitChunkAtTextIndex(cIdx, fullVal, cursorPos);
+          } else if (e.key === "Enter" && e.shiftKey) {
+            e.preventDefault();
+            const cursorPos = e.target.selectionStart;
+            const fullVal = e.target.value;
+            const wordsBefore = fullVal.slice(0, cursorPos).trim().split(/\s+/).filter(Boolean).length;
+            if (wordsBefore > 0 && wordsBefore < chunk.words.length) {
+              pushState();
+              chunk.line_breaks = [wordsBefore];
+              saveCurrentStateToBatch();
+              renderChunksList();
+              updateLiveSubtitleAtCurrentTime();
+            }
           }
         };
         input.onchange = (e) => {
@@ -10638,8 +10983,7 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         return;
       }
 
-      const rawVal = cfgDiarizeNumSpeakers ? cfgDiarizeNumSpeakers.value : "auto";
-      const numSpeakersParam = (rawVal === "auto" || rawVal === "0") ? "auto" : (parseInt(rawVal, 10) || "auto");
+      const numSpeakersParam = "auto";
       const targetBtns = [btnRunDiarization, btnDiarizeSpeakers].filter(Boolean);
       const originalTexts = targetBtns.map(b => b.innerHTML);
 
@@ -10710,6 +11054,14 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         videoPlayer.currentTime = realTime;
         videoPlayer.play();
       }
+    }
+
+    let currentLiveChunkKey = null;
+    let currentLiveActiveWordIdx = -1;
+
+    function invalidateLiveSubtitleCache() {
+      currentLiveChunkKey = null;
+      currentLiveActiveWordIdx = -1;
     }
 
     function updateLiveSubtitleAtCurrentTime() {
@@ -10823,9 +11175,32 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         const n = words.length;
         let lines = [];
 
+        const manualBreaks = (activeChunk.line_breaks && Array.isArray(activeChunk.line_breaks) && activeChunk.line_breaks.length > 0)
+          ? activeChunk.line_breaks.map(b => parseInt(b, 10)).filter(b => !isNaN(b) && b > 0 && b < n).sort((a, b) => a - b)
+          : null;
+
         const targetLines = Math.min(numLines, n);
         if (targetLines <= 1 || n <= 1) {
           lines = [words.map((w, idx) => ({ w, idx }))];
+        } else if (manualBreaks && manualBreaks.length > 0) {
+          let pos = 0;
+          manualBreaks.forEach(b => {
+            if (b > pos && b < n) {
+              lines.push(words.slice(pos, b).map((w, idx) => ({ w, idx: pos + idx })));
+              pos = b;
+            }
+          });
+          if (pos < n) {
+            lines.push(words.slice(pos, n).map((w, idx) => ({ w, idx: pos + idx })));
+          }
+        } else if (targetLines === 2) {
+          const splitIdx = findBalancedTwoLineSplit(words, minWordsPerLine, maxWordsPerLine);
+          if (splitIdx > 0 && splitIdx < n) {
+            lines.push(words.slice(0, splitIdx).map((w, idx) => ({ w, idx })));
+            lines.push(words.slice(splitIdx).map((w, idx) => ({ w, idx: splitIdx + idx })));
+          } else {
+            lines = [words.map((w, idx) => ({ w, idx }))];
+          }
         } else if (n >= targetLines * minWordsPerLine) {
           const counts = Array(targetLines).fill(minWordsPerLine);
           let remaining = n - (targetLines * minWordsPerLine);
@@ -10871,6 +11246,18 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
         const hlRadius = (hlConfig.box_radius !== undefined ? hlConfig.box_radius : 8) + "px";
         const hlPadX = (hlConfig.box_padding_x !== undefined ? hlConfig.box_padding_x : 10) + "px";
         const hlPadY = (hlConfig.box_padding_y !== undefined ? hlConfig.box_padding_y : 4) + "px";
+        const rawHlStroke = (hlConfig.stroke_width !== undefined) ? parseInt(hlConfig.stroke_width, 10) : ((hlConfig.stroke !== undefined) ? parseInt(hlConfig.stroke, 10) : 0);
+        const rawHlShadow = (hlConfig.shadow_offset !== undefined) ? parseInt(hlConfig.shadow_offset, 10) : ((hlConfig.shadow !== undefined) ? parseInt(hlConfig.shadow, 10) : 0);
+        const subStroke = parseInt(cfgStroke ? cfgStroke.value : 0, 10) || 0;
+        const subShadow = parseInt(cfgShadow ? cfgShadow.value : 0, 10) || 0;
+
+        const hlStroke = rawHlStroke > 0 ? rawHlStroke : subStroke;
+        const hlShadow = rawHlShadow > 0 ? rawHlShadow : subShadow;
+
+        const realVideoH = (videoPlayer && videoPlayer.clientHeight > 0) ? videoPlayer.clientHeight : 540;
+        const previewScale = realVideoH / 1920;
+        const hlStrokePx = hlStroke > 0 ? Math.max(1, Math.round(hlStroke * previewScale)) : 0;
+        const hlShadowPx = hlShadow > 0 ? Math.max(1, Math.round(hlShadow * previewScale)) : 0;
 
         const spkConfig = liveState.speaker_styles || {};
         const spkEnabled = !!spkConfig.enabled;
@@ -10914,38 +11301,83 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
           }
         }
 
-        const lineHtml = lines.map(line => {
-          const lineContent = line.map(({ w, idx }) => {
-            const isWordBold = kwEnabled && boldSet.has(idx);
-            const ff = isWordBold ? keywordFont : normalFont;
-            const fw = isWordBold ? keywordWeight : normalWeight;
-            const fc = isWordBold ? keywordColor : effectiveNormalColor;
-            const fi = isWordBold ? keywordItalic : normalItalic;
+        const rawPadX = (hlConfig.box_padding_x !== undefined ? hlConfig.box_padding_x : 10);
+        const rawPadY = (hlConfig.box_padding_y !== undefined ? hlConfig.box_padding_y : 4);
+        const rawRadius = (hlConfig.box_radius !== undefined ? hlConfig.box_radius : 8);
 
-            const isWordActive = hlEnabled && (idx === activeWordIdx);
+        const scaledPadX = Math.max(1, Math.round(rawPadX * previewScale));
+        const scaledPadY = Math.max(1, Math.round(rawPadY * previewScale));
+        const scaledRadius = Math.max(0, Math.round(rawRadius * previewScale));
 
-            let styleStr = `font-family:'${ff}',sans-serif;font-weight:${fw};font-style:${fi ? 'italic' : 'normal'};`;
-            if (hlEnabled) {
-              if (isWordActive) {
-                styleStr += `color:${hlTextColor};background-color:${hlBoxColor};border-radius:${hlRadius};padding:2px 6px;margin:0 1px;display:inline-block;box-shadow:0 3px 12px ${hlBoxColor}45;transform:scale(1.04);transition:all 0.05s ease;`;
+        liveSubText.style.setProperty('--hl-pad-x', `${scaledPadX}px`);
+        liveSubText.style.setProperty('--hl-pad-y', `${scaledPadY}px`);
+        liveSubText.style.setProperty('--hl-radius', `${scaledRadius}px`);
+        liveSubText.style.setProperty('--hl-box-color', hlBoxColor);
+        liveSubText.style.setProperty('--hl-shadow-color', `${hlBoxColor}45`);
+
+        const chunkKey = `${activeChunk.start.toFixed(2)}_${activeChunk.end.toFixed(2)}_${words.length}_${activeChunk.speaker || ''}_${(activeChunk.line_breaks || []).join('-')}_${hlEnabled ? '1' : '0'}_${hlBoxColor}_${hlTextColor}_${scaledRadius}_${scaledPadX}_${scaledPadY}_${hlStroke}_${hlShadow}_${numLines}_${effectiveNormalColor}_${keywordColor}_${normalFont}_${keywordFont}_${normalWeight}_${keywordWeight}`;
+
+        if (currentLiveChunkKey !== chunkKey) {
+          const lineHtml = lines.map(line => {
+            const lineContent = line.map(({ w, idx }) => {
+              const isWordBold = kwEnabled && boldSet.has(idx);
+              const ff = isWordBold ? keywordFont : normalFont;
+              const fw = isWordBold ? keywordWeight : normalWeight;
+              const fc = isWordBold ? keywordColor : effectiveNormalColor;
+              const fi = isWordBold ? keywordItalic : normalItalic;
+
+              const isWordActive = hlEnabled && (idx === activeWordIdx);
+
+              let styleStr = `font-family:'${ff}',sans-serif;font-weight:${fw};font-style:${fi ? 'italic' : 'normal'};`;
+              if (hlEnabled) {
+                if (isWordActive) {
+                  styleStr += `color:${hlTextColor};`;
+                  if (hlStrokePx > 0) styleStr += `-webkit-text-stroke:${hlStrokePx}px #000;`;
+                  if (hlShadowPx > 0) styleStr += `text-shadow:${hlShadowPx}px ${hlShadowPx}px 2px rgba(0,0,0,0.85);`;
+                } else {
+                  styleStr += `color:${fc};-webkit-text-stroke:0px transparent;`;
+                }
               } else {
-                styleStr += `color:${fc};padding:2px 0px;display:inline;transition:color 0.05s ease;`;
+                styleStr += `color:${fc};`;
               }
-            } else {
-              styleStr += `color:${fc};display:inline;`;
-            }
 
-            return `<span class="${isWordBold ? 'podcast-word-bold' : 'podcast-word-light'} ${isWordActive ? 'is-active-highlight-word' : ''}" style="${styleStr}">${w.word}</span>`;
-          }).join(" ");
+              return `<span class="${isWordBold ? 'podcast-word-bold' : 'podcast-word-light'} ${hlEnabled ? 'podcast-word-hl' : ''} ${isWordActive ? 'is-active-highlight-word' : ''}" data-word-idx="${idx}" data-fc="${fc}" style="${styleStr}">${w.word}</span>`;
+            }).join(" ");
 
-          return `<div class="live-subtitle-line">${lineContent}</div>`;
-        });
+            return `<div class="live-subtitle-line">${lineContent}</div>`;
+          });
 
-        liveSubText.innerHTML = lineHtml.join("");
+          liveSubText.innerHTML = lineHtml.join("");
+          currentLiveChunkKey = chunkKey;
+          currentLiveActiveWordIdx = activeWordIdx;
+        } else if (activeWordIdx !== currentLiveActiveWordIdx) {
+          if (hlEnabled) {
+            const spans = liveSubText.querySelectorAll('[data-word-idx]');
+            spans.forEach(span => {
+              const wIdx = parseInt(span.getAttribute('data-word-idx'), 10);
+              const isAct = (wIdx === activeWordIdx);
+              if (isAct) {
+                span.classList.add('is-active-highlight-word');
+                span.style.color = hlTextColor;
+                span.style.webkitTextStroke = hlStrokePx > 0 ? `${hlStrokePx}px #000` : '0px transparent';
+                span.style.textShadow = hlShadowPx > 0 ? `${hlShadowPx}px ${hlShadowPx}px 2px rgba(0,0,0,0.85)` : 'none';
+              } else {
+                span.classList.remove('is-active-highlight-word');
+                span.style.color = span.getAttribute('data-fc') || effectiveNormalColor;
+                span.style.webkitTextStroke = '0px transparent';
+                span.style.textShadow = 'inherit';
+              }
+            });
+          }
+          currentLiveActiveWordIdx = activeWordIdx;
+        }
+
         liveSubBox.style.opacity = "1";
 
       } else {
         liveSubBox.style.opacity = "0";
+        currentLiveChunkKey = null;
+        currentLiveActiveWordIdx = -1;
       }
     }
 

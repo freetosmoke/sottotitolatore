@@ -18,6 +18,8 @@ Questo file unisce lo storico dei traguardi completati con i nuovi sviluppi pian
 | **Brand Identity & UI Rebrand** | 🟢 Completato | Nuovo brand Sub Studio, palette Obsidian/Cyan/Indigo, 4 finestre fluide |
 | **Effetto Highlighter Parola** | 🟢 Completato | Box dinamico karaoke virale parola per parola con rendering GPU/Pillow |
 | **Diarizzazione & Speaker AI** | 🟢 Completato | Auto-detect professionale monologo/dialogo, silenziamento live/render e taglio video timeline |
+| **Bilanciamento Visivo a 2 Righe** | 🟢 Completato | Ottimizzazione visiva proporzionale larghezza righe, anti-dangling e vincolo max 2 righe |
+| **Intelligenza Apostrofi & Elisioni** | 🟢 Completato | Unificazione token Whisper (es. l'energia), protezione assoluta anti-split |
 | **Editing Veloce & Blade Tool** | 🟡 Pianificato | Fase 1 |
 | **Nuovi Preset & Kinetic FX** | 🟡 Pianificato | Fase 2 |
 | **Export NLE (ProRes Alpha, CapCut)** | 🟡 Pianificato | Fase 4 |
@@ -65,6 +67,24 @@ Questo file unisce lo storico dei traguardi completati con i nuovi sviluppi pian
 - [x] Design system professionale ispirato alle creative suite (Obsidian Navy `#050711`, Cyan `#00f0ff`, Indigo `#6366f1`, Magenta `#d946ef`).
 - [x] Gestione fluida delle 4 finestre di lavoro (Anteprima 9:16, Sottotitoli, Inspector, Timeline) con doppio clic di ripristino e nessun movimento involontario al passaggio del mouse.
 - [x] Sistema di gestione progetti con Autosave continuo e pulsante dedicato `Chiudi video / Nuovo Progetto`.
+
+### 🟢 Milestone 7: Bilanciamento Visivo Intelligente a 2 Righe & Analisi Linguistica Apostrofi
+- [x] **Algoritmo di Bilanciamento Visivo Proporzionale a 2 Righe**:
+  - Calcolo dinamico dell'ingombro visivo (in pixel stimati e peso caratteri) per evitare asimmetrie sgradevoli ("sopra enorme, sotto minuscolo").
+  - Spostamento automatico delle parole lunghe per massimizzare l'equilibrio estetico (`|w1 - w2|`).
+  - Penalizzazione graduata del dangling per evitare preposizioni e articoli orfani a fine riga.
+- [x] **Intelligenza e Riconoscimento Linguistico delle Parole con Apostrofo & Elisioni**:
+  - Unificazione automatica dei token separati generati da faster-whisper (es. `l'energia.`, `d'accordo`, `c'è`, `un'altra`, `dell'arte`).
+  - Regola inviolabile anti-split: divieto assoluto di separare parole legate da apostrofi su righe diverse, preservando coesione sintattica e prosodica.
+  - Normalizzazione istantanea degli spazi post-apostrofo nell'input testuale dell'editor.
+  - Se un chunk contiene solo la parola apostrofata, rimane su un'unica riga elegante senza creare righe vuote.
+- [x] **Perfezionamento Effetto Highlighter & Preset**:
+  - Supporto completo e persistenza su `presets.json` delle proprietà highlighter (colore box, padding X/Y, raggio bordi, ombra e contorno).
+  - Micro-animazione fluida e morbida senza scatti e senza ingrandimento involontario della parola attiva.
+  - Fallback a contorno e ombra globali per la massima leggibilità su sfondi chiari.
+  - Vincolo a massimo 2 righe per chunk.
+- [x] **Diarizzazione Speaker & Rilevamento Automatico**:
+  - Rimozione della selezione forzata manuale degli interlocutori (1, 2, 3 speaker) e passaggio esclusivo alla modalità di analisi spettrale e clustering automatico.
 
 ---
 

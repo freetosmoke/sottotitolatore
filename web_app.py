@@ -109,7 +109,7 @@ for _b in _candidate_bins:
         if _b_str not in os.environ.get("PATH", ""):
             os.environ["PATH"] = f"{_b_str}:{os.environ.get('PATH', '')}"
 
-SYSTEM_PRESET_IDS = {"voce_del_successo"}
+SYSTEM_PRESET_IDS = {"voce_del_successo", "hormozi_kinetic"}
 
 def normalize_preset(raw: dict[str, Any]) -> dict[str, Any]:
     """
@@ -148,8 +148,8 @@ def normalize_preset(raw: dict[str, Any]) -> dict[str, Any]:
     max_words_per_line = max(
         min_words_per_line, _to_num(raw_layout.get("max_words_per_line", 7), 7)
     )
-    num_lines = max(
-        1, _to_num(raw_layout.get("num_lines", 2), 2)
+    num_lines = min(
+        2, max(1, _to_num(raw_layout.get("num_lines", 2), 2))
     )
 
     subtitle_layout = {
@@ -173,7 +173,6 @@ def normalize_preset(raw: dict[str, Any]) -> dict[str, Any]:
     pattern = str(raw.get("pattern", "Light")).strip()
 
     # Nuovo sistema di stile Normal / Keyword.
-    # Se assente, mantiene esattamente il comportamento precedente.
     raw_subtitle_style = raw.get("subtitle_style")
     if not isinstance(raw_subtitle_style, dict):
         raw_subtitle_style = {}
@@ -216,11 +215,9 @@ def normalize_preset(raw: dict[str, Any]) -> dict[str, Any]:
         raw_keywords = {}
 
     _kw_mode_raw = str(raw_keywords.get("mode") or "automatic").strip().lower()
-    # Valida mode: solo valori ammessi
     if _kw_mode_raw not in {"automatic", "manual", "off"}:
         _kw_mode_raw = "automatic"
 
-    # Evita il bug bool("false") == True: normalizza enabled da stringa se necessario
     _kw_enabled_raw = raw_keywords.get("enabled", True)
     if isinstance(_kw_enabled_raw, str):
         _kw_enabled_raw = _kw_enabled_raw.strip().lower() not in {"false", "0", "no", "off"}
@@ -230,6 +227,31 @@ def normalize_preset(raw: dict[str, Any]) -> dict[str, Any]:
     keywords = {
         "enabled": _kw_enabled_raw,
         "mode": _kw_mode_raw,
+    }
+
+    # Effetto Highlighter (Box dinamico parola)
+    raw_highlighter = raw.get("highlighter")
+    if not isinstance(raw_highlighter, dict):
+        raw_highlighter = {}
+    highlighter = {
+        "enabled": bool(raw_highlighter.get("enabled", False)),
+        "box_color": str(raw_highlighter.get("box_color") or "#FFE600").strip(),
+        "text_color": str(raw_highlighter.get("text_color") or "#000000").strip(),
+        "box_radius": _to_num(raw_highlighter.get("box_radius", 8), 8),
+        "box_padding_x": _to_num(raw_highlighter.get("box_padding_x", 10), 10),
+        "box_padding_y": _to_num(raw_highlighter.get("box_padding_y", 4), 4),
+        "stroke_width": max(0, int(_to_num(raw_highlighter.get("stroke_width", raw_highlighter.get("stroke", 0)), 0))),
+        "shadow_offset": max(0, int(_to_num(raw_highlighter.get("shadow_offset", raw_highlighter.get("shadow", 0)), 0))),
+    }
+
+    # Stili Speaker (Multi-voce)
+    raw_speaker_styles = raw.get("speaker_styles")
+    if not isinstance(raw_speaker_styles, dict):
+        raw_speaker_styles = {}
+    speaker_styles = {
+        "enabled": bool(raw_speaker_styles.get("enabled", False)),
+        "speakers": raw_speaker_styles.get("speakers") if isinstance(raw_speaker_styles.get("speakers"), dict) else {},
+        "muted_speakers": list(raw_speaker_styles.get("muted_speakers", [])) if isinstance(raw_speaker_styles.get("muted_speakers"), list) else [],
     }
 
     # Campi derivati per rendering e retrocompatibilità
@@ -256,6 +278,8 @@ def normalize_preset(raw: dict[str, Any]) -> dict[str, Any]:
         "pattern": pattern,
         "subtitle_style": subtitle_style,
         "keywords": keywords,
+        "highlighter": highlighter,
+        "speaker_styles": speaker_styles,
         "subtitle_layout": subtitle_layout,
         "all_caps": all_caps,
         "letter_spacing": letter_spacing,
@@ -314,11 +338,74 @@ DEFAULT_PRESET = normalize_preset({
     "subtitle_y": 960,
     "watermark_y": 1058,
     "font_size_sub": 45,
-    "font_size_wm": 30
+    "font_size_wm": 30,
+    "highlighter": {
+        "enabled": False,
+        "box_color": "#FFE600",
+        "text_color": "#000000",
+        "box_radius": 8,
+        "box_padding_x": 10,
+        "box_padding_y": 4
+    },
+    "speaker_styles": {
+        "enabled": False,
+        "speakers": {
+            "Speaker 1": {"color": "#FFFFFF", "highlight_color": "#00F0FF"},
+            "Speaker 2": {"color": "#FFEB3B", "highlight_color": "#FF007A"}
+        }
+    }
+})
+
+HORMOZI_PRESET = normalize_preset({
+    "id": "hormozi_kinetic",
+    "name": "Hormozi Kinetic Highlighter",
+    "description": "Stile iconico virale di Alex Hormozi: box giallo fluorescente dinamico parola per parola, font bold ad altissimo impatto e massimo contrasto.",
+    "is_system": True,
+    "is_default": False,
+    "font_family": "Raleway",
+    "font_name": "Raleway",
+    "pattern": "Bold",
+    "subtitle_style": {
+        "normal": {"font_family": "Raleway", "font_variant": "Bold", "color": "#FFFFFF"},
+        "keyword": {"font_family": "Raleway", "font_variant": "Bold", "color": "#FFE600"}
+    },
+    "keywords": {"enabled": True, "mode": "automatic"},
+    "highlighter": {
+        "enabled": True,
+        "box_color": "#FFE600",
+        "text_color": "#000000",
+        "box_radius": 8,
+        "box_padding_x": 12,
+        "box_padding_y": 6
+    },
+    "speaker_styles": {
+        "enabled": False,
+        "speakers": {
+            "Speaker 1": {"color": "#FFFFFF", "highlight_color": "#FFE600"},
+            "Speaker 2": {"color": "#00F0FF", "highlight_color": "#00F0FF"}
+        }
+    },
+    "subtitle_layout": {"min_words_per_line": 2, "max_words_per_line": 6, "num_lines": 1},
+    "all_caps": True,
+    "letter_spacing": 1,
+    "capcut_size": 9.0,
+    "capcut_sub_scale": 110.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": -2.0,
+    "watermark_text": "@lavocedelsuccesso",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 114.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 4,
+    "shadow_offset": 3
 })
 
 DEFAULT_PRESETS = [
-    DEFAULT_PRESET
+    DEFAULT_PRESET,
+    HORMOZI_PRESET
 ]
 
 PRESETS_FILE = DATA_DIR / "presets.json"
@@ -880,7 +967,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                     if min_w is not None and max_w is not None and num_l is not None:
                         min_w = max(1, int(min_w))
                         max_w = max(min_w, int(max_w))
-                        num_l = max(1, int(num_l))
+                        num_l = min(2, max(1, int(num_l)))
                         chunks = group_into_chunks(words, min_words_per_line=min_w, max_words_per_line=max_w, num_lines=num_l)
                     else:
                         chunks = group_into_chunks(words)
@@ -906,8 +993,15 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                     if payload.get("diarize"):
                         try:
                             import speaker_diarizer
-                            num_speakers = int(payload.get("num_speakers", 2))
-                            chunks_data = speaker_diarizer.diarize_audio(wav_path, chunks_data, num_speakers=num_speakers)
+                            raw_spk = payload.get("num_speakers", "auto")
+                            if raw_spk not in ("auto", "0", 0, None):
+                                try:
+                                    raw_spk = int(raw_spk)
+                                except (ValueError, TypeError):
+                                    raw_spk = "auto"
+                            else:
+                                raw_spk = "auto"
+                            chunks_data = speaker_diarizer.diarize_audio(wav_path, chunks_data, num_speakers=raw_spk)
                         except Exception as ex_diar:
                             logging.warning(f"Diarizzazione fallita durante trascrizione: {ex_diar}")
 
@@ -1052,7 +1146,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
 
             min_w = max(1, int(subtitle_layout.get("min_words_per_line", 2)))
             max_w = max(min_w, int(subtitle_layout.get("max_words_per_line", 7)))
-            num_l = max(1, int(subtitle_layout.get("num_lines", 2)))
+            num_l = min(2, max(1, int(subtitle_layout.get("num_lines", 2))))
 
             all_words = []
             if words_data:
@@ -1175,8 +1269,8 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                     min_words_per_line,
                     int(subtitle_layout.get("max_words_per_line", 7))
                 )
-                num_lines = max(
-                    1, int(subtitle_layout.get("num_lines", 2))
+                num_lines = min(
+                    2, max(1, int(subtitle_layout.get("num_lines", 2)))
                 )
 
                 font_name = payload.get("font_name") or payload.get("font_family") or "Raleway"
@@ -1286,6 +1380,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         if spk_entry.get("highlight_color"):
                             hl_box_color = _preview_parse_color(spk_entry["highlight_color"], fallback=hl_box_color)
 
+                    c_line_breaks = payload.get("line_breaks") or (payload.get("chunk") or {}).get("line_breaks")
                     render_subtitle(
                         words, bold_indices, light_sub, semibold_sub, sub_png,
                         offset_x=sub_ox, offset_y=sub_oy,
@@ -1308,6 +1403,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         highlighter_radius=hl_radius,
                         highlighter_padding_x=hl_pad_x,
                         highlighter_padding_y=hl_pad_y,
+                        line_breaks=c_line_breaks,
                     )
                     render_watermark(
                         semibold_wm, wm_png, watermark_text=wm_text,
@@ -1413,7 +1509,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                     subtitle_layout = preset.get("subtitle_layout") or {}
                     min_words_per_line = max(1, int(subtitle_layout.get("min_words_per_line", 2)))
                     max_words_per_line = max(min_words_per_line, int(subtitle_layout.get("max_words_per_line", 7)))
-                    num_lines = max(1, int(subtitle_layout.get("num_lines", 2)))
+                    num_lines = min(2, max(1, int(subtitle_layout.get("num_lines", 2))))
 
                     # Se richiesto explicitamente force_resegment dal client
                     force_resegment = bool(payload.get("force_resegment", False))

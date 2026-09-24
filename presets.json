@@ -43,7 +43,8 @@
           "color": "#FFEB3B",
           "highlight_color": "#FF007A"
         }
-      }
+      },
+      "muted_speakers": []
     },
     "subtitle_layout": {
       "min_words_per_line": 2,
@@ -116,13 +117,14 @@
         },
         "Speaker 2": {
           "color": "#00F0FF",
-          "highlight_color": "#FF007A"
+          "highlight_color": "#00F0FF"
         }
-      }
+      },
+      "muted_speakers": []
     },
     "subtitle_layout": {
-      "min_words_per_line": 1,
-      "max_words_per_line": 4,
+      "min_words_per_line": 2,
+      "max_words_per_line": 6,
       "num_lines": 1
     },
     "all_caps": true,
@@ -131,22 +133,98 @@
     "capcut_sub_scale": 110.0,
     "capcut_x": 0,
     "capcut_y": 0,
-    "rotation_sub": 0.0,
+    "rotation_sub": -2.0,
     "watermark_text": "@lavocedelsuccesso",
     "capcut_wm_size": 5.0,
     "capcut_wm_scale": 114.0,
     "capcut_wm_x": 0,
     "capcut_wm_y": -197,
     "rotation_wm": 0.0,
-    "stroke_width": 2,
-    "shadow_offset": 2,
+    "stroke_width": 4,
+    "shadow_offset": 3,
     "offset_sub_x": 0,
     "offset_sub_y": 0,
     "offset_wm_x": 0,
     "offset_wm_y": 98,
     "subtitle_y": 960,
     "watermark_y": 1058,
-    "font_size_sub": 52,
+    "font_size_sub": 53,
+    "font_size_wm": 30
+  },
+  {
+    "id": "preset_gugli_1790278334",
+    "name": "gugli",
+    "description": "Preset personalizzato creato dall'editor",
+    "is_system": false,
+    "is_default": false,
+    "font_family": "Raleway",
+    "font_name": "Raleway",
+    "pattern": "Bold",
+    "subtitle_style": {
+      "normal": {
+        "font_family": "Mona Sans Expanded",
+        "font_variant": "Black",
+        "color": "#ffffff"
+      },
+      "keyword": {
+        "font_family": "Mona Sans Expanded",
+        "font_variant": "Black",
+        "color": "#ffffff"
+      }
+    },
+    "keywords": {
+      "enabled": true,
+      "mode": "automatic"
+    },
+    "highlighter": {
+      "enabled": true,
+      "box_color": "#01ad00",
+      "text_color": "#ffffff",
+      "box_radius": 2,
+      "box_padding_x": 1,
+      "box_padding_y": 1
+    },
+    "speaker_styles": {
+      "enabled": false,
+      "speakers": {
+        "Speaker 1": {
+          "color": "#FFFFFF",
+          "highlight_color": "#ffffff"
+        },
+        "Speaker 2": {
+          "color": "#00F0FF",
+          "highlight_color": "#00F0FF"
+        }
+      },
+      "muted_speakers": []
+    },
+    "subtitle_layout": {
+      "min_words_per_line": 2,
+      "max_words_per_line": 3,
+      "num_lines": 2
+    },
+    "all_caps": true,
+    "letter_spacing": 0,
+    "capcut_size": 9.0,
+    "capcut_sub_scale": 100.0,
+    "capcut_x": 0,
+    "capcut_y": -775,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 114.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 0,
+    "shadow_offset": 3,
+    "offset_sub_x": 0,
+    "offset_sub_y": 388,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 1348,
+    "watermark_y": 1058,
+    "font_size_sub": 48,
     "font_size_wm": 30
   }
 ]
