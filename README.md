@@ -2,9 +2,14 @@
 
 A macOS-focused subtitle and video processing tool for creating styled subtitles for vertical 9:16 video content.
 
+<p align="center">
+  <img src="docs/screenshots/sub-studio-preview.png" alt="Sub Studio Interface" width="100%">
+</p>
+
 SubStudio combines automatic speech transcription, subtitle chunking, visual subtitle rendering, video preview and final video export in a single local workflow.
 
 The project provides both a command-line interface and a local Web UI.
+
 
 ---
 
@@ -67,6 +72,10 @@ The CLI pipeline uses:
 ---
 
 ## User Interface
+
+<p align="center">
+  <img src="docs/screenshots/subtitle-management-preview.png" alt="Subtitle Management and Timeline Editor" width="100%">
+</p>
 
 SubStudio includes a powerful local Web UI structured into a **3-column desktop layout**:
 
