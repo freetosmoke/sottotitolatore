@@ -1,13 +1,415 @@
 [
   {
+    "id": "preset_clean",
+    "name": "Clean Minimal",
+    "description": "Tipografia pura e ultra-leggibile: font Inter Regular, bianco su fondo trasparente con ombra morbida ad alta precisione.",
+    "is_system": true,
+    "is_default": true,
+    "font_family": "Inter",
+    "font_name": "Inter",
+    "pattern": "Normal",
+    "word_animation": "none",
+    "capitalization_mode": "none",
+    "subtitle_style": {
+      "normal": {
+        "font_family": "Inter",
+        "font_variant": "Regular",
+        "color": "#FFFFFF"
+      },
+      "keyword": {
+        "font_family": "Inter",
+        "font_variant": "SemiBold",
+        "color": "#FFFFFF"
+      }
+    },
+    "keywords": {
+      "enabled": true,
+      "mode": "automatic"
+    },
+    "highlighter": {
+      "enabled": false,
+      "box_color": "#FFE600",
+      "text_color": "#000000",
+      "box_radius": 8,
+      "box_padding_x": 10,
+      "box_padding_y": 4,
+      "stroke_width": 0,
+      "shadow_offset": 0
+    },
+    "speaker_styles": {
+      "enabled": false,
+      "speakers": {
+        "Speaker 1": {
+          "color": "#FFFFFF",
+          "highlight_color": "#00F0FF"
+        },
+        "Speaker 2": {
+          "color": "#FFEB3B",
+          "highlight_color": "#FF007A"
+        }
+      },
+      "muted_speakers": []
+    },
+    "subtitle_layout": {
+      "min_words_per_line": 2,
+      "max_words_per_line": 7,
+      "num_lines": 2
+    },
+    "all_caps": false,
+    "letter_spacing": 0,
+    "capcut_size": 8.0,
+    "capcut_sub_scale": 100.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 0.0,
+    "shadow_offset": 1.5,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 45,
+    "font_size_wm": 30
+  },
+  {
+    "id": "preset_social",
+    "name": "Social Impact (Reels / TikTok)",
+    "description": "Ottimizzato per Instagram Reels, TikTok e Shorts: font Montserrat ad alto contrasto con parola attiva in giallo fluo e pop dinamico.",
+    "is_system": true,
+    "is_default": false,
+    "font_family": "Montserrat",
+    "font_name": "Montserrat",
+    "pattern": "Bold",
+    "word_animation": "pop",
+    "capitalization_mode": "smartcase",
+    "subtitle_style": {
+      "normal": {
+        "font_family": "Montserrat",
+        "font_variant": "Bold",
+        "color": "#FFFFFF"
+      },
+      "keyword": {
+        "font_family": "Montserrat",
+        "font_variant": "ExtraBold",
+        "color": "#FFE600"
+      }
+    },
+    "keywords": {
+      "enabled": true,
+      "mode": "automatic"
+    },
+    "highlighter": {
+      "enabled": false,
+      "box_color": "#FFE600",
+      "text_color": "#000000",
+      "box_radius": 8,
+      "box_padding_x": 10,
+      "box_padding_y": 4,
+      "stroke_width": 0,
+      "shadow_offset": 0
+    },
+    "speaker_styles": {
+      "enabled": false,
+      "speakers": {
+        "Speaker 1": {
+          "color": "#FFFFFF",
+          "highlight_color": "#FFE600"
+        },
+        "Speaker 2": {
+          "color": "#00F0FF",
+          "highlight_color": "#FF007A"
+        }
+      },
+      "muted_speakers": []
+    },
+    "subtitle_layout": {
+      "min_words_per_line": 1,
+      "max_words_per_line": 5,
+      "num_lines": 1
+    },
+    "all_caps": false,
+    "letter_spacing": 0.5,
+    "capcut_size": 9.0,
+    "capcut_sub_scale": 105.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 2.5,
+    "shadow_offset": 2.0,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 52,
+    "font_size_wm": 30
+  },
+  {
+    "id": "preset_bold",
+    "name": "Bold Punch (Anton)",
+    "description": "Massimo impatto visivo con font Anton compatto, tutto maiuscolo, contorno marcato e ombra decisa per agganciare lo spettatore.",
+    "is_system": true,
+    "is_default": false,
+    "font_family": "Anton",
+    "font_name": "Anton",
+    "pattern": "Bold",
+    "word_animation": "scale",
+    "capitalization_mode": "uppercase",
+    "subtitle_style": {
+      "normal": {
+        "font_family": "Anton",
+        "font_variant": "Regular",
+        "color": "#FFFFFF"
+      },
+      "keyword": {
+        "font_family": "Anton",
+        "font_variant": "Regular",
+        "color": "#00F0FF"
+      }
+    },
+    "keywords": {
+      "enabled": true,
+      "mode": "automatic"
+    },
+    "highlighter": {
+      "enabled": false,
+      "box_color": "#00F0FF",
+      "text_color": "#000000",
+      "box_radius": 8,
+      "box_padding_x": 10,
+      "box_padding_y": 4,
+      "stroke_width": 0,
+      "shadow_offset": 0
+    },
+    "speaker_styles": {
+      "enabled": false,
+      "speakers": {
+        "Speaker 1": {
+          "color": "#FFFFFF",
+          "highlight_color": "#00F0FF"
+        },
+        "Speaker 2": {
+          "color": "#FFEB3B",
+          "highlight_color": "#FF007A"
+        }
+      },
+      "muted_speakers": []
+    },
+    "subtitle_layout": {
+      "min_words_per_line": 1,
+      "max_words_per_line": 4,
+      "num_lines": 1
+    },
+    "all_caps": true,
+    "letter_spacing": 1.0,
+    "capcut_size": 9.5,
+    "capcut_sub_scale": 110.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 3.5,
+    "shadow_offset": 2.5,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 56,
+    "font_size_wm": 30
+  },
+  {
+    "id": "preset_minimal",
+    "name": "Minimal Documentary",
+    "description": "Stile documentaristico e sobrio per YouTube e video corporate: font Outfit elegante collocato nel terzo inferiore dello schermo.",
+    "is_system": true,
+    "is_default": false,
+    "font_family": "Outfit",
+    "font_name": "Outfit",
+    "pattern": "Light",
+    "word_animation": "none",
+    "capitalization_mode": "none",
+    "subtitle_style": {
+      "normal": {
+        "font_family": "Outfit",
+        "font_variant": "Light",
+        "color": "#F8FAFC"
+      },
+      "keyword": {
+        "font_family": "Outfit",
+        "font_variant": "Medium",
+        "color": "#38BDF8"
+      }
+    },
+    "keywords": {
+      "enabled": true,
+      "mode": "automatic"
+    },
+    "highlighter": {
+      "enabled": false,
+      "box_color": "#38BDF8",
+      "text_color": "#0F172A",
+      "box_radius": 6,
+      "box_padding_x": 8,
+      "box_padding_y": 3,
+      "stroke_width": 0,
+      "shadow_offset": 0
+    },
+    "speaker_styles": {
+      "enabled": false,
+      "speakers": {
+        "Speaker 1": {
+          "color": "#F8FAFC",
+          "highlight_color": "#38BDF8"
+        },
+        "Speaker 2": {
+          "color": "#FDE047",
+          "highlight_color": "#F472B6"
+        }
+      },
+      "muted_speakers": []
+    },
+    "subtitle_layout": {
+      "min_words_per_line": 3,
+      "max_words_per_line": 8,
+      "num_lines": 2
+    },
+    "all_caps": false,
+    "letter_spacing": 0.2,
+    "capcut_size": 7.5,
+    "capcut_sub_scale": 95.0,
+    "capcut_x": 0,
+    "capcut_y": -350,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 0.0,
+    "shadow_offset": 1.0,
+    "offset_sub_x": 0,
+    "offset_sub_y": 175,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 1135,
+    "watermark_y": 1058,
+    "font_size_sub": 40,
+    "font_size_wm": 30
+  },
+  {
+    "id": "preset_creator",
+    "name": "Creator Kinetic (Alex Hormozi)",
+    "description": "Lo stile dei top creator mondiali: box highlighter dinamico giallo fluorescente parola per parola su font Raleway Bold ad alta energia.",
+    "is_system": true,
+    "is_default": false,
+    "font_family": "Raleway",
+    "font_name": "Raleway",
+    "pattern": "Bold",
+    "word_animation": "pop",
+    "capitalization_mode": "smartcase",
+    "subtitle_style": {
+      "normal": {
+        "font_family": "Raleway",
+        "font_variant": "Bold",
+        "color": "#FFFFFF"
+      },
+      "keyword": {
+        "font_family": "Raleway",
+        "font_variant": "Bold",
+        "color": "#FFE600"
+      }
+    },
+    "keywords": {
+      "enabled": true,
+      "mode": "automatic"
+    },
+    "highlighter": {
+      "enabled": true,
+      "box_color": "#FFE600",
+      "text_color": "#000000",
+      "box_radius": 8,
+      "box_padding_x": 12,
+      "box_padding_y": 6,
+      "stroke_width": 0,
+      "shadow_offset": 0
+    },
+    "speaker_styles": {
+      "enabled": false,
+      "speakers": {
+        "Speaker 1": {
+          "color": "#FFFFFF",
+          "highlight_color": "#FFE600"
+        },
+        "Speaker 2": {
+          "color": "#00F0FF",
+          "highlight_color": "#00F0FF"
+        }
+      },
+      "muted_speakers": []
+    },
+    "subtitle_layout": {
+      "min_words_per_line": 1,
+      "max_words_per_line": 5,
+      "num_lines": 1
+    },
+    "all_caps": true,
+    "letter_spacing": 1.0,
+    "capcut_size": 9.0,
+    "capcut_sub_scale": 105.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 2.0,
+    "shadow_offset": 2.5,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 53,
+    "font_size_wm": 30
+  },
+  {
     "id": "voce_del_successo",
     "name": "La Voce del Successo New",
     "description": "Preset ufficiale predefinito con font Raleway, Dimensione 8 (Ridim. 105%), Posizione Y: 0, Watermark Raleway Grassetto Dim. 5 (Ridim. 114%), Posizione Y: -197",
     "is_system": true,
-    "is_default": true,
+    "is_default": false,
     "font_family": "Raleway",
     "font_name": "Raleway",
     "pattern": "Normal",
+    "word_animation": "none",
+    "capitalization_mode": "none",
     "subtitle_style": {
       "normal": {
         "font_family": "Raleway",
@@ -84,6 +486,8 @@
     "font_family": "Raleway",
     "font_name": "Raleway",
     "pattern": "Bold",
+    "word_animation": "pop",
+    "capitalization_mode": "smartcase",
     "subtitle_style": {
       "normal": {
         "font_family": "Raleway",
@@ -160,6 +564,8 @@
     "font_family": "Raleway",
     "font_name": "Raleway",
     "pattern": "Bold",
+    "word_animation": "none",
+    "capitalization_mode": "uppercase",
     "subtitle_style": {
       "normal": {
         "font_family": "Mona Sans Expanded",

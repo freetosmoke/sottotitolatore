@@ -13,6 +13,9 @@ from pathlib import Path
 from typing import Callable
 
 
+from bootstrap_manager import get_ffmpeg_path
+
+
 def _log(msg: str) -> None:
     sys.stderr.write(f"[silence_remover] {msg}\n")
     sys.stderr.flush()
@@ -20,15 +23,18 @@ def _log(msg: str) -> None:
 
 def detect_silence_segments(
     video_path: Path,
-    min_silence_duration: float = 0.3,
-    noise_threshold_db: float = -30.0,
+    min_silence_duration: float = 0.4,
+    noise_threshold_db: float = -38.0,
 ) -> list[tuple[float, float]]:
     """
     Rileva gli intervalli di silenzio (start, end) analizzando la traccia audio con FFmpeg silencedetect.
+    Parametri calibrati:
+    - noise_threshold_db: predefinito -38.0 dB (distingue il vero silenzio da sussurri, vocali deboli e pause respiratorie)
+    - min_silence_duration: predefinito 0.4s (non intacca pause brevi naturali del parlato)
     Ritorna una lista di tuple [(start, end), ...] con durata >= min_silence_duration.
     """
     cmd = [
-        "ffmpeg", "-hide_banner", "-nostats",
+        get_ffmpeg_path(), "-hide_banner", "-nostats",
         "-i", str(video_path.resolve()),
         "-vn",
         "-af", f"silencedetect=noise={noise_threshold_db}dB:d={min_silence_duration}",
@@ -64,16 +70,65 @@ def calculate_keep_intervals(
     total_duration: float,
     silence_intervals: list[tuple[float, float]],
     min_keep_duration: float = 0.05,
+    padding_sec: float = 0.12,
+    speech_chunks: list[dict] | None = None,
 ) -> list[tuple[float, float]]:
     """
     Inverte gli intervalli di silenzio calcolando i segmenti di parlato/suono da preservare.
-    Fonde eventuali silenzi adiacenti o sovrapposti.
-    Ritorna una lista di [(keep_start, keep_end), ...].
+    Applica un margine di sicurezza (padding_sec) per evitare troncamenti di sillabe/plosive,
+    e preserva le pause naturali brevi.
+    Se speech_chunks è fornito, garantisce che nessun taglio intacchi i confini delle parole note.
     """
     if not silence_intervals:
         return [(0.0, total_duration)] if total_duration > 0 else []
 
-    sorted_silences = sorted(silence_intervals, key=lambda x: x[0])
+    # Applica il safety padding: il silenzio effettivo da rimuovere viene accorciato da entrambi i lati.
+    # Se il silenzio è inferiore a 2 * padding_sec, è una pausa naturale del parlato e NON viene tagliato.
+    effective_silences: list[tuple[float, float]] = []
+    for s_start, s_end in silence_intervals:
+        eff_s = s_start + padding_sec
+        eff_e = s_end - padding_sec
+        if eff_e > eff_s + 0.04:
+            effective_silences.append((eff_s, eff_e))
+
+    if not effective_silences:
+        return [(0.0, total_duration)] if total_duration > 0 else []
+
+    # Protezione dei confini delle parole trascritte
+    word_intervals = []
+    if speech_chunks:
+        for c in speech_chunks:
+            words = c.get("words") or []
+            if words and isinstance(words, list):
+                for w in words:
+                    if isinstance(w, dict) and "start" in w and "end" in w:
+                        word_intervals.append((float(w["start"]) - 0.03, float(w["end"]) + 0.03))
+            else:
+                c_s = float(c.get("start", 0.0)) - 0.04
+                c_e = float(c.get("end", c_s)) + 0.04
+                word_intervals.append((c_s, c_e))
+
+    filtered_silences: list[tuple[float, float]] = []
+    for s_start, s_end in effective_silences:
+        # Verifica se interseca pesantemente una parola nota
+        clash = False
+        adj_start = s_start
+        adj_end = s_end
+        for w_s, w_e in word_intervals:
+            if not (adj_end <= w_s or adj_start >= w_e):
+                # Sovrapposizione con una parola: proteggi la parola
+                if w_s <= adj_start and w_e >= adj_end:
+                    clash = True
+                    break
+                elif adj_start < w_s < adj_end:
+                    adj_end = min(adj_end, w_s)
+                elif adj_start < w_e < adj_end:
+                    adj_start = max(adj_start, w_e)
+
+        if not clash and adj_end > adj_start + 0.05:
+            filtered_silences.append((adj_start, adj_end))
+
+    sorted_silences = sorted(filtered_silences, key=lambda x: x[0])
     merged_silences: list[list[float]] = []
     for s_start, s_end in sorted_silences:
         s_start = max(0.0, min(s_start, total_duration))
@@ -237,7 +292,7 @@ def cut_and_compact_video_audio(
         vcodec = ["-c:v", "libx264", "-crf", crf_val, "-preset", "fast", "-pix_fmt", "yuv420p"]
 
     cmd = [
-        "ffmpeg", "-y",
+        get_ffmpeg_path(), "-y",
         "-i", str(video_path.resolve()),
         "-filter_complex", full_filter_complex,
         "-map", "[outv]",

@@ -35,3 +35,12 @@ UI_BASELINE_BEFORE_SUB_STUDIO_REDESIGN/
 
 # Local models / large model files
 models/
+
+# Local backups
+backup_substudio_*/
+
+# Test screenshots
+tests/screenshots/
+
+projects/*
+!projects/.gitkeep

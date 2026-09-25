@@ -20,8 +20,17 @@ from rich.console import Console
 console = Console(stderr=True)
 
 
+from bootstrap_manager import get_ffmpeg_path, get_ffprobe_path
+
+
 def _get_bin(name: str) -> str:
-    """Restituisce il percorso del binario (ffmpeg/ffprobe) dando priorità al bundle dell'app."""
+    """Restituisce il percorso del binario (ffmpeg/ffprobe) dando priorità al BootstrapManager."""
+    if name == "ffmpeg":
+        return get_ffmpeg_path()
+    if name == "ffprobe":
+        probe = get_ffprobe_path()
+        return probe if probe else get_ffmpeg_path()
+
     candidates = [
         Path(__file__).resolve().parent / "bin" / name,
         Path(__file__).resolve().parent.parent / "bin" / name,
@@ -102,21 +111,25 @@ def burn_subtitles(
     use_hw: bool | None = None,
     quality: str = "high",
     black_and_white: bool = False,
+    video_filter: str = "none",
     mute_intervals: list[tuple[float, float]] | None = None,
+    speed: float = 1.0,
+    bgm_path: Path | None = None,
+    bgm_volume: float = 0.20,
+    bgm_fade_in: float = 1.0,
+    bgm_fade_out: float = 1.0,
+    total_duration: float | None = None,
 ) -> Path:
     """
-    Sovrappone sottotitoli e watermark al video originale ad alta qualità.
-
-    Usa ffconcat come singolo stream di input per i sottotitoli,
-    riducendo a 2 le operazioni overlay totali.
-
-    Qualità supportate:
-    - 'high' (default): ~10-12 Mbps su Apple Silicon (-q:v 90), bitrate ideale e ultra-nitido per social HD.
-    - 'max': ~18-20 Mbps (-q:v 95), qualità master senza alcuna perdita percepibile.
-    - 'standard': ~6 Mbps (-q:v 85), allineato al bitrate sorgente medio.
+    Sovrappone sottotitoli e watermark al video originale ad alta qualità,
+    supportando filtri video rapidi (B&W Cinema, B&W Vintage, Vibrant), velocità modificata (0.5x - 2x)
+    e musica di sottofondo con dissolvenza.
     """
     if use_hw is None:
         use_hw = _hw_available() and sys.platform == "darwin"
+
+    # Risolve modalità B&W per retrocompatibilità
+    is_bw = black_and_white or video_filter in ("bw", "bw_cinema", "bw_vintage")
 
     if use_hw:
         if quality == "max":
@@ -126,7 +139,7 @@ def burn_subtitles(
         else:
             q_val = "90"
         vcodec = ["-c:v", "h264_videotoolbox", "-q:v", q_val, "-profile:v", "high"]
-        console.log(f"[cyan]Codec:[/] h264_videotoolbox (Apple Silicon HW, q:v={q_val}, qualità={quality}, bw={black_and_white})")
+        console.log(f"[cyan]Codec:[/] h264_videotoolbox (Apple Silicon HW, q:v={q_val}, qualità={quality}, bw={is_bw}, filter={video_filter}, speed={speed}x)")
     else:
         if quality == "max":
             crf_val = "14"
@@ -135,22 +148,44 @@ def burn_subtitles(
         else:
             crf_val = "16"
         vcodec = ["-c:v", "libx264", "-crf", crf_val, "-preset", "slow", "-pix_fmt", "yuv420p"]
-        console.log(f"[cyan]Codec:[/] libx264 (software, crf={crf_val}, bw={black_and_white})")
+        console.log(f"[cyan]Codec:[/] libx264 (software, crf={crf_val}, bw={is_bw}, filter={video_filter}, speed={speed}x)")
 
-    # Se black_and_white è attivo, desatura il video di sfondo preservando i sottotitoli e watermark a colori
-    if black_and_white:
-        filter_complex = (
-            "[0:v]hue=s=0[bw];"
-            "[bw][1:v]overlay=0:0:eof_action=pass[v1];"
-            "[v1][2:v]overlay=0:0:eof_action=pass,format=yuv420p[out]"
-        )
+    # 1. Filtro video: effetti rapidi (B&W Cinema, B&W Vintage, Vibrant) e velocità
+    v_filters = []
+    if video_filter == "bw_cinema":
+        v_filters.append("hue=s=0,eq=contrast=1.18:brightness=0.01")
+    elif video_filter == "bw_vintage":
+        v_filters.append("hue=s=0,eq=contrast=0.96:gamma=1.05")
+    elif video_filter == "vibrant":
+        v_filters.append("eq=saturation=1.35:contrast=1.06")
+    elif is_bw:
+        v_filters.append("hue=s=0")
+
+    if speed != 1.0 and speed > 0:
+        pts_factor = 1.0 / speed
+        v_filters.append(f"setpts={pts_factor:.6f}*PTS")
+
+    if v_filters:
+        v_chain = ",".join(v_filters)
+        video_prep = f"[0:v]{v_chain}[bg];"
+        bg_stream = "[bg]"
     else:
-        filter_complex = (
-            "[0:v][1:v]overlay=0:0:eof_action=pass[v1];"
-            "[v1][2:v]overlay=0:0:eof_action=pass,format=yuv420p[out]"
-        )
+        video_prep = ""
+        bg_stream = "[0:v]"
 
-    af_args = []
+    filter_complex_parts = [
+        video_prep,
+        f"{bg_stream}[1:v]overlay=0:0:eof_action=pass[v1];",
+        "[v1][2:v]overlay=0:0:eof_action=pass,format=yuv420p[out];"
+    ]
+
+    # 2. Filtro audio principale (speaker muting + audio speed)
+    main_a_filters = []
+    if speed != 1.0 and speed > 0:
+        # atempo supporta range 0.5 - 2.0
+        clamped_speed = max(0.5, min(2.0, speed))
+        main_a_filters.append(f"atempo={clamped_speed:.4f}")
+
     if mute_intervals:
         valid_intervals = [
             (max(0.0, float(s)), max(0.0, float(e)))
@@ -159,8 +194,39 @@ def burn_subtitles(
         ]
         if valid_intervals:
             between_expr = "+".join(f"between(t,{s:.3f},{e:.3f})" for s, e in valid_intervals)
-            af_args = ["-af", f"volume=enable='{between_expr}':volume=0"]
-            console.log(f"[yellow]🔇 Applicato silenziamento audio per {len(valid_intervals)} intervalli di speaker[/]")
+            main_a_filters.append(f"volume=enable='{between_expr}':volume=0")
+            console.log(f"[yellow]🔇 Applicato silenziamento audio per {len(valid_intervals)} intervalli[/]")
+
+    # 3. Gestione Background Music (BGM)
+    has_bgm = bgm_path is not None and Path(bgm_path).exists()
+    extra_inputs = []
+
+    if has_bgm:
+        bgm_p = Path(bgm_path).resolve()
+        extra_inputs = ["-i", str(bgm_p)]
+        # bgm è input indice 3
+        eff_dur = (total_duration / speed) if (total_duration and speed > 0) else (get_video_duration(video_path) / (speed if speed > 0 else 1.0))
+        fade_out_st = max(0.1, eff_dur - bgm_fade_out)
+
+        # Filtri BGM: volume, fade-in, fade-out
+        bgm_f = f"[3:a]volume={bgm_volume:.3f},afade=t=in:ss=0:d={bgm_fade_in:.2f},afade=t=out:st={fade_out_st:.2f}:d={bgm_fade_out:.2f}[bgm_proc];"
+        filter_complex_parts.append(bgm_f)
+
+        if main_a_filters:
+            main_f = f"[0:a]{','.join(main_a_filters)}[main_proc];"
+            filter_complex_parts.append(main_f)
+            filter_complex_parts.append("[main_proc][bgm_proc]amix=inputs=2:duration=first:dropout_transition=2[aout]")
+        else:
+            filter_complex_parts.append("[0:a][bgm_proc]amix=inputs=2:duration=first:dropout_transition=2[aout]")
+        final_a_map = ["[aout]"]
+    else:
+        if main_a_filters:
+            filter_complex_parts.append(f"[0:a]{','.join(main_a_filters)}[aout]")
+            final_a_map = ["[aout]"]
+        else:
+            final_a_map = ["0:a?"]
+
+    full_filter_complex = "".join(filter_complex_parts).rstrip(";")
 
     cmd = [
         _get_bin("ffmpeg"), "-y",
@@ -168,10 +234,10 @@ def burn_subtitles(
         "-f", "concat", "-safe", "0",
         "-i", str(ffconcat_path.resolve()),                        # [1] sottotitoli
         "-loop", "1", "-i", str(watermark_path.resolve()),         # [2] watermark
-        "-filter_complex", filter_complex,
+        *extra_inputs,                                             # [3] eventuale bgm
+        "-filter_complex", full_filter_complex,
         "-map", "[out]",
-        "-map", "0:a?",
-        *af_args,
+        "-map", *final_a_map,
         *vcodec,
         "-c:a", "aac",
         "-b:a", "320k",

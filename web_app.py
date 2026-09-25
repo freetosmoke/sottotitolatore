@@ -44,11 +44,15 @@ import tempfile
 import time
 import urllib.parse
 import zipfile
+from dataclasses import asdict
 from email.parser import BytesParser
 from email.policy import default
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
+
+from bootstrap_manager import get_bootstrap_manager, get_ffmpeg_path, get_ffprobe_path
+from project_manager import get_project_manager
 
 from audio_extractor import extract_audio
 from keyword_selector import select_keyword
@@ -96,20 +100,23 @@ OUTPUTS_DIR = DATA_DIR / "web_outputs"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Assicura priorità ai binari standalone (ffmpeg Apple Silicon)
-_candidate_bins = [
-    WORKSPACE.parent / "bin",          # Resources/bin nel bundle .app
-    WORKSPACE / "bin",                 # bin locale nel workspace
-    Path("/opt/homebrew/bin"),
-    Path("/usr/local/bin"),
-]
-for _b in _candidate_bins:
-    if _b.exists():
-        _b_str = str(_b)
-        if _b_str not in os.environ.get("PATH", ""):
-            os.environ["PATH"] = f"{_b_str}:{os.environ.get('PATH', '')}"
+# Esegui bootstrap centralizzato all'avvio del server
+_bootstrap_mgr = get_bootstrap_manager()
+_bootstrap_result = _bootstrap_mgr.run_bootstrap(force_full_check=False)
+if not _bootstrap_result.ready:
+    console.log("[yellow]⚠️ Avviso Bootstrap: alcune dipendenze non sono complete. Consultare /api/bootstrap/status[/]")
+else:
+    console.log(f"[green]✓ Bootstrap completato con successo (FFmpeg: {_bootstrap_result.ffmpeg_path})[/]")
 
-SYSTEM_PRESET_IDS = {"voce_del_successo", "hormozi_kinetic"}
+SYSTEM_PRESET_IDS = [
+    "preset_clean",
+    "preset_social",
+    "preset_bold",
+    "preset_minimal",
+    "preset_creator",
+    "voce_del_successo",
+    "hormozi_kinetic",
+]
 
 def normalize_preset(raw: dict[str, Any]) -> dict[str, Any]:
     """
@@ -296,6 +303,9 @@ def normalize_preset(raw: dict[str, Any]) -> dict[str, Any]:
         "rotation_wm": rotation_wm,
         "stroke_width": stroke_width,
         "shadow_offset": shadow_offset,
+        "word_animation": str(raw.get("word_animation") or "none").strip(),
+        "capitalization_mode": str(raw.get("capitalization_mode") or "none").strip(),
+        "video_filter": str(raw.get("video_filter") or "none").strip(),
         # Derived fields
         "offset_sub_x": offset_sub_x,
         "offset_sub_y": offset_sub_y,
@@ -307,12 +317,269 @@ def normalize_preset(raw: dict[str, Any]) -> dict[str, Any]:
         "font_size_wm": font_size_wm,
     }
 
-DEFAULT_PRESET = normalize_preset({
+PRESET_CLEAN = normalize_preset({
+    "id": "preset_clean",
+    "name": "Clean Minimal",
+    "description": "Tipografia pura e ultra-leggibile: font Inter Regular, bianco su fondo trasparente con ombra morbida ad alta precisione.",
+    "is_system": True,
+    "is_default": True,
+    "font_family": "Inter",
+    "font_name": "Inter",
+    "pattern": "Normal",
+    "word_animation": "none",
+    "capitalization_mode": "none",
+    "subtitle_style": {
+        "normal": {"font_family": "Inter", "font_variant": "Regular", "color": "#FFFFFF"},
+        "keyword": {"font_family": "Inter", "font_variant": "SemiBold", "color": "#FFFFFF"}
+    },
+    "keywords": {"enabled": True, "mode": "automatic"},
+    "highlighter": {"enabled": False, "box_color": "#FFE600", "text_color": "#000000", "box_radius": 8, "box_padding_x": 10, "box_padding_y": 4},
+    "speaker_styles": {
+        "enabled": False,
+        "speakers": {
+            "Speaker 1": {"color": "#FFFFFF", "highlight_color": "#00F0FF"},
+            "Speaker 2": {"color": "#FFEB3B", "highlight_color": "#FF007A"}
+        }
+    },
+    "subtitle_layout": {"min_words_per_line": 2, "max_words_per_line": 7, "num_lines": 2},
+    "all_caps": False,
+    "letter_spacing": 0,
+    "capcut_size": 8.0,
+    "capcut_sub_scale": 100.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 0.0,
+    "shadow_offset": 1.5,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 45,
+    "font_size_wm": 30
+})
+
+PRESET_SOCIAL = normalize_preset({
+    "id": "preset_social",
+    "name": "Social Impact (Reels / TikTok)",
+    "description": "Ottimizzato per Instagram Reels, TikTok e Shorts: font Montserrat ad alto contrasto con parola attiva in giallo fluo e pop dinamico.",
+    "is_system": True,
+    "is_default": False,
+    "font_family": "Montserrat",
+    "font_name": "Montserrat",
+    "pattern": "Bold",
+    "word_animation": "pop",
+    "capitalization_mode": "smartcase",
+    "subtitle_style": {
+        "normal": {"font_family": "Montserrat", "font_variant": "Bold", "color": "#FFFFFF"},
+        "keyword": {"font_family": "Montserrat", "font_variant": "ExtraBold", "color": "#FFE600"}
+    },
+    "keywords": {"enabled": True, "mode": "automatic"},
+    "highlighter": {"enabled": False, "box_color": "#FFE600", "text_color": "#000000", "box_radius": 8, "box_padding_x": 10, "box_padding_y": 4},
+    "speaker_styles": {
+        "enabled": False,
+        "speakers": {
+            "Speaker 1": {"color": "#FFFFFF", "highlight_color": "#FFE600"},
+            "Speaker 2": {"color": "#00F0FF", "highlight_color": "#FF007A"}
+        }
+    },
+    "subtitle_layout": {"min_words_per_line": 1, "max_words_per_line": 5, "num_lines": 1},
+    "all_caps": False,
+    "letter_spacing": 0.5,
+    "capcut_size": 9.0,
+    "capcut_sub_scale": 105.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 2.5,
+    "shadow_offset": 2.0,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 52,
+    "font_size_wm": 30
+})
+
+PRESET_BOLD = normalize_preset({
+    "id": "preset_bold",
+    "name": "Bold Punch (Anton)",
+    "description": "Massimo impatto visivo con font Anton compatto, tutto maiuscolo, contorno marcato e ombra decisa per agganciare lo spettatore.",
+    "is_system": True,
+    "is_default": False,
+    "font_family": "Anton",
+    "font_name": "Anton",
+    "pattern": "Bold",
+    "word_animation": "scale",
+    "capitalization_mode": "uppercase",
+    "subtitle_style": {
+        "normal": {"font_family": "Anton", "font_variant": "Regular", "color": "#FFFFFF"},
+        "keyword": {"font_family": "Anton", "font_variant": "Regular", "color": "#00F0FF"}
+    },
+    "keywords": {"enabled": True, "mode": "automatic"},
+    "highlighter": {"enabled": False, "box_color": "#00F0FF", "text_color": "#000000", "box_radius": 8, "box_padding_x": 10, "box_padding_y": 4},
+    "speaker_styles": {
+        "enabled": False,
+        "speakers": {
+            "Speaker 1": {"color": "#FFFFFF", "highlight_color": "#00F0FF"},
+            "Speaker 2": {"color": "#FFEB3B", "highlight_color": "#FF007A"}
+        }
+    },
+    "subtitle_layout": {"min_words_per_line": 1, "max_words_per_line": 4, "num_lines": 1},
+    "all_caps": True,
+    "letter_spacing": 1.0,
+    "capcut_size": 9.5,
+    "capcut_sub_scale": 110.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 3.5,
+    "shadow_offset": 2.5,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 56,
+    "font_size_wm": 30
+})
+
+PRESET_MINIMAL = normalize_preset({
+    "id": "preset_minimal",
+    "name": "Minimal Documentary",
+    "description": "Stile documentaristico e sobrio per YouTube e video corporate: font Outfit elegante collocato nel terzo inferiore dello schermo.",
+    "is_system": True,
+    "is_default": False,
+    "font_family": "Outfit",
+    "font_name": "Outfit",
+    "pattern": "Light",
+    "word_animation": "none",
+    "capitalization_mode": "none",
+    "subtitle_style": {
+        "normal": {"font_family": "Outfit", "font_variant": "Light", "color": "#F8FAFC"},
+        "keyword": {"font_family": "Outfit", "font_variant": "Medium", "color": "#38BDF8"}
+    },
+    "keywords": {"enabled": True, "mode": "automatic"},
+    "highlighter": {"enabled": False, "box_color": "#38BDF8", "text_color": "#0F172A", "box_radius": 6, "box_padding_x": 8, "box_padding_y": 3},
+    "speaker_styles": {
+        "enabled": False,
+        "speakers": {
+            "Speaker 1": {"color": "#F8FAFC", "highlight_color": "#38BDF8"},
+            "Speaker 2": {"color": "#FDE047", "highlight_color": "#F472B6"}
+        }
+    },
+    "subtitle_layout": {"min_words_per_line": 3, "max_words_per_line": 8, "num_lines": 2},
+    "all_caps": False,
+    "letter_spacing": 0.2,
+    "capcut_size": 7.5,
+    "capcut_sub_scale": 95.0,
+    "capcut_x": 0,
+    "capcut_y": -350,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 0.0,
+    "shadow_offset": 1.0,
+    "offset_sub_x": 0,
+    "offset_sub_y": 175,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 1135,
+    "watermark_y": 1058,
+    "font_size_sub": 40,
+    "font_size_wm": 30
+})
+
+PRESET_CREATOR = normalize_preset({
+    "id": "preset_creator",
+    "name": "Creator Kinetic (Alex Hormozi)",
+    "description": "Lo stile dei top creator mondiali: box highlighter dinamico giallo fluorescente parola per parola su font Raleway Bold ad alta energia.",
+    "is_system": True,
+    "is_default": False,
+    "font_family": "Raleway",
+    "font_name": "Raleway",
+    "pattern": "Bold",
+    "word_animation": "pop",
+    "capitalization_mode": "smartcase",
+    "subtitle_style": {
+        "normal": {"font_family": "Raleway", "font_variant": "Bold", "color": "#FFFFFF"},
+        "keyword": {"font_family": "Raleway", "font_variant": "Bold", "color": "#FFE600"}
+    },
+    "keywords": {"enabled": True, "mode": "automatic"},
+    "highlighter": {
+        "enabled": True,
+        "box_color": "#FFE600",
+        "text_color": "#000000",
+        "box_radius": 8,
+        "box_padding_x": 12,
+        "box_padding_y": 6
+    },
+    "speaker_styles": {
+        "enabled": False,
+        "speakers": {
+            "Speaker 1": {"color": "#FFFFFF", "highlight_color": "#FFE600"},
+            "Speaker 2": {"color": "#00F0FF", "highlight_color": "#00F0FF"}
+        }
+    },
+    "subtitle_layout": {"min_words_per_line": 1, "max_words_per_line": 5, "num_lines": 1},
+    "all_caps": True,
+    "letter_spacing": 1.0,
+    "capcut_size": 9.0,
+    "capcut_sub_scale": 105.0,
+    "capcut_x": 0,
+    "capcut_y": 0,
+    "rotation_sub": 0.0,
+    "watermark_text": "",
+    "capcut_wm_size": 5.0,
+    "capcut_wm_scale": 100.0,
+    "capcut_wm_x": 0,
+    "capcut_wm_y": -197,
+    "rotation_wm": 0.0,
+    "stroke_width": 2.0,
+    "shadow_offset": 2.5,
+    "offset_sub_x": 0,
+    "offset_sub_y": 0,
+    "offset_wm_x": 0,
+    "offset_wm_y": 98,
+    "subtitle_y": 960,
+    "watermark_y": 1058,
+    "font_size_sub": 53,
+    "font_size_wm": 30
+})
+
+VOCE_DEL_SUCCESSO_PRESET = normalize_preset({
     "id": "voce_del_successo",
     "name": "La Voce del Successo New",
     "description": "Preset ufficiale predefinito con font Raleway, Dimensione 8 (Ridim. 105%), Posizione Y: 0, Watermark Raleway Grassetto Dim. 5 (Ridim. 114%), Posizione Y: -197",
     "is_system": True,
-    "is_default": True,
+    "is_default": False,
     "font_family": "Raleway",
     "font_name": "Raleway",
     "pattern": "Normal",
@@ -358,13 +625,15 @@ DEFAULT_PRESET = normalize_preset({
 
 HORMOZI_PRESET = normalize_preset({
     "id": "hormozi_kinetic",
-    "name": "Hormozi Kinetic Highlighter",
-    "description": "Stile iconico virale di Alex Hormozi: box giallo fluorescente dinamico parola per parola, font bold ad altissimo impatto e massimo contrasto.",
+    "name": "Alex Hormozi Viral",
+    "description": "High-impact creator style con box evidenziatore fluo e testo Bold dinamico",
     "is_system": True,
     "is_default": False,
     "font_family": "Raleway",
     "font_name": "Raleway",
     "pattern": "Bold",
+    "word_animation": "pop",
+    "capitalization_mode": "smartcase",
     "subtitle_style": {
         "normal": {"font_family": "Raleway", "font_variant": "Bold", "color": "#FFFFFF"},
         "keyword": {"font_family": "Raleway", "font_variant": "Bold", "color": "#FFE600"}
@@ -375,37 +644,21 @@ HORMOZI_PRESET = normalize_preset({
         "box_color": "#FFE600",
         "text_color": "#000000",
         "box_radius": 8,
-        "box_padding_x": 12,
-        "box_padding_y": 6
-    },
-    "speaker_styles": {
-        "enabled": False,
-        "speakers": {
-            "Speaker 1": {"color": "#FFFFFF", "highlight_color": "#FFE600"},
-            "Speaker 2": {"color": "#00F0FF", "highlight_color": "#00F0FF"}
-        }
-    },
-    "subtitle_layout": {"min_words_per_line": 2, "max_words_per_line": 6, "num_lines": 1},
-    "all_caps": True,
-    "letter_spacing": 1,
-    "capcut_size": 9.0,
-    "capcut_sub_scale": 110.0,
-    "capcut_x": 0,
-    "capcut_y": 0,
-    "rotation_sub": -2.0,
-    "watermark_text": "@lavocedelsuccesso",
-    "capcut_wm_size": 5.0,
-    "capcut_wm_scale": 114.0,
-    "capcut_wm_x": 0,
-    "capcut_wm_y": -197,
-    "rotation_wm": 0.0,
-    "stroke_width": 4,
-    "shadow_offset": 3
+        "box_padding_x": 10,
+        "box_padding_y": 4
+    }
 })
 
+DEFAULT_PRESET = PRESET_CLEAN
+
 DEFAULT_PRESETS = [
-    DEFAULT_PRESET,
-    HORMOZI_PRESET
+    PRESET_CLEAN,
+    PRESET_SOCIAL,
+    PRESET_BOLD,
+    PRESET_MINIMAL,
+    PRESET_CREATOR,
+    VOCE_DEL_SUCCESSO_PRESET,
+    HORMOZI_PRESET,
 ]
 
 PRESETS_FILE = DATA_DIR / "presets.json"
@@ -548,7 +801,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         super().end_headers()
 
@@ -610,6 +863,38 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 self.send_error_json("Interfaccia non trovata", 404)
                 return
 
+        if path == "/api/projects":
+            pm = get_project_manager()
+            projects = pm.list_projects()
+            self.send_json({"success": True, "projects": projects})
+            return
+
+        if path.startswith("/api/projects/"):
+            project_id = path[len("/api/projects/"):].strip("/")
+            pm = get_project_manager()
+            proj = pm.get_project(project_id)
+            if proj:
+                self.send_json({"success": True, "project": proj})
+            else:
+                self.send_error_json("Progetto non trovato", 404)
+            return
+
+        if path == "/api/bootstrap/status":
+            mgr = get_bootstrap_manager()
+            res = mgr.run_bootstrap(force_full_check=False)
+            self.send_json({
+                "ready": res.ready,
+                "status": res.status,
+                "os_name": res.os_name,
+                "arch": res.arch,
+                "ffmpeg_path": res.ffmpeg_path,
+                "ffmpeg_source": res.ffmpeg_source,
+                "elapsed_ms": res.elapsed_ms,
+                "components": {k: asdict(v) for k, v in res.components.items()},
+                "logs": res.log_messages[-30:],
+            })
+            return
+
         if path == "/api/presets":
             presets = load_presets()
             self.send_json({"presets": presets, "default_id": "voce_del_successo", "success": True})
@@ -637,17 +922,31 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 alt_vid = WORKSPACE / "web_uploads" / "uploaded_video.mp4"
                 if alt_vid.exists():
                     default_vid = alt_vid
+            if not default_vid.exists():
+                for d in [UPLOADS_DIR, WORKSPACE / "web_uploads"]:
+                    if d.exists():
+                        videos = sorted([f for f in d.iterdir() if f.suffix.lower() in [".mp4", ".mov", ".mkv", ".webm"]], key=lambda x: x.stat().st_mtime, reverse=True)
+                        if videos:
+                            default_vid = videos[0]
+                            break
             if default_vid.exists():
                 try:
                     dur = get_video_duration(default_vid)
                 except Exception:
                     dur = 60.0
+                thumb = ""
+                try:
+                    import project_manager
+                    thumb = project_manager.generate_video_thumbnail_base64(default_vid, max_width=400)
+                except Exception as e:
+                    logger.warning(f"Default video thumbnail generation error: {e}")
                 self.send_json({
                     "success": True,
                     "server_path": str(default_vid.resolve()),
                     "video_url": f"/media/{default_vid.name}",
                     "filename": default_vid.name,
-                    "duration": dur
+                    "duration": dur,
+                    "thumbnail": thumb
                 })
             else:
                 self.send_error_json("Nessun video di default disponibile", 404)
@@ -804,6 +1103,22 @@ class AppRequestHandler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
+        if path == "/api/bootstrap/repair":
+            mgr = get_bootstrap_manager()
+            res = mgr.repair_environment()
+            self.send_json({
+                "ready": res.ready,
+                "status": res.status,
+                "os_name": res.os_name,
+                "arch": res.arch,
+                "ffmpeg_path": res.ffmpeg_path,
+                "ffmpeg_source": res.ffmpeg_source,
+                "elapsed_ms": res.elapsed_ms,
+                "components": {k: asdict(v) for k, v in res.components.items()},
+                "logs": res.log_messages[-30:],
+            })
+            return
+
         if path == "/api/upload":
             content_type = self.headers.get("content-type", "")
             if "multipart/form-data" not in content_type:
@@ -831,7 +1146,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                             fast_dest = dest_file.with_name(f"fast_{dest_file.name}")
                             try:
                                 res = subprocess.run([
-                                    "ffmpeg", "-y", "-i", str(dest_file),
+                                    get_ffmpeg_path(), "-y", "-i", str(dest_file),
                                     "-c", "copy", "-movflags", "+faststart",
                                     str(fast_dest)
                                 ], capture_output=True, timeout=30)
@@ -843,12 +1158,19 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                             duration = get_video_duration(dest_file)
                         except Exception:
                             duration = 0.0
+                        thumb = ""
+                        try:
+                            import project_manager
+                            thumb = project_manager.generate_video_thumbnail_base64(dest_file, max_width=400)
+                        except Exception as e:
+                            logger.warning(f"Upload thumbnail generation error: {e}")
                         uploaded_files.append({
                             "filename": dest_file.name,
                             "original_name": raw_filename,
                             "video_url": f"/media/{dest_file.name}",
                             "duration": duration,
-                            "server_path": str(dest_file)
+                            "server_path": str(dest_file),
+                            "thumbnail": thumb
                         })
             except Exception as exc:
                 self.send_error_json(f"Errore analisi upload: {str(exc)}", 500)
@@ -866,6 +1188,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 "video_url": first["video_url"],
                 "duration": first["duration"],
                 "server_path": first["server_path"],
+                "thumbnail": first.get("thumbnail", ""),
                 "files": uploaded_files
             })
             return
@@ -910,12 +1233,87 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             })
             return
 
+        if path == "/api/upload_bgm":
+            content_type = self.headers.get("content-type", "")
+            if "multipart/form-data" not in content_type:
+                self.send_error_json("Richiesta non valida: multipart/form-data atteso")
+                return
+
+            content_len = int(self.headers.get("content-length", 0))
+            if content_len <= 0:
+                self.send_error_json("Contenuto vuoto o Content-Length mancante")
+                return
+
+            post_data = self.rfile.read(content_len)
+            raw_msg = f"Content-Type: {content_type}\r\n\r\n".encode("utf-8") + post_data
+
+            saved_bgm = None
+            try:
+                msg = BytesParser(policy=default).parsebytes(raw_msg)
+                for part in msg.iter_parts():
+                    file_bytes = part.get_payload(decode=True)
+                    if file_bytes:
+                        raw_filename = part.get_filename() or "music.mp3"
+                        clean_filename = Path(raw_filename).name
+                        dest_file = UPLOADS_DIR / f"bgm_{int(time.time())}_{clean_filename}"
+                        dest_file.write_bytes(file_bytes)
+                        saved_bgm = dest_file
+                        break
+            except Exception as exc:
+                self.send_error_json(f"Errore caricamento musica: {str(exc)}", 500)
+                return
+
+            if not saved_bgm or not saved_bgm.exists():
+                self.send_error_json("Nessun file audio caricato", 400)
+                return
+
+            self.send_json({
+                "success": True,
+                "server_path": str(saved_bgm.resolve()),
+                "filename": saved_bgm.name,
+                "url": f"/media/{saved_bgm.name}",
+            })
+            return
+
         content_len = int(self.headers.get("content-length", 0))
         post_data = self.rfile.read(content_len) if content_len > 0 else b"{}"
         try:
             payload = json.loads(post_data.decode("utf-8"))
         except Exception:
             payload = {}
+
+        if path == "/api/projects":
+            pm = get_project_manager()
+            try:
+                saved = pm.save_project(payload)
+                self.send_json({"success": True, "project": saved})
+            except Exception as exc:
+                self.send_error_json(f"Errore salvataggio progetto: {exc}", 500)
+            return
+
+        if path.startswith("/api/projects/") and path.endswith("/duplicate"):
+            parts = path.split("/")
+            project_id = parts[3] if len(parts) >= 5 else ""
+            pm = get_project_manager()
+            dup = pm.duplicate_project(project_id)
+            if dup:
+                self.send_json({"success": True, "project": dup})
+            else:
+                self.send_error_json("Impossibile duplicare il progetto", 404)
+            return
+
+        if path == "/api/projects/delete" or (path.startswith("/api/projects/") and path.endswith("/delete")):
+            project_id = payload.get("id")
+            if not project_id and path.startswith("/api/projects/"):
+                parts = path.split("/")
+                project_id = parts[3] if len(parts) >= 5 else ""
+            if not project_id:
+                self.send_error_json("ID progetto mancante", 400)
+                return
+            pm = get_project_manager()
+            ok = pm.delete_project(project_id)
+            self.send_json({"success": ok})
+            return
 
         if path == "/api/transcribe":
             video_path_str = payload.get("video_path")
@@ -1448,6 +1846,9 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             preset = payload.get("preset", DEFAULT_PRESET)
             quality = payload.get("quality", "high")
             black_and_white = bool(payload.get("black_and_white", False))
+            video_filter = str(payload.get("video_filter", "none"))
+            if video_filter in ("bw", "bw_cinema", "bw_vintage"):
+                black_and_white = True
             custom_output_name = payload.get("output_filename")
             remove_silence = bool(payload.get("remove_silence", False))
             silence_threshold = float(payload.get("silence_threshold", 0.3))
@@ -1482,13 +1883,20 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                     if remove_silence:
                         cache_key = str(video_path.resolve())
                         if hasattr(self.server, "_silence_cache") and cache_key in self.server._silence_cache:
-                            raw_silences, _ = self.server._silence_cache[cache_key]
-                            # Filtra i silenzi con durata >= silence_threshold
-                            silences = [(s[0], s[1]) for s in raw_silences if (s[1] - s[0]) >= (silence_threshold - 0.02)]
-                        else:
-                            silences = detect_silence_segments(video_path, min_silence_duration=silence_threshold)
+                            noise_threshold_db = float(payload.get("noise_threshold_db", -38.0))
+                            silence_padding = float(payload.get("silence_padding", payload.get("padding_sec", 0.12)))
+                            silences = detect_silence_segments(
+                                video_path,
+                                min_silence_duration=silence_threshold,
+                                noise_threshold_db=noise_threshold_db,
+                            )
                         if silences:
-                            keeps = calculate_keep_intervals(duration, silences)
+                            keeps = calculate_keep_intervals(
+                                duration,
+                                silences,
+                                padding_sec=silence_padding,
+                                speech_chunks=chunks_data,
+                            )
                             # Se ci sono tagli effettivi
                             if len(keeps) > 1 or (len(keeps) == 1 and (keeps[0][1] - keeps[0][0]) < (duration - 0.1)):
                                 compact_video_file = tmp_p / f"compact_{video_path.name}"
@@ -1544,6 +1952,33 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                                 "text": " ".join(w.word for w in chunk.words),
                             })
 
+                    # Parametri Velocità Export
+                    raw_speed = float(payload.get("speed", 1.0))
+                    speed = max(0.5, min(2.0, raw_speed)) if raw_speed > 0 else 1.0
+
+                    if speed != 1.0:
+                        render_duration = round(render_duration / speed, 3)
+                        speed_chunks = []
+                        for c in render_chunks:
+                            c_copy = dict(c)
+                            c_copy["start"] = round(float(c.get("start", 0.0)) / speed, 3)
+                            c_copy["end"] = round(float(c.get("end", 0.0)) / speed, 3)
+                            if "words" in c and isinstance(c["words"], list):
+                                c_copy["words"] = [
+                                    {**w, "start": round(float(w["start"]) / speed, 3), "end": round(float(w["end"]) / speed, 3)}
+                                    for w in c["words"]
+                                    if isinstance(w, dict) and "start" in w and "end" in w
+                                ]
+                            speed_chunks.append(c_copy)
+                        render_chunks = speed_chunks
+
+                    # Parametri Background Music (BGM)
+                    bgm_path_str = payload.get("bgm_path")
+                    bgm_file = Path(bgm_path_str) if bgm_path_str else None
+                    bgm_volume = float(payload.get("bgm_volume", 0.20))
+                    bgm_fade_in = float(payload.get("bgm_fade_in", 1.0))
+                    bgm_fade_out = float(payload.get("bgm_fade_out", 1.0))
+
                     _, ffconcat_path, wm_path = render_all(
                         chunks=render_chunks,
                         work_dir=tmp_p,
@@ -1571,7 +2006,14 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                         use_hw=True,
                         quality=quality,
                         black_and_white=black_and_white,
+                        video_filter=video_filter,
                         mute_intervals=mute_intervals,
+                        speed=speed,
+                        bgm_path=bgm_file,
+                        bgm_volume=bgm_volume,
+                        bgm_fade_in=bgm_fade_in,
+                        bgm_fade_out=bgm_fade_out,
+                        total_duration=render_duration,
                     )
                     actual_final_dur = get_video_duration(output_file)
                 except Exception as e:
@@ -1645,7 +2087,11 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 self.send_error_json("File video non trovato")
                 return
 
-            cache_key = str(video_path.resolve())
+            noise_threshold_db = float(payload.get("noise_threshold_db", -38.0))
+            min_silence_dur = float(payload.get("min_silence_duration", payload.get("silence_threshold", 0.4)))
+            padding_sec = float(payload.get("padding_sec", 0.12))
+
+            cache_key = f"{video_path.resolve()}_{noise_threshold_db}_{min_silence_dur}"
             if not hasattr(self.server, "_silence_cache"):
                 self.server._silence_cache = {}
 
@@ -1654,8 +2100,11 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             else:
                 try:
                     total_dur = get_video_duration(video_path)
-                    # Analizza con soglia minima (0.08s) per catturare tutti i silenzi >= 0.1s una volta sola
-                    raw_silences = detect_silence_segments(video_path, min_silence_duration=0.08, noise_threshold_db=-30.0)
+                    raw_silences = detect_silence_segments(
+                        video_path,
+                        min_silence_duration=min_silence_dur,
+                        noise_threshold_db=noise_threshold_db,
+                    )
                     self.server._silence_cache[cache_key] = (raw_silences, total_dur)
                 except Exception as e:
                     self.send_error_json(f"Errore analisi silenzi: {str(e)}", 500)
@@ -1664,6 +2113,9 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "success": True,
                 "total_duration": total_dur,
+                "noise_threshold_db": noise_threshold_db,
+                "min_silence_duration": min_silence_dur,
+                "padding_sec": padding_sec,
                 "silences": [{"start": s[0], "end": s[1], "duration": round(s[1] - s[0], 3)} for s in raw_silences]
             })
             return
@@ -1839,6 +2291,14 @@ class AppRequestHandler(BaseHTTPRequestHandler):
             save_presets(user_presets)
             self.send_json({"success": True, "presets": new_presets})
             return
+
+        if path.startswith("/api/projects/"):
+            project_id = path[len("/api/projects/"):].strip("/")
+            if project_id:
+                ok = get_project_manager().delete_project(project_id)
+                self.send_json({"success": ok})
+                return
+
         self.send_error_json("Endpoint non valido", 404)
 
 def run_server():

@@ -154,25 +154,12 @@ static int find_free_port(int start_port) {
     NSFileManager *fm = [NSFileManager defaultManager];
     [fm createDirectoryAtPath:[userDataDir stringByAppendingPathComponent:@"web_uploads"] withIntermediateDirectories:YES attributes:nil error:nil];
     [fm createDirectoryAtPath:[userDataDir stringByAppendingPathComponent:@"web_outputs"] withIntermediateDirectories:YES attributes:nil error:nil];
+    [fm createDirectoryAtPath:[userDataDir stringByAppendingPathComponent:@"projects"] withIntermediateDirectories:YES attributes:nil error:nil];
     
-    // Controllo FFmpeg
-    BOOL hasFfmpeg = NO;
-    NSArray *ffmpegCandidates = @[@"/opt/homebrew/bin/ffmpeg", @"/usr/local/bin/ffmpeg", @"/usr/bin/ffmpeg"];
-    for (NSString *candidate in ffmpegCandidates) {
-        if ([fm isExecutableFileAtPath:candidate]) {
-            hasFfmpeg = YES;
-            break;
-        }
-    }
-    if (!hasFfmpeg) {
-        NSAlert *alert = [[NSAlert alloc] init];
-        [alert setMessageText:@"FFmpeg non trovato"];
-        [alert setInformativeText:@"Sub Studio richiede FFmpeg per il rendering video su Apple Silicon.\n\nPuoi installarlo aprendo il Terminale e digitando:\nbrew install ffmpeg"];
-        [alert setAlertStyle:NSAlertStyleCritical];
-        [alert runModal];
-        [NSApp terminate:nil];
-        return;
-    }
+    // Cartella bin interna al bundle e cartella dati utente
+    NSString *bundleBin = [resourcesPath stringByAppendingPathComponent:@"bin"];
+    NSString *userBin = [userDataDir stringByAppendingPathComponent:@"bin"];
+    [fm createDirectoryAtPath:userBin withIntermediateDirectories:YES attributes:nil error:nil];
     
     // Log file
     NSString *logDir = [NSString stringWithFormat:@"%@/Library/Logs", NSHomeDirectory()];
@@ -188,7 +175,8 @@ static int find_free_port(int start_port) {
         self.serverTask.currentDirectoryPath = appDir;
         
         NSMutableDictionary *env = [NSMutableDictionary dictionaryWithDictionary:[[NSProcessInfo processInfo] environment]];
-        env[@"PATH"] = [NSString stringWithFormat:@"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:%@", env[@"PATH"] ?: @""];
+        // Priorità assoluta ai binari inclusi nel bundle e gestiti da SubStudio
+        env[@"PATH"] = [NSString stringWithFormat:@"%@:%@:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:%@", bundleBin, userBin, env[@"PATH"] ?: @""];
         env[@"PYTHONHOME"] = [resourcesPath stringByAppendingPathComponent:@"python"];
         env[@"PYTHONPATH"] = [NSString stringWithFormat:@"%@:%@/python/lib/python3.12/site-packages", appDir, resourcesPath];
         env[@"LC_ALL"] = @"en_US.UTF-8";
@@ -230,7 +218,7 @@ static int find_free_port(int start_port) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%d/", self.port]];
         BOOL ready = NO;
-        for (int i = 0; i < 40; i++) {
+        for (int i = 0; i < 100; i++) {
             usleep(250000); // 250ms
             NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
             req.timeoutInterval = 0.5;
@@ -247,8 +235,26 @@ static int find_free_port(int start_port) {
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSURLRequest *req = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:60.0];
-            [self.webView loadRequest:req];
+            if (ready) {
+                NSURLRequest *req = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:60.0];
+                [self.webView loadRequest:req];
+            } else {
+                NSString *errHTML = @"<!DOCTYPE html><html><head><meta charset='utf-8'><style>"
+                    "body{background:#060812;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;padding:24px;}"
+                    ".icon{font-size:48px;margin-bottom:16px;}"
+                    "h2{font-size:20px;font-weight:700;margin:0 0 10px;color:#f87171;}"
+                    "p{color:#94a3b8;font-size:14px;max-width:480px;line-height:1.5;margin:0 0 20px;}"
+                    ".btn{background:linear-gradient(135deg,#00f0ff,#3b82f6);color:#060812;font-weight:700;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;}"
+                    ".log-hint{margin-top:20px;color:#64748b;font-size:12px;font-family:monospace;}"
+                    "</style></head><body>"
+                    "<div class='icon'>⚠️</div>"
+                    "<h2>Impossibile completare l'avvio del server</h2>"
+                    "<p>Sub Studio non è riuscito a comunicare con il processo locale in tempo. Verifica che le risorse dell'app siano integre o consulta il registro eventi.</p>"
+                    "<button class='btn' onclick='location.reload()'>Riprova</button>"
+                    "<div class='log-hint'>Log salvato in: ~/Library/Logs/SubStudio.log</div>"
+                    "</body></html>";
+                [self.webView loadHTMLString:errHTML baseURL:nil];
+            }
         });
     });
 }

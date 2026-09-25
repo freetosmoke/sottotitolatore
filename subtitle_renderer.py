@@ -9,11 +9,127 @@ Coordinate intuitive con CENTRO DELLO SCHERMO a (0, 0):
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import NamedTuple, Any
 
 from PIL import Image, ImageDraw, ImageFont
 from rich.console import Console
+
+# ── Dizionari per Capitalizzazione Intelligente ──────────────────────────────
+ACRONYMS = {
+    "AI", "API", "B2B", "B2C", "CEO", "CTO", "CFO", "COO", "CMO", "CRM", "CSS", "CTA",
+    "DMG", "DNA", "FAQ", "FFMPEG", "GPU", "HTML", "HTTP", "HTTPS", "ID", "IP", "IT",
+    "JSON", "NASA", "OK", "OS", "PC", "PDF", "RAM", "ROI", "ROM", "SEO", "SMS", "SRT",
+    "TG", "TV", "UI", "URL", "USA", "UX", "VFX", "VIP", "VPN", "VR", "XML"
+}
+
+PROPER_NOUNS = {
+    "Salvatore", "Puglisi", "Guglielmino", "Luca", "Marco", "Matteo", "Giovanni", "Andrea",
+    "Alessandro", "Francesco", "Davide", "Federico", "Lorenzo", "Giulia", "Chiara", "Sara",
+    "Elena", "Francesca", "Valentina", "Alex", "Hormozi", "Steve", "Jobs", "Elon", "Musk",
+    "Google", "Apple", "Microsoft", "Amazon", "Meta", "Facebook", "Instagram", "WhatsApp",
+    "Telegram", "TikTok", "YouTube", "LinkedIn", "Twitter", "X", "OpenAI", "ChatGPT",
+    "CapCut", "SubStudio", "Premiere", "Photoshop", "FinalCut", "Netflix", "Spotify",
+    "iOS", "iPadOS", "macOS", "Mac", "Android", "Windows", "Linux",
+    "Italia", "Roma", "Milano", "Napoli", "Torino", "Firenze", "Bologna", "Palermo",
+    "Genova", "Venezia", "Verona", "Bari", "Catania", "Messina", "Padova", "Trieste",
+    "Europa", "America", "Francia", "Spagna", "Germania", "Inghilterra", "Londra",
+    "Parigi", "Berlino", "Madrid", "New", "York", "California"
+}
+
+LOWERCASE_WORDS_IT = {
+    "a", "ad", "agli", "ai", "al", "all", "alla", "alle", "allo", "con", "col", "coi",
+    "da", "dal", "dalla", "dalle", "dallo", "dai", "dagli", "dei", "del", "dell",
+    "della", "delle", "dello", "degli", "di", "ed", "e", "fra", "in", "il", "la", "le",
+    "lo", "gli", "i", "ma", "ne", "nel", "nella", "nelle", "nello", "nei", "negli",
+    "o", "od", "per", "pel", "pei", "se", "su", "sul", "sulla", "sulle", "sullo",
+    "sui", "sugli", "tra", "un", "uno", "una", "che", "chi", "cui", "non"
+}
+
+def apply_capitalization(text: str, mode: str = "smartcase") -> str:
+    """
+    Applica la trasformazione di capitalizzazione al testo:
+    - uppercase: tutto MAIUSCOLO
+    - lowercase: tutto minuscolo
+    - titlecase: Prima Lettera Maiuscola di ogni parola
+    - smartcase: capitalizzazione intelligente con preservazione acronimi,
+      nomi propri, brand, città e inizio frase.
+    """
+    if not text or not isinstance(text, str):
+        return text or ""
+
+    mode = (mode or "smartcase").lower().strip()
+    if mode in ("uppercase", "caps", "all_caps"):
+        return text.upper()
+    if mode == "lowercase":
+        return text.lower()
+    if mode == "titlecase":
+        def _cap_word(m):
+            w = m.group(0)
+            return w.capitalize()
+        return re.sub(r"[A-Za-zÀ-ÿ0-9]+", _cap_word, text)
+    if mode in ("smartcase", "smart"):
+        acro_map = {a.upper(): a for a in ACRONYMS}
+        proper_map = {p.lower(): p for p in PROPER_NOUNS}
+
+        tokens = re.split(r"(\s+|[.,!?;:\"()\[\]{}]+)", text)
+        is_sentence_start = True
+        result = []
+
+        for tok in tokens:
+            if not tok:
+                continue
+            if re.match(r"^(\s+|[.,!?;:\"()\[\]{}]+)$", tok):
+                if any(p in tok for p in ".!?"):
+                    is_sentence_start = True
+                result.append(tok)
+                continue
+
+            if "'" in tok or "’" in tok:
+                sub_parts = re.split(r"(['’])", tok)
+                proc_sub = []
+                for sp in sub_parts:
+                    if sp in ("'", "’"):
+                        proc_sub.append(sp)
+                    elif sp.lower() in proper_map:
+                        proc_sub.append(proper_map[sp.lower()])
+                    elif sp.upper() in acro_map:
+                        proc_sub.append(acro_map[sp.upper()])
+                    elif is_sentence_start:
+                        proc_sub.append(sp.capitalize())
+                        is_sentence_start = False
+                    elif sp.lower() in LOWERCASE_WORDS_IT:
+                        proc_sub.append(sp.lower())
+                    else:
+                        proc_sub.append(sp)
+                result.append("".join(proc_sub))
+                is_sentence_start = False
+                continue
+
+            tok_upper = tok.upper()
+            tok_lower = tok.lower()
+
+            if tok_upper in acro_map:
+                result.append(acro_map[tok_upper])
+                is_sentence_start = False
+            elif tok_lower in proper_map:
+                result.append(proper_map[tok_lower])
+                is_sentence_start = False
+            elif is_sentence_start:
+                result.append(tok.capitalize())
+                is_sentence_start = False
+            elif tok_lower in LOWERCASE_WORDS_IT:
+                result.append(tok_lower)
+            else:
+                if any(c.isupper() for c in tok[1:]):
+                    result.append(tok)
+                else:
+                    result.append(tok.lower())
+
+        return "".join(result)
+
+    return text
 
 from keyword_selector import select_keyword
 from transcriber import SubtitleChunk
@@ -601,6 +717,7 @@ def render_subtitle(
     highlighter_stroke: int = 0,
     highlighter_shadow: int = 0,
     line_breaks: list[int] | None = None,
+    word_animation: str = "none",
 ) -> Path:
     scale = canvas_height / BASE_HEIGHT
     center_x = canvas_width / 2.0
@@ -690,18 +807,37 @@ def render_subtitle(
             is_word_bold = _is_bold(tok_idx)
             font = semibold if is_word_bold else light
             use_faux = is_bold_pattern or (is_word_bold and light == semibold)
-            is_active_word = highlighter_enabled and (active_word_index is not None) and (tok_idx == active_word_index)
+            is_active_word = (active_word_index is not None) and (tok_idx == active_word_index)
             word_w_px = _word_w(tok, font, letter_spacing) + (1 if use_faux else 0)
 
-            if is_active_word:
+            word_y = start_y
+            eff_fill = keyword_color if is_word_bold else normal_color
+            eff_stroke = stroke_width
+            eff_shadow = shadow_offset
+
+            if active_word_index is not None:
+                if word_animation == "fade":
+                    # Karaoke/Creator style: parole non ancora pronunciate hanno opacità ridotta a 35%
+                    if tok_idx > active_word_index:
+                        eff_fill = (eff_fill[0], eff_fill[1], eff_fill[2], max(10, int(eff_fill[3] * 0.35)))
+                        eff_stroke = 0
+                        eff_shadow = 0
+                elif word_animation == "slide_up" and is_active_word:
+                    word_y = start_y - max(1, round(3 * scale))
+                elif word_animation == "slide_down" and is_active_word:
+                    word_y = start_y + max(1, round(3 * scale))
+                elif word_animation in ("pop", "scale") and is_active_word:
+                    use_faux = True
+
+            if is_active_word and highlighter_enabled:
                 # Disegna rettangolo arrotondato evidenziatore dietro alla parola attiva
                 pad_x = max(0, round(highlighter_padding_x * scale))
                 pad_y = max(0, round(highlighter_padding_y * scale))
                 rad = max(0, round(highlighter_radius * scale))
                 box_x0 = cur_x - pad_x
-                box_y0 = start_y - pad_y
+                box_y0 = word_y - pad_y
                 box_x1 = cur_x + word_w_px + pad_x
-                box_y1 = start_y + (asc + desc) + pad_y
+                box_y1 = word_y + (asc + desc) + pad_y
                 draw.rounded_rectangle(
                     [box_x0, box_y0, box_x1, box_y1],
                     radius=rad,
@@ -712,7 +848,7 @@ def render_subtitle(
                 eff_hl_stroke = highlighter_stroke if highlighter_stroke > 0 else stroke_width
                 eff_hl_shadow = highlighter_shadow if highlighter_shadow > 0 else shadow_offset
                 _draw_text(
-                    draw, cur_x, start_y, tok, font,
+                    draw, cur_x, word_y, tok, font,
                     fill_color=highlighter_text_color,
                     stroke_width=eff_hl_stroke,
                     stroke_color=(0, 0, 0, 220) if eff_hl_stroke > 0 else (0, 0, 0, 0),
@@ -723,12 +859,12 @@ def render_subtitle(
                 )
             else:
                 _draw_text(
-                    draw, cur_x, start_y, tok, font,
-                    fill_color=keyword_color if is_word_bold else normal_color,
-                    stroke_width=stroke_width,
-                    stroke_color=(0, 0, 0, 220) if stroke_width > 0 else (0, 0, 0, 0),
-                    shadow_offset=shadow_offset,
-                    shadow_color=(0, 0, 0, 140) if shadow_offset > 0 else (0, 0, 0, 0),
+                    draw, cur_x, word_y, tok, font,
+                    fill_color=eff_fill,
+                    stroke_width=eff_stroke,
+                    stroke_color=(0, 0, 0, 220) if eff_stroke > 0 else (0, 0, 0, 0),
+                    shadow_offset=eff_shadow,
+                    shadow_color=(0, 0, 0, min(220, int(60 + eff_shadow * 15))) if eff_shadow > 0 else (0, 0, 0, 0),
                     faux_bold=use_faux,
                     letter_spacing=letter_spacing
                 )
@@ -928,7 +1064,7 @@ def render_all(
         settings["rotation_sub"] = float(preset.get("rotation_sub", 0.0))
         settings["rotation_wm"] = float(preset.get("rotation_wm", 0.0))
 
-        for k in ["font_size_sub", "font_size_wm", "watermark_text", "stroke_width", "shadow_offset", "font_name", "font_family", "pattern", "all_caps", "letter_spacing", "subtitle_style", "keywords", "subtitle_layout"]:
+        for k in ["font_size_sub", "font_size_wm", "watermark_text", "stroke_width", "shadow_offset", "font_name", "font_family", "pattern", "all_caps", "letter_spacing", "subtitle_style", "keywords", "subtitle_layout", "word_animation", "capitalization_mode"]:
             if k in preset:
                 settings[k] = preset[k]
 
@@ -940,12 +1076,14 @@ def render_all(
     wm_oy  = int(round(settings["offset_wm_y"] * scale))
     fs_sub = max(1, int(round(settings["font_size_sub"] * scale)))
     fs_wm  = max(1, int(round(settings["font_size_wm"] * scale)))
-    stroke_w = int(round(settings.get("stroke_width", 0) * scale))
-    shadow_off = int(round(settings.get("shadow_offset", 0) * scale))
+    stroke_w = max(0, int(round(settings.get("stroke_width", 0) * scale * 1.5)))
+    shadow_off = max(0, int(round(settings.get("shadow_offset", 0) * scale * 1.8)))
     letter_spacing = int(round(settings.get("letter_spacing", 0) * scale))
     font_name = settings.get("font_name") or settings.get("font_family") or "Raleway"
     pattern = settings.get("pattern", "")
     all_caps = bool(settings.get("all_caps", False))
+    word_animation = str(settings.get("word_animation") or (preset.get("word_animation") if preset else "none") or "none").lower().strip()
+    capitalization_mode = str(settings.get("capitalization_mode") or (preset.get("capitalization_mode") if preset else "none") or "none").lower().strip()
 
     # Layout sottotitoli
     subtitle_layout = settings.get("subtitle_layout") or {}
@@ -993,6 +1131,8 @@ def render_all(
         if isinstance(chunk, dict):
             raw_words = chunk.get("words", [])
             words = [w if isinstance(w, str) else w.get("word", "") for w in raw_words]
+            if capitalization_mode and capitalization_mode != "none":
+                words = [apply_capitalization(w, capitalization_mode) for w in words]
             if "bold_indices" in chunk and isinstance(chunk["bold_indices"], list):
                 b_indices = set(chunk["bold_indices"])
             else:
@@ -1007,6 +1147,8 @@ def render_all(
             c_end = float(chunk.get("end", 0.0))
         else:
             words = [w.word for w in chunk.words]
+            if capitalization_mode and capitalization_mode != "none":
+                words = [apply_capitalization(w, capitalization_mode) for w in words]
             kw = select_keyword(words)
             b_indices = {kw} if kw is not None else set()
             c_start = float(chunk.start)
@@ -1101,10 +1243,10 @@ def render_all(
             if "highlight_color" in spk_conf and spk_conf["highlight_color"]:
                 chunk_hl_box_color = _parse_color(spk_conf["highlight_color"], fallback=default_hl_box_color)
 
-        # Rendering con highlighter parola per parola (se disponibile e abilitato)
+        # Rendering con highlighter o animazione parola per parola (se disponibile e abilitato)
         word_objs = raw_words if isinstance(chunk, dict) else []
         has_word_timings = (
-            highlighter_enabled
+            (highlighter_enabled or word_animation in ("pop", "scale", "fade", "slide_up", "slide_down"))
             and bool(word_objs)
             and all(isinstance(w, dict) and "start" in w and "end" in w for w in word_objs)
             and len(word_objs) > 0
@@ -1143,11 +1285,12 @@ def render_all(
                     active_word_index=None,
                     highlighter_enabled=False,
                     line_breaks=chunk_line_breaks,
+                    word_animation=word_animation,
                 )
                 rendered.append(RenderedChunk(image_path=out_neutral, start=c_start, end=w0_start))
                 current_word_t = w0_start
             else:
-                # Altrimenti la prima parola è evidenziata fin dall'inizio del blocco
+                # Altrimenti la prima parola è attiva fin dall'inizio del blocco
                 current_word_t = c_start
 
             for w_idx in range(n_w):
@@ -1184,7 +1327,7 @@ def render_all(
                     max_words_per_line=max_words_per_line,
                     num_lines=num_lines,
                     active_word_index=w_idx,
-                    highlighter_enabled=True,
+                    highlighter_enabled=highlighter_enabled,
                     highlighter_box_color=chunk_hl_box_color,
                     highlighter_text_color=default_hl_text_color,
                     highlighter_radius=hl_radius,
@@ -1193,6 +1336,7 @@ def render_all(
                     highlighter_stroke=hl_stroke,
                     highlighter_shadow=hl_shadow,
                     line_breaks=chunk_line_breaks,
+                    word_animation=word_animation,
                 )
                 rendered.append(RenderedChunk(image_path=out_w, start=current_word_t, end=frame_end))
                 current_word_t = frame_end
@@ -1221,6 +1365,7 @@ def render_all(
                 active_word_index=None,
                 highlighter_enabled=False,
                 line_breaks=chunk_line_breaks,
+                word_animation=word_animation,
             )
             rendered.append(RenderedChunk(image_path=out, start=c_start, end=c_end))
 

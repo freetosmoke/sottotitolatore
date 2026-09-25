@@ -92,6 +92,8 @@ cp -R "$PY_SRC" "$PYTHON_DIR"
 
 echo "📂 [4/5] Integrazione codice sorgente, font, Web UI e modello Whisper offline..."
 cp -f "$PROJECT_DIR"/web_app.py "$APP_PAYLOAD_DIR/"
+cp -f "$PROJECT_DIR"/project_manager.py "$APP_PAYLOAD_DIR/"
+cp -f "$PROJECT_DIR"/bootstrap_manager.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/transcriber.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/subtitle_renderer.py "$APP_PAYLOAD_DIR/"
 cp -f "$PROJECT_DIR"/video_renderer.py "$APP_PAYLOAD_DIR/"

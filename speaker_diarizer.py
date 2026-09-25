@@ -389,8 +389,8 @@ def _viterbi_temporal_smoothing(
 
     # Similarità coseno dei campioni rispetto a ciascun centro: shape (n_samples, k)
     sims = np.dot(unit_feats, centers.T)
-    # Emission log-likelihood scalata: chi è più simile al centro ha probabilità molto più alta
-    emission_log = sims * 6.0
+    # Emission log-likelihood scalata: pondera fortemente la fedeltà acustica
+    emission_log = sims * 18.0
 
     # Viterbi DP
     viterbi = np.zeros((n_samples, k), dtype=np.float32)
@@ -405,16 +405,16 @@ def _viterbi_temporal_smoothing(
         cur_start = float(chunks[t].get("start", prev_end))
         gap = max(0.0, cur_start - prev_end)
 
-        # Se il gap è piccolo (< 0.25s), il cambio interlocutore è molto improbabile (p_switch = 0.04).
-        # Se c'è una pausa considerevole (> 1.2s), il cambio interlocutore è normale (p_switch = 0.35).
-        if gap < 0.25:
-            p_switch = 0.04
-        elif gap < 0.8:
-            p_switch = 0.12
-        elif gap < 1.5:
-            p_switch = 0.25
-        else:
+        # In un dialogo o intervista reale, il turn-taking tra oratori avviene frequentemente
+        # con pause brevi (150ms-400ms). Le transizioni devono essere naturali.
+        if gap < 0.15:
+            p_switch = 0.18
+        elif gap < 0.6:
+            p_switch = 0.28
+        elif gap < 1.2:
             p_switch = 0.38
+        else:
+            p_switch = 0.48
 
         stay_log = math.log(max(1e-6, 1.0 - p_switch))
         switch_log = math.log(max(1e-6, p_switch / max(1, k - 1)))
@@ -437,7 +437,13 @@ def _viterbi_temporal_smoothing(
         best_path.append(best_last)
     best_path.reverse()
 
-    return np.array(best_path, dtype=int)
+    result_arr = np.array(best_path, dtype=int)
+    # Controllo anti-soppressione: se il smoothing ha azzerato completamente un cluster
+    # mentre raw_labels conteneva entrambi gli speaker, ripristina raw_labels
+    if len(np.unique(result_arr)) < k and len(np.unique(raw_labels)) >= k:
+        return raw_labels
+
+    return result_arr
 
 
 def _evaluate_two_clusters(feat_weighted: np.ndarray, labels: np.ndarray) -> tuple[float, float, float]:
@@ -461,6 +467,9 @@ def _evaluate_two_clusters(feat_weighted: np.ndarray, labels: np.ndarray) -> tup
 
     centroid_dist = float(1.0 - np.dot(c0, c1))
     min_ratio = min(n0, n1) / float(n_samples)
+
+    if n_samples < 4 or min(n0, n1) < 2:
+        return centroid_dist, 0.0, min_ratio
 
     silhouettes = []
     for i in range(n_samples):
@@ -589,24 +598,28 @@ def diarize_audio(
         f"bilanciamento={ratio:.2f}, delta_pitch={pitch_diff:.1f}Hz[/]"
     )
 
-    # Criterio professionale per distinguere 1 speaker (monologo) da 2 speaker (dialogo):
-    # In un monologo con un solo oratore, la distanza tra centroidi c_dist è minuscola (< 0.05).
-    # In un vero dialogo/podcast con due persone distinte, c_dist è >= 0.12 e vi è una netta differenza
-    # di pitch (>= 22Hz) oppure una separazione timbrica formante molto netta (c_dist >= 0.16).
-    # Inoltre, entrambi i cluster devono avere almeno il 12% dei blocchi orali.
-    is_genuine_dialogue = (
-        c_dist >= 0.12 and ratio >= 0.12 and (sil >= 0.20 or pitch_diff >= 22.0 or c_dist >= 0.16)
-    )
+    # Criterio acustico calibrato per distinguere 1 speaker (monologo) da 2 o più speaker (dialogo).
+    # In dialoghi reali con interlocutori dello stesso sesso o registrati dallo stesso microfono,
+    # la distanza spettrale c_dist si attesta tra 0.055 e 0.12 e il delta pitch può essere anche di 10-18 Hz.
+    # L'algoritmo non deve collassare arbitrariamente in monologo se vi sono evidenze di cambi voce.
+    if len(chunks) <= 2:
+        is_genuine_dialogue = (
+            c_dist >= 0.18 or (pitch_diff >= 22.0 and c_dist >= 0.10)
+        )
+    else:
+        is_genuine_dialogue = (
+            c_dist >= 0.055 and ratio >= 0.06 and (sil >= 0.08 or pitch_diff >= 10.0 or c_dist >= 0.085)
+        )
 
     if is_auto:
         actual_k = 2 if is_genuine_dialogue else 1
     else:
-        # Se l'utente ha chiesto esplicitamente target_k
-        if target_k == 1:
+        # Quando l'utente specifica target_k (es. 2 o 3 speaker), rispetta rigorosamente la sua scelta
+        # a meno che il numero totale di chunk sia inferiore a target_k.
+        if target_k <= 1:
             actual_k = 1
         else:
-            # Se la distanza acustica è sotto 0.08, anche se forzato a 2 è fisicamente 1 solo oratore
-            actual_k = target_k if (is_genuine_dialogue or c_dist >= 0.08) else 1
+            actual_k = min(target_k, len(chunks))
 
     if actual_k == 1:
         console.log("[green]✓ Rilevato singolo speaker (monologo). Assegnato Speaker 1 a tutti i blocchi.[/]")
