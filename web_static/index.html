@@ -58,38 +58,80 @@
       }
     }
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alata&family=Anton&family=Archivo&family=Barlow&family=Barlow+Condensed&family=Bebas+Neue&family=Cinzel&family=Cormorant+Garamond&family=DM+Sans&family=Fira+Sans&family=IBM+Plex+Sans&family=IBM+Plex+Serif&family=Inter:wght@300;400;600;700&family=Lato:wght@300;400;700&family=Libre+Baskerville&family=Lobster&family=Manrope&family=Merriweather&family=Montserrat:ital,wght@0,300..900;1,300..900&family=Nunito&family=Nunito+Sans&family=Open+Sans:wght@300;400;600;700&family=Oswald&family=Outfit&family=Pacifico&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Poppins:ital,wght@0,300..900;1,300..900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,300..900;1,300..900&family=Roboto+Condensed&family=Roboto+Slab&family=Source+Sans+3&family=Space+Grotesk&family=Ubuntu&family=Work+Sans&display=swap" rel="stylesheet">
+  <!-- Local Bundled Fonts for 100% Offline Parity -->
   <style>
-    @font-face {
-      font-family: 'Raleway';
-      src: url('/fonts/Raleway-Light.ttf') format('truetype');
-      font-weight: 300;
-    }
-    @font-face {
-      font-family: 'Raleway';
-      src: url('/fonts/Raleway-SemiBold.ttf') format('truetype');
-      font-weight: 600;
-    }
-    @font-face {
-      font-family: 'Alata';
-      src: url('/fonts/Alata-Regular.ttf') format('truetype');
-      font-weight: 400;
-    }
-    @font-face {
-      font-family: 'Alata';
-      src: url('/fonts/Alata-Regular.ttf') format('truetype');
-      font-weight: 700;
-    }
+    /* Inter */
+    @font-face { font-family: 'Inter'; src: url('/fonts/google/Inter_400.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+    @font-face { font-family: 'Inter'; src: url('/fonts/google/Inter_400_italic.ttf') format('truetype'); font-weight: 400; font-style: italic; }
+    @font-face { font-family: 'Inter'; src: url('/fonts/google/Inter_600.ttf') format('truetype'); font-weight: 600; font-style: normal; }
+    @font-face { font-family: 'Inter'; src: url('/fonts/google/Inter_700.ttf') format('truetype'); font-weight: 700; font-style: normal; }
 
+    /* Montserrat */
+    @font-face { font-family: 'Montserrat'; src: url('/fonts/google/Montserrat_300.ttf') format('truetype'); font-weight: 300; font-style: normal; }
+    @font-face { font-family: 'Montserrat'; src: url('/fonts/google/Montserrat_400.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+    @font-face { font-family: 'Montserrat'; src: url('/fonts/google/Montserrat_400_italic.ttf') format('truetype'); font-weight: 400; font-style: italic; }
+    @font-face { font-family: 'Montserrat'; src: url('/fonts/google/Montserrat_700.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+
+    /* Poppins */
+    @font-face { font-family: 'Poppins'; src: url('/fonts/google/Poppins_400.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+    @font-face { font-family: 'Poppins'; src: url('/fonts/google/Poppins_400_italic.ttf') format('truetype'); font-weight: 400; font-style: italic; }
+    @font-face { font-family: 'Poppins'; src: url('/fonts/google/Poppins_500.ttf') format('truetype'); font-weight: 500; font-style: normal; }
+    @font-face { font-family: 'Poppins'; src: url('/fonts/google/Poppins_700.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+
+    /* Roboto */
+    @font-face { font-family: 'Roboto'; src: url('/fonts/google/Roboto_400.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+    @font-face { font-family: 'Roboto'; src: url('/fonts/google/Roboto_400_italic.ttf') format('truetype'); font-weight: 400; font-style: italic; }
+    @font-face { font-family: 'Roboto'; src: url('/fonts/google/Roboto_700.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+    @font-face { font-family: 'Roboto'; src: url('/fonts/google/Roboto_900.ttf') format('truetype'); font-weight: 900; font-style: normal; }
+
+    /* Playfair Display */
+    @font-face { font-family: 'Playfair Display'; src: url('/fonts/google/Playfair_Display_400.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+    @font-face { font-family: 'Playfair Display'; src: url('/fonts/google/Playfair_Display_400_italic.ttf') format('truetype'); font-weight: 400; font-style: italic; }
+    @font-face { font-family: 'Playfair Display'; src: url('/fonts/google/Playfair_Display_700.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+
+    /* Bebas Neue */
+    @font-face { font-family: 'Bebas Neue'; src: url('/fonts/google/Bebas_Neue_400.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+
+    /* Mona Sans */
+    @font-face { font-family: 'Mona Sans'; src: url('/fonts/Mona Sans Expanded Black.ttf') format('truetype'); font-weight: 900; font-style: normal; }
+
+    /* Raleway */
+    @font-face { font-family: 'Raleway'; src: url('/fonts/Raleway-Light.ttf') format('truetype'); font-weight: 300; font-style: normal; }
+    @font-face { font-family: 'Raleway'; src: url('/fonts/Raleway-SemiBold.ttf') format('truetype'); font-weight: 600; font-style: normal; }
+    @font-face { font-family: 'Raleway'; src: url('/fonts/Raleway-Bold.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+
+    /* Alata */
+    @font-face { font-family: 'Alata'; src: url('/fonts/Alata-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+    @font-face { font-family: 'Alata'; src: url('/fonts/Alata-Regular.ttf') format('truetype'); font-weight: 700; font-style: normal; }
+
+    /* Master Semantic Design Tokens (Dark-First Cinematic NLE) */
     :root {
-      --preset-font: 'Raleway', sans-serif;
+      --canvas: #03050a;
+      --surface-1: #090d16;
+      --surface-2: #0f1626;
+      --surface-3: #182238;
+      --border-subtle: #1e293b;
+      --border-focus: #00f0ff;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #00f0ff;
+      --accent-hover: #38bdf8;
+      --accent-muted: rgba(0, 240, 255, 0.15);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --processing: #6366f1;
+      --track-subtitle: #06b6d4;
+      --track-audio: #8b5cf6;
+      --track-video: #3b82f6;
+
+      --preset-font: 'Raleway', -apple-system, BlinkMacSystemFont, sans-serif;
       --preset-weight-light: 300;
       --preset-weight-bold: 600;
     }
 
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
     
     .podcast-sub-text {
       font-family: var(--preset-font);
@@ -874,6 +916,31 @@ header > .absolute.left-1\/2 {
     margin-left: auto;
     margin-right: auto;
   }
+}
+
+/* Responsive Desktop Guidelines (Section M) */
+@media (min-width: 2560px) {
+  #view-editor, #view-home {
+    max-width: 2560px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 1280px) {
+  #player-card {
+    width: 320px !important;
+    min-width: 280px !important;
+  }
+  #inspector-card {
+    width: 320px !important;
+    min-width: 280px !important;
+  }
+}
+
+/* Accessibility Focus Ring (Section F.3 & Phase 9) */
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent, #00f0ff) !important;
+  outline-offset: 1px !important;
 }
 </style>
 
@@ -2253,6 +2320,17 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       <button id="btn-open-settings" type="button" class="hidden"></button>
       <div id="dev-calib-sep" class="hidden"></div>
       <button id="btn-open-calibration" type="button" class="hidden"></button>
+      <div id="modal-settings" class="hidden">
+        <button id="btn-close-settings" type="button"></button>
+        <button id="btn-save-settings" type="button"></button>
+        <button id="btn-load-default" type="button"></button>
+        <input id="chk-dont-show-preset-startup" type="checkbox">
+      </div>
+      <div id="presets-list-container" class="hidden"></div>
+      <input id="new-preset-capcut-size" type="hidden">
+      <input id="new-preset-capcut-wm-size" type="hidden">
+      <input id="new-preset-fs-sub" type="hidden">
+      <input id="new-preset-fs-wm" type="hidden">
     </div>
 
     <!-- Right Controls: Theme, Quality, B&W & Primary Export CTA -->
@@ -4739,6 +4817,362 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
   </div>
 
   <script>
+    /* =========================================================================
+       SUB STUDIO ARCHITECTURAL LAYER (Phases 6 & 7)
+       - Semantic API Client Adapter (Section H & P.2)
+       - Unified State Boundaries & Revision Guard (Section G & P.3)
+       - Undo/Redo Command System with Coalescing (Section L & Phase 7)
+       ========================================================================= */
+
+    // ── H. API CLIENT ADAPTER LAYER ──────────────────────────────────────────
+    window.SubStudioAPI = {
+      async request(endpoint, options = {}) {
+        const correlationId = 'req_' + Math.random().toString(36).substring(2, 9);
+        const headers = options.headers || {};
+        if (options.body && !(options.body instanceof FormData)) {
+          headers['Content-Type'] = 'application/json';
+        }
+        try {
+          const res = await fetch(endpoint, { ...options, headers });
+          if (!res.ok) {
+            let errorDetails = '';
+            try {
+              const errJson = await res.json();
+              errorDetails = errJson.detail || errJson.error || JSON.stringify(errJson);
+            } catch(e) {
+              errorDetails = await res.text();
+            }
+            const err = new Error(`[${res.status}] ${errorDetails || res.statusText}`);
+            err.status = res.status;
+            err.type = res.status >= 400 && res.status < 500 ? 'validation_error' : 'server_error';
+            err.correlationId = correlationId;
+            throw err;
+          }
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            return await res.json();
+          }
+          return res;
+        } catch (err) {
+          if (!err.type) {
+            err.type = 'network_error';
+            err.correlationId = correlationId;
+          }
+          console.error(`[SubStudioAPI] Request failed on ${endpoint}:`, err);
+          throw err;
+        }
+      },
+
+      // Project CRUD
+      async listProjects() { return this.request('/api/projects'); },
+      async getProject(id) { return this.request(`/api/projects?id=${encodeURIComponent(id)}`); },
+      async saveProject(id, payload) {
+        return this.request('/api/projects', {
+          method: 'POST',
+          body: JSON.stringify({ ...payload, id })
+        });
+      },
+      async deleteProject(id) {
+        return this.request('/api/projects', {
+          method: 'DELETE',
+          body: JSON.stringify({ id })
+        });
+      },
+      async duplicateProject(id) {
+        return this.request('/api/projects', {
+          method: 'POST',
+          body: JSON.stringify({ action: 'duplicate', id })
+        });
+      },
+
+      // Media & Processing
+      async uploadMedia(formData) {
+        return this.request('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+      },
+      async transcribe(payload) {
+        return this.request('/api/transcribe', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      },
+      async renderPreview(payload) {
+        return this.request('/api/render', {
+          method: 'POST',
+          body: JSON.stringify({ ...payload, preview_only: true })
+        });
+      },
+      async renderExport(payload) {
+        return this.request('/api/render', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      },
+      async analyzeSilence(payload) {
+        return this.request('/api/analyze_silences', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      },
+      async generateWaveform(payload) {
+        return this.request('/api/waveform', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      },
+
+      // Fonts & Presets
+      async getFonts() { return this.request('/api/fonts'); },
+      async uploadFont(formData) {
+        return this.request('/api/upload_font', {
+          method: 'POST',
+          body: formData
+        });
+      },
+      async getPresets() { return this.request('/api/presets'); },
+      async savePreset(payload) {
+        return this.request('/api/presets', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      },
+      async deletePreset(id) {
+        return this.request('/api/delete_preset', {
+          method: 'POST',
+          body: JSON.stringify({ id })
+        });
+      },
+
+      // AI & Audio
+      async diarize(payload) {
+        return this.request('/api/diarize', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      },
+      async cutSpeaker(payload) {
+        return this.request('/api/cut_speaker', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      },
+      async translateChunks(payload) {
+        return this.request('/api/translate_chunks', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      },
+      async uploadBgm(formData) {
+        return this.request('/api/upload_bgm', {
+          method: 'POST',
+          body: formData
+        });
+      },
+      async batchZip(payload) {
+        return this.request('/api/batch_zip', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      },
+      async getBootstrapStatus() { return this.request('/api/bootstrap/status'); },
+      async repairBootstrap() { return this.request('/api/bootstrap/repair', { method: 'POST' }); }
+    };
+
+    // ── G. STATE BOUNDARIES & REVISION GUARD ─────────────────────────────────
+    window.SubStudioState = {
+      project: {
+        id: null,
+        name: '',
+        type: 'subtitles',
+        media: null,
+        revision: 0,
+        isDirty: false,
+        saveState: 'saved',
+        lastSavedAt: null
+      },
+      sequence: {
+        duration: 0,
+        originalDuration: 0,
+        compactedDuration: 0,
+        chunks: [],
+        clips: [],
+        intervals: []
+      },
+      selection: {
+        targetType: null,
+        targetId: null,
+        wordId: null,
+        styleTarget: null
+      },
+      playback: {
+        currentTime: 0,
+        playing: false,
+        rate: 1.0,
+        previewMode: 'live'
+      },
+      timeline: {
+        zoom: 1.0,
+        scrollX: 0,
+        snap: true,
+        playhead: 0
+      },
+      processing: {
+        activeJobId: null,
+        jobs: new Map()
+      },
+      ui: {
+        activeWorkspace: 'editor',
+        activeInspectorTab: 'text',
+        dialogs: {}
+      },
+
+      setDirty(dirty = true) {
+        this.project.isDirty = dirty;
+        if (dirty) {
+          this.project.revision++;
+          this.project.saveState = 'dirty';
+        }
+        this.updateHeaderStatus();
+      },
+
+      updateHeaderStatus() {
+        const dot = document.getElementById("header-project-status-dot");
+        const text = document.getElementById("header-project-status-text");
+        const badge = document.getElementById("autosave-badge");
+        const badgeText = document.getElementById("autosave-text");
+
+        if (this.project.saveState === 'saving') {
+          if (dot) dot.className = "project-status-dot bg-amber-400 animate-pulse";
+          if (text) text.textContent = "Salvataggio...";
+          if (badge) {
+            badge.classList.remove("hidden");
+            badge.className = "text-[10px] items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20";
+            if (badgeText) badgeText.textContent = "Salvataggio...";
+          }
+        } else if (this.project.saveState === 'dirty' || this.project.isDirty) {
+          if (dot) dot.className = "project-status-dot bg-cyan-400";
+          if (text) text.textContent = "Modificato";
+        } else if (this.project.saveState === 'error') {
+          if (dot) dot.className = "project-status-dot bg-rose-400";
+          if (text) text.textContent = "Errore salvataggio";
+          if (badge) {
+            badge.classList.remove("hidden");
+            badge.className = "text-[10px] items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20";
+            if (badgeText) badgeText.textContent = "Errore salvataggio";
+          }
+        } else {
+          if (dot) dot.className = "project-status-dot bg-emerald-400";
+          if (text) text.textContent = "Sincronizzato";
+          if (badge) {
+            badge.className = "text-[10px] items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            if (badgeText) badgeText.textContent = "Autosalvato";
+          }
+        }
+      },
+
+      isStaleResult(jobRevision) {
+        return (jobRevision !== undefined && jobRevision < this.project.revision);
+      }
+    };
+
+    // ── L. UNDO / REDO COMMAND SYSTEM ────────────────────────────────────────
+    window.SubStudioCommands = {
+      undoStack: [],
+      redoStack: [],
+      maxHistory: 50,
+      lastCommandTime: 0,
+      lastCommandType: null,
+
+      execute(cmd) {
+        if (!cmd || typeof cmd.execute !== 'function') return;
+
+        const now = Date.now();
+        const canCoalesce = cmd.canCoalesce && 
+          this.undoStack.length > 0 && 
+          this.lastCommandType === cmd.type && 
+          (now - this.lastCommandTime < 500) &&
+          this.undoStack[this.undoStack.length - 1].targetId === cmd.targetId;
+
+        if (canCoalesce) {
+          this.undoStack[this.undoStack.length - 1].after = cmd.after;
+          cmd.execute();
+        } else {
+          cmd.execute();
+          this.undoStack.push(cmd);
+          if (this.undoStack.length > this.maxHistory) this.undoStack.shift();
+          this.redoStack = [];
+        }
+
+        this.lastCommandTime = now;
+        this.lastCommandType = cmd.type;
+        window.SubStudioState.setDirty(true);
+        this.updateButtons();
+        if (typeof triggerAutosave === 'function') triggerAutosave();
+      },
+
+      undo() {
+        if (this.undoStack.length === 0) return false;
+        const cmd = this.undoStack.pop();
+        if (typeof cmd.undo === 'function') cmd.undo();
+        this.redoStack.push(cmd);
+        window.SubStudioState.setDirty(true);
+        this.updateButtons();
+        if (typeof triggerAutosave === 'function') triggerAutosave();
+        return true;
+      },
+
+      redo() {
+        if (this.redoStack.length === 0) return false;
+        const cmd = this.redoStack.pop();
+        if (typeof cmd.redo === 'function') cmd.redo();
+        else if (typeof cmd.execute === 'function') cmd.execute();
+        this.undoStack.push(cmd);
+        window.SubStudioState.setDirty(true);
+        this.updateButtons();
+        if (typeof triggerAutosave === 'function') triggerAutosave();
+        return true;
+      },
+
+      canUndo() { return this.undoStack.length > 0; },
+      canRedo() { return this.redoStack.length > 0; },
+
+      clear() {
+        this.undoStack = [];
+        this.redoStack = [];
+        this.updateButtons();
+      },
+
+      updateButtons() {
+        const canU = this.canUndo();
+        const canR = this.canRedo();
+
+        const btnUndo = document.getElementById("btn-undo");
+        const btnRedo = document.getElementById("btn-redo");
+        const btnTopUndo = document.getElementById("btn-top-undo");
+        const btnTopRedo = document.getElementById("btn-top-redo");
+        const btnTlUndo = document.getElementById("btn-tl-undo");
+        const btnTlRedo = document.getElementById("btn-tl-redo");
+
+        if (btnUndo) btnUndo.disabled = !canU;
+        if (btnRedo) btnRedo.disabled = !canR;
+        if (btnTlUndo) btnTlUndo.disabled = !canU;
+        if (btnTlRedo) btnTlRedo.disabled = !canR;
+
+        if (btnTopUndo) {
+          btnTopUndo.disabled = !canU;
+          btnTopUndo.classList.toggle("opacity-30", !canU);
+          btnTopUndo.classList.toggle("cursor-not-allowed", !canU);
+        }
+        if (btnTopRedo) {
+          btnTopRedo.disabled = !canR;
+          btnTopRedo.classList.toggle("opacity-30", !canR);
+          btnTopRedo.classList.toggle("cursor-not-allowed", !canR);
+        }
+      }
+    };
+
     // App State
     let currentVideoPath = "";
     let currentChunks = [];
@@ -5253,16 +5687,33 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
       return { weight: 400, style: "normal" };
     }
 
+    const BUNDLED_OFFLINE_FONTS = new Set(["inter", "montserrat", "poppins", "roboto", "playfair display", "bebas neue", "raleway", "alata", "mona sans"]);
+
     function loadGoogleFontForPreview(family) {
       if (!family || loadedGoogleFontFamilies.has(family)) return;
-      const fontDef = getFontDefinition(family);
-      if (fontDef && fontDef.source !== "google") return;
-
       loadedGoogleFontFamilies.add(family);
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:ital,wght@0,100..900;1,100..900&display=swap`;
-      document.head.appendChild(link);
+
+      const fLower = family.toLowerCase().trim();
+      if (!BUNDLED_OFFLINE_FONTS.has(fLower)) return;
+
+      const safeFam = family.replace(/\s+/g, '_');
+      const fontDef = getFontDefinition(family);
+      if (fontDef && fontDef.variants && window.FontFace) {
+        fontDef.variants.forEach(v => {
+          const w = v.weight || 400;
+          const isItalic = v.style === 'italic';
+          const filename = `${safeFam}_${w}${isItalic ? '_italic' : ''}.ttf`;
+          try {
+            const fontFace = new FontFace(family, `url('/fonts/google/${filename}')`, {
+              weight: String(w),
+              style: isItalic ? 'italic' : 'normal'
+            });
+            fontFace.load().then(loaded => {
+              document.fonts.add(loaded);
+            }).catch(() => {});
+          } catch(e) {}
+        });
+      }
     }
 
     function populateFontSelect(selectEl, selectedValue) {
@@ -7596,6 +8047,15 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     }
 
     function undo() {
+      if (window.currentProjectType === "video_only") {
+        undoVideo();
+        return;
+      }
+      if (window.SubStudioCommands && window.SubStudioCommands.canUndo()) {
+        window.SubStudioCommands.undo();
+        updateUndoRedoButtons();
+        return;
+      }
       if (undoStack.length === 0) return;
       redoStack.push(getFullEditorSnapshot());
       const prev = undoStack.pop();
@@ -7605,6 +8065,15 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     }
 
     function redo() {
+      if (window.currentProjectType === "video_only") {
+        redoVideo();
+        return;
+      }
+      if (window.SubStudioCommands && window.SubStudioCommands.canRedo()) {
+        window.SubStudioCommands.redo();
+        updateUndoRedoButtons();
+        return;
+      }
       if (redoStack.length === 0) return;
       undoStack.push(getFullEditorSnapshot());
       const next = redoStack.pop();
@@ -7614,16 +8083,39 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     }
 
     function updateUndoRedoButtons() {
-      if (btnUndo) btnUndo.disabled = (undoStack.length === 0);
-      if (btnRedo) btnRedo.disabled = (redoStack.length === 0);
+      const hasU = (window.SubStudioCommands && window.SubStudioCommands.canUndo()) || undoStack.length > 0;
+      const hasR = (window.SubStudioCommands && window.SubStudioCommands.canRedo()) || redoStack.length > 0;
+
+      if (btnUndo) btnUndo.disabled = !hasU;
+      if (btnRedo) btnRedo.disabled = !hasR;
       const btnTlUndo = document.getElementById("btn-tl-undo");
       const btnTlRedo = document.getElementById("btn-tl-redo");
-      if (btnTlUndo) btnTlUndo.disabled = (undoStack.length === 0);
-      if (btnTlRedo) btnTlRedo.disabled = (redoStack.length === 0);
+      if (btnTlUndo) btnTlUndo.disabled = !hasU;
+      if (btnTlRedo) btnTlRedo.disabled = !hasR;
+
+      const btnTopUndo = document.getElementById("btn-top-undo");
+      const btnTopRedo = document.getElementById("btn-top-redo");
+      if (btnTopUndo) {
+        btnTopUndo.disabled = !hasU;
+        btnTopUndo.classList.toggle("opacity-30", !hasU);
+        btnTopUndo.classList.toggle("cursor-not-allowed", !hasU);
+      }
+      if (btnTopRedo) {
+        btnTopRedo.disabled = !hasR;
+        btnTopRedo.classList.toggle("opacity-30", !hasR);
+        btnTopRedo.classList.toggle("cursor-not-allowed", !hasR);
+      }
     }
 
     if (btnUndo) btnUndo.onclick = () => undo();
     if (btnRedo) btnRedo.onclick = () => redo();
+    const btnTopUndo = document.getElementById("btn-top-undo");
+    const btnTopRedo = document.getElementById("btn-top-redo");
+    const btnTopSave = document.getElementById("btn-top-save");
+    if (btnTopUndo) btnTopUndo.onclick = () => undo();
+    if (btnTopRedo) btnTopRedo.onclick = () => redo();
+    if (btnTopSave) btnTopSave.onclick = () => saveProjectAutosave();
+
     const btnTlUndo = document.getElementById("btn-tl-undo");
     const btnTlRedo = document.getElementById("btn-tl-redo");
     if (btnTlUndo) {
@@ -7640,11 +8132,28 @@ html[data-theme="light"] #modal-batch #btn-batch-clear {
     }
     if (btnExportSrt) btnExportSrt.onclick = () => exportSrt();
 
-    // Scorciatoia Cmd+S / Ctrl+S per salvataggio manuale istantaneo
+    // Scorciatoie Tastiera: Cmd+Z (Undo), Cmd+Shift+Z / Cmd+Y (Redo), Cmd+S (Salva)
     window.addEventListener("keydown", (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+      if (!isCmdOrCtrl) return;
+
+      const key = e.key.toLowerCase();
+      if (key === "s") {
         e.preventDefault();
         saveProjectAutosave();
+      } else if (key === "z") {
+        const isInputFocused = ["input", "textarea"].includes(document.activeElement?.tagName?.toLowerCase());
+        if (!isInputFocused) {
+          e.preventDefault();
+          if (e.shiftKey) redo();
+          else undo();
+        }
+      } else if (key === "y") {
+        const isInputFocused = ["input", "textarea"].includes(document.activeElement?.tagName?.toLowerCase());
+        if (!isInputFocused) {
+          e.preventDefault();
+          redo();
+        }
       }
     });
 
